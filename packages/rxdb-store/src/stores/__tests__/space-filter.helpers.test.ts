@@ -10,6 +10,7 @@ import {
   hydrateFilteredEntities,
   mergeHybridPhaseResults,
   prepareFiltersWithDefaults,
+  type HybridSearchRecord,
 } from "../space-filter.helpers";
 
 describe("space-filter.helpers", () => {
@@ -18,7 +19,7 @@ describe("space-filter.helpers", () => {
   });
 
   function createSupabaseQueryMock() {
-    const calls: Array<[string, ...any[]]> = [];
+    const calls: Array<[string, ...unknown[]]> = [];
     const query = {
       or(condition: string) {
         calls.push(["or", condition]);
@@ -28,11 +29,11 @@ describe("space-filter.helpers", () => {
         calls.push(["ilike", column, pattern]);
         return query;
       },
-      not(column: string, operator: string, value: any) {
+      not(column: string, operator: string, value: unknown) {
         calls.push(["not", column, operator, value]);
         return query;
       },
-      eq(column: string, value: any) {
+      eq(column: string, value: unknown) {
         calls.push(["eq", column, value]);
         return query;
       },
@@ -62,9 +63,9 @@ describe("space-filter.helpers", () => {
   }
 
   function createExecutableSupabaseClientMock(
-    responses: Array<{ data?: any[] | null; error?: any }>,
+    responses: Array<{ data?: HybridSearchRecord[] | null; error?: unknown }>,
   ) {
-    const calls: Array<[number, string, ...any[]]> = [];
+    const calls: Array<[number, string, ...unknown[]]> = [];
     let responseIndex = 0;
 
     return {
@@ -84,11 +85,11 @@ describe("space-filter.helpers", () => {
               calls.push([queryIndex, "ilike", column, pattern]);
               return query;
             },
-            not(column: string, operator: string, value: any) {
+            not(column: string, operator: string, value: unknown) {
               calls.push([queryIndex, "not", column, operator, value]);
               return query;
             },
-            eq(column: string, value: any) {
+            eq(column: string, value: unknown) {
               calls.push([queryIndex, "eq", column, value]);
               return query;
             },
@@ -134,7 +135,7 @@ describe("space-filter.helpers", () => {
         return;
       }
 
-      delete (globalThis.navigator as Record<string, unknown>).onLine;
+      delete (globalThis.navigator as unknown as Record<string, unknown>).onLine;
     };
   }
 
@@ -353,14 +354,14 @@ describe("space-filter.helpers", () => {
 
   it("hydrates filtered entities with mixed cached, missing, and stale records", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    const upserted: any[] = [];
-    let lastSelector: Record<string, any> | undefined;
+    const upserted: unknown[] = [];
+    let lastSelector: Record<string, unknown> | undefined;
     const cachedRecords = [
       { id: "a", updated_at: "2024-01-01", label: "cached-a" },
       { id: "b", updated_at: "2024-01-01", label: "cached-b-old" },
     ];
     const collection = {
-      find(options: { selector: Record<string, any> }) {
+      find(options: { selector: Record<string, unknown> }) {
         lastSelector = options.selector;
         return {
           exec: async () =>
@@ -370,7 +371,7 @@ describe("space-filter.helpers", () => {
             })),
         };
       },
-      async bulkUpsert(records: any[]) {
+      async bulkUpsert(records: unknown[]) {
         upserted.push(...records);
       },
     };
@@ -540,7 +541,7 @@ describe("space-filter.helpers", () => {
           ],
         };
       },
-      async bulkUpsert(records: any[]) {
+      async bulkUpsert(records: unknown[]) {
         return records;
       },
     };
@@ -590,14 +591,14 @@ describe("space-filter.helpers", () => {
   });
 
   it("omits record cache mapper when hydrateFilteredEntities is called without one", async () => {
-    const upserted: any[] = [];
+    const upserted: unknown[] = [];
     const collection = {
       find() {
         return {
           exec: async () => [],
         };
       },
-      async bulkUpsert(records: any[]) {
+      async bulkUpsert(records: unknown[]) {
         upserted.push(...records);
       },
     };

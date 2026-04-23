@@ -1,5 +1,10 @@
 import { addFieldPrefix } from "../utils/field-normalization";
 import * as F from "../utils/filter-builder";
+import type {
+  FilterBuilderFieldConfig,
+  FilterOperator,
+  RxDBSelectorLike,
+} from "../utils/filter-builder";
 import { isNetworkError } from "../helpers";
 import {
   analyzeCachedIdsByUpdatedAt,
@@ -14,11 +19,74 @@ import {
   parseKeysetCursor,
   type KeysetOrderBy,
 } from "./space-keyset.helpers";
+import type {
+  FieldConfig,
+  SpaceFilterField,
+  SpaceFilterFieldConfig,
+} from "./space-config.helpers";
+
+export type FilterScalar = string | number | boolean | null;
+export type FilterValue =
+  | FilterScalar
+  | FilterScalar[]
+  | Record<string, unknown>
+  | unknown[]
+  | undefined;
+export type FilterMap = Record<string, unknown>;
+
+export interface FilterFieldConfigBag extends FilterBuilderFieldConfig {
+  fieldType?: string;
+  operator?: string;
+  [key: string]: unknown;
+}
+
+export type ReusedFilterFieldConfig =
+  | FieldConfig
+  | SpaceFilterField
+  | SpaceFilterFieldConfig
+  | FilterFieldConfigBag;
+
+export type FilterFieldConfigMap = Record<string, unknown>;
+
+export interface SupabaseQueryResult<TRecord> {
+  data?: TRecord[] | null;
+  error?: unknown;
+}
+
+export interface SupabaseExecutableQuery<TRecord extends Record<string, unknown>>
+  extends SupabaseQueryResult<TRecord> {
+  or(condition: string): SupabaseExecutableQuery<TRecord>;
+  ilike(column: string, pattern: string): SupabaseExecutableQuery<TRecord>;
+  not(
+    column: string,
+    operator: string,
+    value: unknown,
+  ): SupabaseExecutableQuery<TRecord>;
+  eq(column: string, value: unknown): SupabaseExecutableQuery<TRecord>;
+  order(
+    column: string,
+    options: { ascending: boolean; nullsFirst: boolean },
+  ): SupabaseExecutableQuery<TRecord>;
+  limit(limit: number): SupabaseExecutableQuery<TRecord>;
+}
+
+interface SupabaseSelectSource<TQuery> {
+  select(columns: string): TQuery;
+}
+
+interface SupabaseClientForQuery<TQuery> {
+  from(sourceName: string): SupabaseSelectSource<TQuery>;
+}
+
+export interface HydratableEntityRecord extends Record<string, unknown> {
+  id: string;
+  updated_at?: string;
+}
 
 export interface ResolvedFieldFilter {
-  fieldConfig: any;
+  fieldConfig: FilterFieldConfigBag;
   fieldType: string;
-  operator: string;
+  operator: FilterOperator;
 }
 
 interface FilterResolutionOptions {
@@ -35,26 +103,27 @@ interface FilterApplicationOptions extends FilterResolutionOptions {
 }
 
 export interface PreparedFiltersWithDefaults {
-  filters: Record<string, any>;
-  fieldConfigs: Record<string, any>;
+  filters: FilterMap;
+  fieldConfigs: FilterFieldConfigMap;
 }
 
 export interface HybridSearchPlan {
-  searchValue: any;
+  searchValue: unknown;
   orSearchFields: string[];
   isOrSearch: boolean;
-  otherFilters: Record<string, any>;
+  otherFilters: FilterMap;
   startsWithLimit: number;
 }
 
 export type HybridSearchPhase = "starts_with" | "contains";
 
-export interface HybridSearchRecord {
+export interface HybridSearchRecord extends Record<string, unknown> {
   id: string;
-  [key: string]: any;
 }
 
-export interface OfflineFilterFlowResult<TRecord = any> {
+export interface OfflineFilterFlowResult<
+  TRecord extends Record<string, unknown> = Record<string, unknown>,
+> {
   records: TRecord[];
   total: number;
   hasMore: boolean;
@@ -62,26 +131,28 @@ export interface OfflineFilterFlowResult<TRecord = any> {
   offline: true;
 }
 
-export interface OfflineFilterQueryResult<TRecord = any> {
+export interface OfflineFilterQueryResult<
+  TRecord extends Record<string, unknown> = Record<string, unknown>,
+> {
   records: TRecord[];
   hasMore: boolean;
   nextCursor: string | null;
 }
 
 export interface HydrateFilteredEntitiesCollection<
-  TRecord,
-  TCachedRecord = any,
+  TRecord extends HydratableEntityRecord,
+  TCachedRecord = TRecord,
 > extends BulkUpsertCollection<TCachedRecord> {
   find(options: {
-    selector: Record<string, any>;
+    selector: RxDBSelectorLike;
   }): {
     exec(): Promise<Array<{ id: string; toJSON(): unknown }>>;
   };
 }
 
 export interface HydrateFilteredEntitiesOptions<
-  TRecord extends { id: string; updated_at?: string },
-  TCachedRecord = any,
+  TRecord extends HydratableEntityRecord,
+  TCachedRecord = TRecord,
 > {
   ids: string[];
   idsData: Array<{ id: string; updated_at?: string }>;
@@ -93,7 +164,9 @@ export interface HydrateFilteredEntitiesOptions<
   logLabels?: HydrateFilteredEntitiesLogLabels;
 }
 
-export interface HydrateFilteredEntitiesResult<TRecord = any> {
+export interface HydrateFilteredEntitiesResult<
+  TRecord extends Record<string, unknown> = Record<string, unknown>,
+> {
   records: TRecord[];
   total: number;
   hasMore: boolean;
@@ -107,16 +180,16 @@ export interface HydrateFilteredEntitiesLogLabels {
 }
 
 export interface ExecuteOfflineFilterFlowOptions<
-  TSelector = any,
-  TRecord = any,
+  TSelector extends Record<string, unknown> = RxDBSelectorLike,
+  TRecord extends Record<string, unknown> = Record<string, unknown>,
 > {
   entityType: string;
-  filters: Record<string, any>;
-  fieldConfigs: Record<string, any>;
+  filters: FilterMap;
+  fieldConfigs: FilterFieldConfigMap;
   runLocalQuery: () => Promise<OfflineFilterQueryResult<TRecord>>;
   buildCountSelector: (
-    filters: Record<string, any>,
-    fieldConfigs: Record<string, any>,
+    filters: FilterMap,
+    fieldConfigs: FilterFieldConfigMap,
     options: FilterApplicationOptions,
   ) => TSelector;
   countByCollection: (selector: TSelector) => Promise<number>;
@@ -140,23 +213,23 @@ export interface HybridBaseQueryClient<TQuery extends HybridBaseQuery<TQuery>> {
 export interface HybridSearchPhaseQuery<TQuery> {
   or(condition: string): TQuery;
   ilike(column: string, pattern: string): TQuery;
-  not(column: string, operator: string, value: any): TQuery;
+  not(column: string, operator: string, value: unknown): TQuery;
 }
 
 export interface ExecuteHybridSearchOptions {
-  supabase: any;
+  supabase: unknown;
   sourceName: string;
   hybridSearchPlan: HybridSearchPlan;
-  fieldConfigs: Record<string, any>;
+  fieldConfigs: FilterFieldConfigMap;
   limit: number;
   orderBy: KeysetOrderBy;
 }
 
 export interface ExecuteRegularIdFetchOptions {
-  supabase: any;
+  supabase: unknown;
   sourceName: string;
-  filters: Record<string, any>;
-  fieldConfigs: Record<string, any>;
+  filters: FilterMap;
+  fieldConfigs: FilterFieldConfigMap;
   limit: number;
   cursor: string | null;
   orderBy: KeysetOrderBy;
@@ -164,17 +237,23 @@ export interface ExecuteRegularIdFetchOptions {
 
 interface BuildHybridSearchPhaseQueryOptions extends FilterApplicationOptions {
   phase: HybridSearchPhase;
-  fieldConfigs: Record<string, any>;
+  fieldConfigs: FilterFieldConfigMap;
 }
 
-export function hasFilterValue(value: any): boolean {
+function asFilterFieldConfigBag(
+  fieldConfig: unknown,
+): FilterFieldConfigBag | undefined {
+  return fieldConfig as FilterFieldConfigBag | undefined;
+}
+
+export function hasFilterValue(value: unknown): boolean {
   return value !== undefined && value !== null && value !== "";
 }
 
 export function prepareFiltersWithDefaults(
-  filters: Record<string, any>,
-  defaultFilters: Record<string, any> = {},
-  baseFieldConfigs: Record<string, any> = {},
+  filters: FilterMap,
+  defaultFilters: FilterMap = {},
+  baseFieldConfigs: FilterFieldConfigMap = {},
 ): PreparedFiltersWithDefaults {
   const preparedFilters = { ...defaultFilters, ...filters };
   const preparedFieldConfigs = { ...baseFieldConfigs };
@@ -192,17 +271,17 @@ export function prepareFiltersWithDefaults(
 }
 
 export function getActiveFilterEntries(
-  filters: Record<string, any>,
-): Array<[string, any]> {
+  filters: FilterMap,
+): Array<[string, unknown]> {
   return Object.entries(filters).filter(([, value]) => hasFilterValue(value));
 }
 
 export function resolveFieldConfig(
-  fieldConfigs: Record<string, any>,
+  fieldConfigs: FilterFieldConfigMap,
   fieldKey: string,
   entityType?: string,
-): any {
-  const directConfig = fieldConfigs[fieldKey];
+): FilterFieldConfigBag | undefined {
+  const directConfig = asFilterFieldConfigBag(fieldConfigs[fieldKey]);
   if (directConfig) {
     return directConfig;
   }
@@ -212,19 +291,21 @@ export function resolveFieldConfig(
   }
 
   const prefixedKey = addFieldPrefix(fieldKey, entityType);
-  return fieldConfigs[prefixedKey];
+  return asFilterFieldConfigBag(fieldConfigs[prefixedKey]);
 }
 
 export function resolveFieldFilter(
-  fieldConfigs: Record<string, any>,
+  fieldConfigs: FilterFieldConfigMap,
   fieldKey: string,
   options: FilterResolutionOptions = {},
 ): ResolvedFieldFilter {
   const fieldConfig =
     resolveFieldConfig(fieldConfigs, fieldKey, options.entityType) || {};
-  const fieldType = fieldConfig.fieldType || "string";
+  const fieldType =
+    typeof fieldConfig.fieldType === "string" ? fieldConfig.fieldType : "string";
 
-  let configOperator = fieldConfig.operator;
+  let configOperator =
+    typeof fieldConfig.operator === "string" ? fieldConfig.operator : undefined;
   if (
     options.preferStringSearchOperator &&
     (fieldType === "string" || fieldType === "text") &&
@@ -241,10 +322,10 @@ export function resolveFieldFilter(
 }
 
 export function getStringSearchFilters(
-  filters: Record<string, any>,
-  fieldConfigs: Record<string, any>,
+  filters: FilterMap,
+  fieldConfigs: FilterFieldConfigMap,
   options: StringFilterOptions = {},
-): Array<[string, any]> {
+): Array<[string, unknown]> {
   return getActiveFilterEntries(filters).filter(([fieldKey]) => {
     const { fieldType, operator } = resolveFieldFilter(
       fieldConfigs,
@@ -265,8 +346,8 @@ export function getStringSearchFilters(
 }
 
 export function buildHybridSearchPlan(
-  filters: Record<string, any>,
-  fieldConfigs: Record<string, any>,
+  filters: FilterMap,
+  fieldConfigs: FilterFieldConfigMap,
   limit: number,
 ): HybridSearchPlan | null {
   const searchFilters = getStringSearchFilters(filters, fieldConfigs, {
@@ -392,9 +473,14 @@ export async function executeHybridSearch(
     );
   }
 
-  let startsWithQuery: any = buildHybridSearchPhaseQuery(
+  const supabaseClient =
+    options.supabase as SupabaseClientForQuery<
+      SupabaseExecutableQuery<HybridSearchRecord>
+    >;
+
+  let startsWithQuery = buildHybridSearchPhaseQuery(
     buildHybridBaseQuery(
-      options.supabase,
+      supabaseClient,
       options.sourceName,
       hybridSelectFields,
     ),
@@ -425,9 +511,9 @@ export async function executeHybridSearch(
 
   const remainingLimit = options.limit - startsWithResults.length;
   if (remainingLimit > 0) {
-    let containsQuery: any = buildHybridSearchPhaseQuery(
+    let containsQuery = buildHybridSearchPhaseQuery(
       buildHybridBaseQuery(
-        options.supabase,
+        supabaseClient,
         options.sourceName,
         hybridSelectFields,
       ),
@@ -476,8 +562,12 @@ export async function executeRegularIdFetch(
   const selectFields = getSelectFieldsForOrderBy(options.orderBy, {
     includeUpdatedAt: true,
   });
+  const supabaseClient =
+    options.supabase as SupabaseClientForQuery<
+      SupabaseExecutableQuery<HybridSearchRecord>
+    >;
 
-  let query = options.supabase
+  let query = supabaseClient
     .from(options.sourceName)
     .select(selectFields);
 
@@ -512,9 +602,9 @@ export async function executeRegularIdFetch(
 }
 
 export function applyFiltersToRxdbSelector(
-  selector: any,
-  filters: Record<string, any>,
-  fieldConfigs: Record<string, any>,
+  selector: RxDBSelectorLike,
+  filters: FilterMap,
+  fieldConfigs: FilterFieldConfigMap,
   options: FilterApplicationOptions = {},
 ): void {
   const skipped = new Set(options.skipKeys || []);
@@ -535,11 +625,11 @@ export function applyFiltersToRxdbSelector(
 }
 
 export function buildRxdbCountSelector(
-  filters: Record<string, any>,
-  fieldConfigs: Record<string, any>,
+  filters: FilterMap,
+  fieldConfigs: FilterFieldConfigMap,
   options: FilterApplicationOptions = {},
-): Record<string, any> {
-  const selector: Record<string, any> = { _deleted: false };
+): RxDBSelectorLike {
+  const selector: RxDBSelectorLike = { _deleted: false };
 
   applyFiltersToRxdbSelector(selector, filters, fieldConfigs, options);
 
@@ -547,8 +637,8 @@ export function buildRxdbCountSelector(
 }
 
 export async function hydrateFilteredEntities<
-  TRecord extends { id: string; updated_at?: string },
-  TCachedRecord = any,
+  TRecord extends HydratableEntityRecord,
+  TCachedRecord = TRecord,
 >(
   options: HydrateFilteredEntitiesOptions<TRecord, TCachedRecord>,
 ): Promise<HydrateFilteredEntitiesResult<TRecord>> {
@@ -614,8 +704,8 @@ export async function hydrateFilteredEntities<
 }
 
 export async function executeOfflineFilterFlow<
-  TSelector = any,
-  TRecord = any,
+  TSelector extends Record<string, unknown> = RxDBSelectorLike,
+  TRecord extends Record<string, unknown> = Record<string, unknown>,
 >(
   options: ExecuteOfflineFilterFlowOptions<TSelector, TRecord>,
 ): Promise<OfflineFilterFlowResult<TRecord>> {
@@ -662,8 +752,8 @@ export async function executeOfflineFilterFlow<
 
 export function applyFiltersToSupabaseQuery<TQuery>(
   query: TQuery,
-  filters: Record<string, any>,
-  fieldConfigs: Record<string, any>,
+  filters: FilterMap,
+  fieldConfigs: FilterFieldConfigMap,
   options: FilterApplicationOptions = {},
 ): TQuery {
   const skipped = new Set(options.skipKeys || []);
