@@ -762,7 +762,7 @@ class SpaceStore {
    */
   private readonly dependencyMap: Record<string, [string, string, string][]> = {
     pet: [
-      ['pet_child', 'pet_id', 'Children'],
+      ['pet_child', 'parent_id', 'Children'],
       ['title_in_pet', 'pet_id', 'Titles'],
       ['pet_in_program', 'pet_id', 'Show results'],
       ['pet_service_in_pet', 'pet_id', 'Services'],
@@ -1884,7 +1884,9 @@ class SpaceStore {
     mappingTable: string,
     parentField: string,
     parentId: string,
-    partitionField?: string,
+    entityIdField: string,
+    entityPartitionField?: string,
+    offlineScanPredicate?: (record: BusinessEntity) => boolean,
   ): Promise<BusinessEntity[]> {
     await this.ensureCollection(entityTable);
     const collection = this.db?.collections[entityTable];
@@ -1893,29 +1895,39 @@ class SpaceStore {
     const selectFields = buildSupabaseSelectFromRxDBSchema(
       collection?.schema?.jsonSchema,
     );
+    // Entity partition column mirrors the mapping-row partition column
+    // (e.g., pet_in_litter.pet_breed_id → pet.breed_id). Mapping convention is
+    // `{entity}_{partition}_id`; strip the `{entity}_` prefix to get the entity column.
+    const entityPrefix = `${entityTable}_`;
+    const entityPartitionColumn =
+      entityPartitionField?.startsWith(entityPrefix)
+        ? entityPartitionField.slice(entityPrefix.length)
+        : entityPartitionField;
 
     return loadEntitiesViaMappingFlow<BusinessEntity, Record<string, unknown>>({
       entityTable,
       mappingTable,
       parentField,
       parentId,
-      partitionField,
+      entityIdField,
+      entityPartitionField,
       cacheKey,
       staleMs: STALE_MS,
       mappingCache: this.mappingCache,
       collection,
       isOffline: isOffline(),
       loadMappingRows: async () => {
-        const selectFields = getMappingSelectFields(partitionField);
+        const mappingSelect = getMappingSelectFields(entityIdField, entityPartitionField);
         const { data } = await supabase
           .from(mappingTable)
-          .select(selectFields)
+          .select(mappingSelect)
           .eq(parentField, parentId);
         return data as MappingRow[] | null | undefined;
       },
       fetchRecords: (rows) =>
         fetchRecordsByMappingRows(rows, {
-          partitionField,
+          entityIdField,
+          entityPartitionField,
           fetchAll: async (ids) => {
             const { data } = await supabase
               .from(entityTable)
@@ -1926,14 +1938,13 @@ class SpaceStore {
           fetchPartition: async (partitionValue, ids) => {
             const { data } = await supabase.from(entityTable)
               .select(selectFields)
-              .eq(partitionField!, partitionValue)
+              .eq(entityPartitionColumn!, partitionValue)
               .in('id', ids);
             return (data || []) as unknown as BusinessEntity[];
           },
         }),
       mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityTable),
-      offlineScanPredicate: (record) =>
-        record.father_id === parentId || record.mother_id === parentId,
+      offlineScanPredicate: offlineScanPredicate ?? (() => false),
     });
   }
 

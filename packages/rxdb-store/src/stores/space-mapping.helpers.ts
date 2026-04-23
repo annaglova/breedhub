@@ -32,7 +32,10 @@ export interface LoadEntitiesViaMappingOptions<
   mappingTable: string;
   parentField: string;
   parentId: string;
-  partitionField?: string;
+  /** Column in mapping row holding the target entity id (e.g., 'pet_id') */
+  entityIdField: string;
+  /** Column in mapping row holding the target entity partition (e.g., 'pet_breed_id') */
+  entityPartitionField?: string;
   cacheKey: string;
   staleMs: number;
   mappingCache: Map<string, MappingRow[]>;
@@ -76,8 +79,13 @@ export function buildMappingCacheKey(
   return `${mappingTable}:${parentField}:${parentId}`;
 }
 
-export function getMappingSelectFields(partitionField?: string): string {
-  return partitionField ? `id, ${partitionField}` : "id";
+export function getMappingSelectFields(
+  entityIdField: string,
+  entityPartitionField?: string,
+): string {
+  return entityPartitionField
+    ? `${entityIdField}, ${entityPartitionField}`
+    : entityIdField;
 }
 
 export function hasStaleMappedRecords(
@@ -97,13 +105,15 @@ export function splitCachedAndMissingMappingRows<TRecord extends { cachedAt?: nu
   mappingRows: MappingRow[],
   cachedMap: Map<string, TRecord>,
   staleMs: number,
+  entityIdField: string,
   now = Date.now(),
 ): MappingSplitResult<TRecord> {
   const cached: TRecord[] = [];
   const missing: MappingRow[] = [];
 
   for (const row of mappingRows) {
-    const record = cachedMap.get(row.id);
+    const entityId = row[entityIdField];
+    const record = entityId ? cachedMap.get(entityId) : undefined;
 
     if (record && now - (record.cachedAt || 0) < staleMs) {
       cached.push(record);
@@ -126,22 +136,24 @@ export function orderMappedRecordsByIds<TRecord extends { id: string }>(
 
 export function groupMappingRowsByPartition(
   rows: MappingRow[],
-  partitionField?: string,
+  entityIdField: string,
+  entityPartitionField?: string,
 ): Map<string, string[]> {
   const groups = new Map<string, string[]>();
-  if (!partitionField) {
+  if (!entityPartitionField) {
     return groups;
   }
 
   for (const row of rows) {
-    const partitionValue = row[partitionField];
-    if (!partitionValue) continue;
+    const partitionValue = row[entityPartitionField];
+    const entityId = row[entityIdField];
+    if (!partitionValue || !entityId) continue;
 
     if (!groups.has(partitionValue)) {
       groups.set(partitionValue, []);
     }
 
-    groups.get(partitionValue)!.push(row.id);
+    groups.get(partitionValue)!.push(entityId);
   }
 
   return groups;
@@ -150,16 +162,23 @@ export function groupMappingRowsByPartition(
 export async function fetchRecordsByMappingRows<TRecord>(
   rows: MappingRow[],
   options: {
-    partitionField?: string;
+    entityIdField: string;
+    entityPartitionField?: string;
     fetchAll: (ids: string[]) => Promise<TRecord[]>;
     fetchPartition: (partitionValue: string, ids: string[]) => Promise<TRecord[]>;
   },
 ): Promise<TRecord[]> {
-  if (!options.partitionField) {
-    return options.fetchAll(rows.map((row) => row.id));
+  if (!options.entityPartitionField) {
+    return options.fetchAll(
+      rows.map((row) => row[options.entityIdField]).filter(Boolean) as string[],
+    );
   }
 
-  const groups = groupMappingRowsByPartition(rows, options.partitionField);
+  const groups = groupMappingRowsByPartition(
+    rows,
+    options.entityIdField,
+    options.entityPartitionField,
+  );
   const results: TRecord[] = [];
 
   for (const [partitionValue, ids] of groups) {
@@ -198,7 +217,7 @@ export async function probeDependentRecords(
 
           if (!found && table === "pet_child") {
             const cached = options.mappingCache.get(
-              buildMappingCacheKey(table, "pet_id", options.id),
+              buildMappingCacheKey(table, "parent_id", options.id),
             );
 
             if (cached && cached.length > 0) {
@@ -237,9 +256,13 @@ export async function loadEntitiesViaMappingFlow<
 >(
   options: LoadEntitiesViaMappingOptions<TRecord, TCachedRecord>,
 ): Promise<TRecord[]> {
+  const entityIdField = options.entityIdField;
+  const extractIds = (rows: MappingRow[]): string[] =>
+    rows.map((row) => row[entityIdField]).filter(Boolean) as string[];
+
   const cachedMapping = options.mappingCache.get(options.cacheKey);
   if (cachedMapping && cachedMapping.length > 0 && options.collection) {
-    const ids = cachedMapping.map((row) => row.id);
+    const ids = extractIds(cachedMapping);
     const docs = await options.collection.findByIds(ids).exec();
 
     if (docs.size > 0) {
@@ -285,13 +308,14 @@ export async function loadEntitiesViaMappingFlow<
   }
 
   const cachedDocs = await options.collection
-    .findByIds(safeMappingRows.map((row) => row.id))
+    .findByIds(extractIds(safeMappingRows))
     .exec();
   const cachedMap = docMapToRecordMap<TRecord>(cachedDocs);
   const { cached, missing } = splitCachedAndMissingMappingRows(
     safeMappingRows,
     cachedMap,
     options.staleMs,
+    entityIdField,
   );
 
   if (missing.length === 0) {
@@ -305,7 +329,7 @@ export async function loadEntitiesViaMappingFlow<
       mapRecordForCache: options.mapRecordForCache,
     });
 
-    const allIds = safeMappingRows.map((row) => row.id);
+    const allIds = extractIds(safeMappingRows);
     const allDocs = await options.collection.findByIds(allIds).exec();
     return orderMappedRecordsByIds<TRecord>(allIds, docMapToRecordMap<TRecord>(allDocs));
   } catch {

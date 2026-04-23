@@ -147,11 +147,11 @@ describe("space-mapping.helpers", () => {
   });
 
   it("builds stable cache keys and select fields", () => {
-    expect(buildMappingCacheKey("pet_child", "pet_id", "123")).toBe(
-      "pet_child:pet_id:123",
+    expect(buildMappingCacheKey("pet_child", "parent_id", "123")).toBe(
+      "pet_child:parent_id:123",
     );
-    expect(getMappingSelectFields()).toBe("id");
-    expect(getMappingSelectFields("breed_id")).toBe("id, breed_id");
+    expect(getMappingSelectFields("pet_id")).toBe("pet_id");
+    expect(getMappingSelectFields("pet_id", "pet_breed_id")).toBe("pet_id, pet_breed_id");
   });
 
   it("splits cached and missing mapping rows by staleness", () => {
@@ -161,7 +161,7 @@ describe("space-mapping.helpers", () => {
       ["b", { id: "b", cachedAt: 200 }],
     ]);
 
-    const result = splitCachedAndMissingMappingRows(rows, cachedMap, 100, 1000);
+    const result = splitCachedAndMissingMappingRows(rows, cachedMap, 100, "id", 1000);
 
     expect(result.cached).toEqual([{ id: "a", cachedAt: 950 }]);
     expect(result.missing).toEqual([{ id: "b" }, { id: "c" }]);
@@ -175,6 +175,7 @@ describe("space-mapping.helpers", () => {
         { id: "c", breed_id: "y" },
         { id: "d" },
       ],
+      "id",
       "breed_id",
     );
 
@@ -214,14 +215,17 @@ describe("space-mapping.helpers", () => {
   });
 
   it("fetches mapping records through unpartitioned and partitioned callbacks", async () => {
-    const fetchAll = async (ids: string[]) => ids.map((id) => ({ id, source: "all" }));
-    const fetchPartition = async (partitionValue: string, ids: string[]) =>
+    type FetchResult = { id: string; source?: string; partitionValue?: string };
+    const fetchAll = async (ids: string[]): Promise<FetchResult[]> =>
+      ids.map((id) => ({ id, source: "all" }));
+    const fetchPartition = async (partitionValue: string, ids: string[]): Promise<FetchResult[]> =>
       ids.map((id) => ({ id, partitionValue }));
 
     await expect(
-      fetchRecordsByMappingRows(
+      fetchRecordsByMappingRows<FetchResult>(
         [{ id: "a" }, { id: "b" }],
         {
+          entityIdField: "id",
           fetchAll,
           fetchPartition,
         },
@@ -232,7 +236,7 @@ describe("space-mapping.helpers", () => {
     ]);
 
     await expect(
-      fetchRecordsByMappingRows(
+      fetchRecordsByMappingRows<FetchResult>(
         [
           { id: "a", breed_id: "x" },
           { id: "b", breed_id: "x" },
@@ -240,7 +244,8 @@ describe("space-mapping.helpers", () => {
           { id: "d" },
         ],
         {
-          partitionField: "breed_id",
+          entityIdField: "id",
+          entityPartitionField: "breed_id",
           fetchAll,
           fetchPartition,
         },
@@ -253,16 +258,18 @@ describe("space-mapping.helpers", () => {
   });
 
   it("refreshes mapping cache and caches fetched records", async () => {
+    type Fresh = { id: string; value: string };
+    type Cached = { id: string; cached: true };
     const mappingCache = new Map();
-    const upserted: Array<{ id: string; cached: true }> = [];
+    const upserted: Cached[] = [];
 
-    await refreshMappingCache({
+    await refreshMappingCache<Fresh, Cached>({
       loadMappingRows: async () => [{ id: "a" }, { id: "b" }],
       cacheKey: "map:parent:1",
       mappingCache,
       fetchRecords: async (rows) =>
         rows.map((row) => ({
-          id: row.id,
+          id: row.id as string,
           value: `fresh-${row.id}`,
         })),
       collection: {
@@ -298,8 +305,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache,
@@ -335,8 +343,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 100,
       mappingCache,
@@ -374,8 +383,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 100,
       mappingCache,
@@ -406,8 +416,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache,
@@ -432,8 +443,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache: new Map(),
@@ -449,17 +461,19 @@ describe("space-mapping.helpers", () => {
   });
 
   it("scans RxDB and filters with the offline predicate when no cached mapping exists offline", async () => {
+    type PetLike = { id: string; cachedAt?: number; father_id?: string; mother_id?: string };
     const { collection, calls } = createMappingCollection([
       { id: "a", father_id: "parent-1" },
       { id: "b", mother_id: "parent-1" },
       { id: "c", father_id: "other" },
     ]);
 
-    const result = await loadEntitiesViaMappingFlow({
+    const result = await loadEntitiesViaMappingFlow<PetLike>({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache: new Map(),
@@ -481,8 +495,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache: new Map(),
@@ -505,8 +520,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache,
@@ -525,18 +541,20 @@ describe("space-mapping.helpers", () => {
   });
 
   it("returns cached records when Step 4 finds nothing missing", async () => {
+    type Named = { id: string; cachedAt: number; name: string };
     const now = Date.now();
     const { collection } = createMappingCollection([
       { id: "a", cachedAt: now, name: "A" },
       { id: "b", cachedAt: now, name: "B" },
     ]);
-    const fetchRecords = vi.fn(async () => []);
+    const fetchRecords = vi.fn(async (): Promise<Named[]> => []);
 
-    const result = await loadEntitiesViaMappingFlow({
+    const result = await loadEntitiesViaMappingFlow<Named>({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache: new Map(),
@@ -563,8 +581,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache: new Map(),
@@ -594,8 +613,9 @@ describe("space-mapping.helpers", () => {
     const result = await loadEntitiesViaMappingFlow({
       entityTable: "pet",
       mappingTable: "pet_child",
-      parentField: "pet_id",
+      parentField: "parent_id",
       parentId: "parent-1",
+      entityIdField: "id",
       cacheKey: "map:parent:1",
       staleMs: 5 * 60 * 1000,
       mappingCache: new Map(),
@@ -646,7 +666,7 @@ describe("space-mapping.helpers", () => {
       pet_child: { docs: [] },
     });
     const mappingCache = new Map([
-      [buildMappingCacheKey("pet_child", "pet_id", "pet-1"), [{ id: "c-1" }]],
+      [buildMappingCacheKey("pet_child", "parent_id", "pet-1"), [{ id: "c-1" }]],
     ]);
     const mappingGetSpy = vi.spyOn(mappingCache, "get");
     const { client, calls: supabaseCalls } = createDependencySupabaseMock({});
@@ -669,7 +689,7 @@ describe("space-mapping.helpers", () => {
     ).resolves.toEqual([{ label: "Children", count: 1 }]);
 
     expect(mappingGetSpy).toHaveBeenCalledWith(
-      buildMappingCacheKey("pet_child", "pet_id", "pet-1"),
+      buildMappingCacheKey("pet_child", "parent_id", "pet-1"),
     );
     expect(supabaseCalls).toEqual([]);
   });

@@ -39,14 +39,20 @@ export interface ChildTableConfig {
 /**
  * Mapping table configuration for entity_child fast-path loading.
  * Used when entity rows are reached through a separate mapping table.
+ *
+ * Convention: mapping table columns reference the target entity as
+ * `{entity}_id` + optional `{entity}_breed_id` (child mapping standard).
+ * Caller must specify both names explicitly — no hardcoded fallbacks.
  */
 export interface ReadFromConfig {
-  /** Mapping table name (e.g., 'pet_child') */
+  /** Mapping table name (e.g., 'pet_child', 'pet_in_litter') */
   table: string;
-  /** Field in mapping table that points to parent entity */
+  /** Field in mapping table that points to parent entity (e.g., 'parent_id', 'litter_id') */
   parentField: string;
-  /** Optional partition field for mapped entity fetches */
-  partitionField?: string;
+  /** Column in mapping row holding the target entity id (e.g., 'pet_id') */
+  entityIdField: string;
+  /** Column in mapping row holding the target entity partition value (e.g., 'pet_breed_id') */
+  entityPartitionField?: string;
 }
 
 /**

@@ -1,7 +1,7 @@
 import { DynamicForm } from "@/components/edit/DynamicForm";
 import { FormDialog } from "@/components/edit/FormDialog";
 import { spaceStore, dictionaryStore, syncQueueService } from "@breedhub/rxdb-store";
-import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import type { DataSourceConfig, ReadFromConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditFieldConfig } from "@/types/field-config";
@@ -19,6 +19,8 @@ interface EditChildRecordDialogProps {
   // Entity child support (entity_child dataSource type)
   isEntityChild?: boolean;
   dataSources?: DataSourceConfig[];
+  /** Mapping table config for optimistic cache insert after create */
+  readFrom?: ReadFromConfig;
   parentEntity?: Record<string, any> | null;
   readOnly?: boolean;
 }
@@ -84,6 +86,7 @@ export function EditChildRecordDialog({
   onSaved,
   isEntityChild,
   dataSources,
+  readFrom,
   parentEntity,
   readOnly,
 }: EditChildRecordDialogProps) {
@@ -160,15 +163,21 @@ export function EditChildRecordDialog({
 
     const result = await withCrudToast(operation, { label: fullLabel, verb });
     if (result.ok) {
-      if (isEntityChild && !isEditMode && (result as any).data?.id) {
+      if (isEntityChild && !isEditMode && (result as any).data?.id && readFrom) {
         // Optimistic: add to mapping cache so refetch finds record from RxDB immediately
-        const readFrom = dataSources?.[0]?.childTable;
-        if (readFrom) {
-          spaceStore.addToMappingCache(
-            'pet_child', 'pet_id', parentId,
-            { id: (result as any).data.id, breed_id: formChanges.breed_id },
-          );
+        const newEntityId = (result as any).data.id;
+        const mappingRow: Record<string, any> = {
+          [readFrom.entityIdField]: newEntityId,
+        };
+        if (readFrom.entityPartitionField) {
+          mappingRow[readFrom.entityPartitionField] = formChanges.breed_id;
         }
+        spaceStore.addToMappingCache(
+          readFrom.table,
+          readFrom.parentField,
+          parentId,
+          mappingRow,
+        );
         // Background: sync to Supabase → server trigger creates real mapping
         syncQueueService.processNow();
       }

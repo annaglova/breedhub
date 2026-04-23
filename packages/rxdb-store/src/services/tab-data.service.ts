@@ -492,7 +492,8 @@ class TabDataService {
         readFrom.table,
         readFrom.parentField,
         parentId,
-        readFrom.partitionField,
+        readFrom.entityIdField,
+        readFrom.entityPartitionField,
       );
       return this.asRecords<TabDataRecord>(records);
     }
@@ -536,7 +537,8 @@ class TabDataService {
     const readFrom = dataSource.readFrom;
     if (readFrom) {
       const records = this.asRecords<TabDataRecord>(await spaceStore.loadEntitiesViaMapping(
-        config.table, readFrom.table, readFrom.parentField, parentId, readFrom.partitionField,
+        config.table, readFrom.table, readFrom.parentField, parentId,
+        readFrom.entityIdField, readFrom.entityPartitionField,
       ));
       return { records, total: records.length, hasMore: false, nextCursor: null };
     }
