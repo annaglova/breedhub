@@ -262,11 +262,31 @@ export function AppRouter() {
 
         {/* App routes (inside AppLayout) */}
         <Route path="/" element={<AppLayout />}>
-          <Route element={<AuthGuard><Outlet /></AuthGuard>}>
-            {/* Default redirect to first space */}
-            <Route index element={<Navigate to={`/${defaultSlug}`} replace />} />
+          {/* ─── PUBLIC routes ─────────────────────────────────────────── */}
 
-            {/* Workspace redirects - redirect /my to /my/notes etc. */}
+          {/* Default redirect to first (public) space */}
+          <Route index element={<Navigate to={`/${defaultSlug}`} replace />} />
+
+          {/* Public space routes from root workspace ('/') — e.g. /pets, /breeds, /kennels.
+              Non-root workspace spaces (e.g. /my/notes) are mounted below AuthGuard. */}
+          {spaceConfigs
+            .filter((space) => space.workspacePath === '/')
+            .map((space) => (
+              <Route
+                key={`${space.workspaceId}-${space.id}`}
+                path={`${space.path}/*`}
+                element={<SpacePage entityType={space.entitySchemaName} />}
+              />
+            ))}
+
+          {/* Public pretty URLs — /affenpinscher → single entity view */}
+          <Route path=":slug" element={<SlugResolver />} />
+          <Route path=":slug/:tabSlug" element={<TabPageResolver />} />
+
+          {/* ─── AUTH-GUARDED routes ───────────────────────────────────── */}
+          <Route element={<AuthGuard><Outlet /></AuthGuard>}>
+            {/* Workspace redirects - redirect /my to /my/notes etc.
+                All redirects are for non-root workspaces (see useSpaceRoutes). */}
             {workspaceRedirects.map((redirect) => (
               <Route
                 key={`redirect-${redirect.from}`}
@@ -275,14 +295,16 @@ export function AppRouter() {
               />
             ))}
 
-            {/* Dynamic space routes from app_config */}
-            {spaceConfigs.map((space) => (
-              <Route
-                key={`${space.workspaceId}-${space.id}`}
-                path={`${space.path}/*`}
-                element={<SpacePage entityType={space.entitySchemaName} />}
-              />
-            ))}
+            {/* User-scoped space routes (non-root workspaces, e.g. /my/notes) */}
+            {spaceConfigs
+              .filter((space) => space.workspacePath !== '/')
+              .map((space) => (
+                <Route
+                  key={`${space.workspaceId}-${space.id}`}
+                  path={`${space.path}/*`}
+                  element={<SpacePage entityType={space.entitySchemaName} />}
+                />
+              ))}
 
             {/* Dynamic page routes from workspace config (tool pages) */}
             {pageRoutes.map((page) => {
@@ -339,13 +361,6 @@ export function AppRouter() {
             {/* Resolves /my-pet-name/edit → edit page fullscreen */}
             <Route path=":slug/edit" element={<EditPageResolver />} />
           </Route>
-
-          {/* Public pretty URLs stay open for public pages */}
-          {/* Resolves /affenpinscher → /breeds/:id with fullscreen state */}
-          <Route path=":slug" element={<SlugResolver />} />
-
-          {/* Resolves /affenpinscher/achievements → single tab view */}
-          <Route path=":slug/:tabSlug" element={<TabPageResolver />} />
         </Route>
       </Routes>
     </BrowserRouter>
