@@ -1,8 +1,8 @@
 import { signal, computed } from '@preact/signals-react';
 import type { ReadonlySignal } from '@preact/signals-react';
-import { getDatabase } from '../services/database.service';
+import { getDatabase, type AppDatabase } from '../services/database.service';
 import { Subscription } from 'rxjs';
-import { RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
+import { RxCollection, RxDocument } from 'rxdb';
 import { EntityStore } from './base/entity-store';
 import { appStore } from './app-store.signal-store';
 import { entityReplicationService } from '../services/entity-replication.service';
@@ -13,6 +13,10 @@ import {
   buildUiSpaceConfig,
   getDefaultViewFromConfig,
   type EntitySchemaConfig,
+  type PartitionConfig,
+  type SpaceFilterField,
+  type SpaceMainFilterField,
+  type SpaceMainFilterFieldsResult,
   getFilterFieldsFromConfig,
   getSupabaseSource,
   getMainFilterFieldFromConfig,
@@ -44,6 +48,12 @@ import {
   hasFilterValue,
   prepareFiltersWithDefaults,
   resolveFieldFilter,
+  type FilterFieldConfigMap,
+  type FilterMap,
+  type HydratableEntityRecord,
+  type HydrateFilteredEntitiesResult,
+  type HybridSearchRecord,
+  type SupabaseExecutableQuery,
 } from './space-filter.helpers';
 import {
   buildCompositeNextCursor,
@@ -73,6 +83,10 @@ import {
   queryLocalChildRecords,
   queueChildMutationRefresh,
   toChildPageResult,
+  type ChildCacheRecord,
+  type ChildPageResult,
+  type ChildSourceRow,
+  type LoadChildViewPageResult,
 } from './space-child.helpers';
 import {
   buildMappingCacheKey,
@@ -124,6 +138,7 @@ import {
   findDocumentDataById,
   mapSupabaseToRxDBDoc,
 } from '../utils/rxdb-document.helpers';
+import type { RxDBSelectorLike } from '../utils/filter-builder';
 import * as CC from '../utils/child-collection-registry';
 import { generateSchemaForEntity as buildSchema } from '../utils/schema-builder';
 import { rebuildTimelineOnDateChange } from '../utils/timeline-builder';
@@ -131,14 +146,29 @@ import { generateSlug } from '../utils/slug-generator';
 import { buildEntityPayload, buildChildPayload, getOnConflict } from '../utils/sync-queue.helpers';
 import { syncQueueService } from '../services/sync-queue.service';
 import { checkSchemaVersion } from '../utils/schema-version-check';
+import type { BusinessEntity } from '../types/business-entity.types';
 
-// Universal entity interface for all business entities
-interface BusinessEntity {
-  id: string;
-  created_at?: string;
-  updated_at?: string;
-  _deleted?: boolean;
-  [key: string]: any;
+type StoreCollection<TRecord extends Record<string, unknown> = BusinessEntity> =
+  RxCollection<TRecord>;
+
+type SpaceDatabase = AppDatabase & {
+  collections: AppDatabase['collections'] & Record<string, StoreCollection>;
+};
+
+type EntityStoreWithCollection<T extends BusinessEntity> = EntityStore<T> & {
+  collection?: StoreCollection<T>;
+};
+
+type SupabaseSelectClient<TRecord extends Record<string, unknown>> = {
+  from(sourceName: string): {
+    select(columns: string): SupabaseExecutableQuery<TRecord>;
+  };
+};
+
+function getSupabaseSelectClient<
+  TRecord extends Record<string, unknown>,
+>(): SupabaseSelectClient<TRecord> {
+  return supabase as unknown as SupabaseSelectClient<TRecord>;
 }
 
 // OrderBy configuration with tie-breaker support
@@ -160,7 +190,7 @@ export type PedigreeResult = HelperPedigreeResult<BusinessEntity>;
 /**
  * SpaceStore - Universal dynamic store for ALL business entities
  * 
- * This store dynamically creates and manages entity stores for any business entity type
+ * This store dynamically creates and manages entity stores for every business entity type
  * based on configurations. It creates RxDB collections on-the-fly and provides
  * a unified interface for all CRUD operations.
  * 
@@ -184,7 +214,7 @@ class SpaceStore {
   private appStore = appStore;
   
   // Database reference
-  public db: any = null;
+  public db: SpaceDatabase | null = null;
   
   // Dynamic entity stores - one EntityStore per entity type
   private entityStores = new Map<string, EntityStore<BusinessEntity>>();
@@ -199,7 +229,7 @@ class SpaceStore {
   private entitySchemas = new Map<string, EntitySchemaConfig>();
 
   // Child collections - lazy created on-demand
-  private childCollections = new Map<string, RxCollection<any>>();
+  private childCollections = new Map<string, StoreCollection<ChildCacheRecord>>();
 
   // Cleanup interval reference
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
@@ -289,7 +319,7 @@ class SpaceStore {
       if (reloading) return;
 
       // Get database instance from AppStore
-      this.db = await getDatabase();
+      this.db = await getDatabase() as unknown as SpaceDatabase;
 
       // Initialize sync queue service (V3 push)
       await syncQueueService.initialize(this.db);
@@ -393,46 +423,12 @@ class SpaceStore {
    * Filter fields from space.filter_fields, excluding mainFilterField entries
    * (those belong to search bar, not the filter modal).
    */
-  getFilterFields(entityType: string, viewType?: string): Array<{
-    id: string;
-    displayName: string;
-    component: string;
-    placeholder?: string;
-    fieldType: string;
-    required?: boolean;
-    operator?: string;
-    slug?: string;
-    value?: any;
-    validation?: any;
-    order: number;
-    referencedTable?: string;
-    referencedFieldID?: string;
-    referencedFieldName?: string;
-    dataSource?: 'dictionary' | 'collection';
-    // Filter behavior props
-    dependsOn?: string;
-    disabledUntil?: string;
-    filterBy?: string;
-    // Junction table filtering (many-to-many)
-    junctionTable?: string;
-    junctionField?: string;
-    junctionFilterField?: string;
-    // OR fields (single filter applies to multiple DB fields)
-    orFields?: string[];
-  }> {
+  getFilterFields(entityType: string, viewType?: string): SpaceFilterField[] {
     return getFilterFieldsFromConfig(this.resolveSpaceConfig(entityType), entityType);
   }
 
   /** Main filter field for the search bar (excluded from filter modal). */
-  getMainFilterField(entityType: string): {
-    id: string;
-    displayName: string;
-    component: string;
-    placeholder?: string;
-    fieldType: string;
-    operator?: string;
-    slug?: string;
-  } | null {
+  getMainFilterField(entityType: string): SpaceMainFilterField | null {
     return getMainFilterFieldFromConfig(this.resolveSpaceConfig(entityType));
   }
 
@@ -440,19 +436,7 @@ class SpaceStore {
    * All main filter fields (when multiple mainFilterField: true entries exist,
    * e.g. litter: father_name + mother_name) — searched with OR logic.
    */
-  getMainFilterFields(entityType: string): {
-    fields: Array<{
-      id: string;
-      displayName: string;
-      component: string;
-      placeholder?: string;
-      fieldType: string;
-      operator?: string;
-      slug?: string;
-    }>;
-    /** Shared slug for URL when multiple mainFilterFields (e.g., "parent" for father_name + mother_name) */
-    searchSlug?: string;
-  } {
+  getMainFilterFields(entityType: string): SpaceMainFilterFieldsResult {
     return getMainFilterFieldsFromConfig(this.resolveSpaceConfig(entityType));
   }
 
@@ -499,7 +483,7 @@ class SpaceStore {
       entityStore.setLoading(true);
 
       // ⚡ INSTANT: Load totalFromServer from localStorage cache synchronously
-      // This happens BEFORE any async operations (config wait, collection creation, replication)
+      // This happens BEFORE async operations (config wait, collection creation, replication)
       entityStore.initTotalFromCache(entityType);
 
       // Store it
@@ -560,7 +544,7 @@ class SpaceStore {
         [entityType]: buildEntityCollectionConfig(schema),
       });
       console.log(`[SpaceStore] Created collection ${entityType}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // DB6 = schema mismatch — cached IndexedDB has old schema, config has new one.
       // Auto-clear and reload (same as checkSchemaVersion flow).
       if (isCollectionSchemaMismatchError(error)) {
@@ -596,7 +580,9 @@ class SpaceStore {
     await this.ensureCollection(entityType);
 
     // Get collection
-    let collection = this.db.collections[entityType] as RxCollection<T> | undefined;
+    let collection = this.db.collections[entityType] as unknown as
+      | StoreCollection<T>
+      | undefined;
 
     if (!collection) {
       console.error(`[SpaceStore] Failed to get/create collection ${entityType}`);
@@ -615,7 +601,7 @@ class SpaceStore {
       entityStore.setLoading(false);
       
       // Store collection reference
-      (entityStore as any).collection = collection;
+      (entityStore as EntityStoreWithCollection<T>).collection = collection;
       
       // Unsubscribe previous subscription if exists
       const existingSubscription = this.entitySubscriptions.get(entityType);
@@ -654,7 +640,7 @@ class SpaceStore {
       const id = crypto.randomUUID();
       const userId = userStore.currentUserId.value;
       // Generate slug client-side (same algorithm as server trigger)
-      const slug = generateSlug((data as any).name || '', id);
+      const slug = generateSlug(data.name || '', id);
 
       const newEntity = {
         ...data,
@@ -674,7 +660,7 @@ class SpaceStore {
       const partitionKey = entitySchema?.partition?.keyField;
       await syncQueueService.enqueueEntity(
         entityType, id, 'upsert',
-        buildEntityPayload(newEntity as Record<string, any>),
+        buildEntityPayload(newEntity),
         getOnConflict(entityType, partitionKey)
       );
 
@@ -709,7 +695,7 @@ class SpaceStore {
         throw new Error(`${entityType} ${id} not found`);
       }
 
-      const patchData: Record<string, any> = {
+      const patchData: Record<string, unknown> = {
         ...updates,
         updated_at: new Date().toISOString(),
         ...(userStore.currentUserId.value && { updated_by: userStore.currentUserId.value }),
@@ -717,11 +703,22 @@ class SpaceStore {
 
       // If date_of_birth or date_of_death changed, rebuild timeline locally
       if ('date_of_birth' in updates || 'date_of_death' in updates) {
-        const currentData = doc.toJSON();
-        patchData.timeline = rebuildTimelineOnDateChange(
-          currentData.timeline || [],
-          updates.date_of_birth ?? currentData.date_of_birth,
-          (updates as any).date_of_death ?? currentData.date_of_death,
+        const currentData = doc.toJSON() as Record<string, unknown>;
+        const currentTimeline = Array.isArray(currentData.timeline)
+          ? currentData.timeline as Parameters<typeof rebuildTimelineOnDateChange>[0]
+          : [];
+        const dateOfBirth =
+          typeof patchData.date_of_birth === 'string' || patchData.date_of_birth === null
+            ? patchData.date_of_birth
+            : currentData.date_of_birth;
+        const dateOfDeath =
+          typeof patchData.date_of_death === 'string' || patchData.date_of_death === null
+            ? patchData.date_of_death
+            : currentData.date_of_death;
+        patchData['timeline'] = rebuildTimelineOnDateChange(
+          currentTimeline,
+          typeof dateOfBirth === 'string' || dateOfBirth === null ? dateOfBirth : undefined,
+          typeof dateOfDeath === 'string' || dateOfDeath === null ? dateOfDeath : undefined,
         );
       }
 
@@ -928,7 +925,7 @@ class SpaceStore {
     entityType: string,
   ): Promise<{
     entityStore: EntityStore<T>;
-    collection: RxCollection<T>;
+    collection: StoreCollection<T>;
   } | null> {
     const entityStore = await this.getEntityStore<T>(entityType);
 
@@ -937,7 +934,7 @@ class SpaceStore {
       return null;
     }
 
-    const collection = (entityStore as any).collection as RxCollection<T> | undefined;
+    const collection = (entityStore as EntityStoreWithCollection<T>).collection;
 
     if (!collection) {
       console.error(`[SpaceStore] Collection for ${entityType} not available`);
@@ -964,14 +961,14 @@ class SpaceStore {
    */
   async applyFilters(
     entityType: string,
-    filters: Record<string, any>,
+    filters: FilterMap,
     options?: {
       limit?: number;
       cursor?: string | null;  // ✅ Cursor for IDs query (keyset pagination)
       orderBy?: OrderBy;  // ✅ Use OrderBy interface with tieBreaker support
-      fieldConfigs?: Record<string, any>;
+      fieldConfigs?: FilterFieldConfigMap;
     }
-  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+  ): Promise<HydrateFilteredEntitiesResult<BusinessEntity>> {
     const limit = options?.limit || 30;
     const cursor = options?.cursor ?? null;
     const orderBy: OrderBy = options?.orderBy || {
@@ -1010,7 +1007,7 @@ class SpaceStore {
           logMissingCollection: !!this.db,
         }),
       buildCountSelector: buildRxdbCountSelector,
-      countByCollection: async (selector: any) => {
+      countByCollection: async (selector: RxDBSelectorLike) => {
         if (!this.db) {
           throw new Error('Database not initialized');
         }
@@ -1027,7 +1024,8 @@ class SpaceStore {
 
     // 📴 PREVENTIVE OFFLINE CHECK: Skip Supabase if browser is offline
     if (isOffline()) {
-      return executeOfflineFilterFlow(offlineFlowBase);
+      return await executeOfflineFilterFlow(offlineFlowBase) as unknown as
+        HydrateFilteredEntitiesResult<BusinessEntity>;
     }
 
     try {
@@ -1148,12 +1146,12 @@ class SpaceStore {
       if (!isNetworkError(error)) {
         console.error('[SpaceStore] applyFilters error:', error);
       }
-      return executeOfflineFilterFlow({
+      return await executeOfflineFilterFlow({
         ...offlineFlowBase,
         logPrefix: 'Offline mode',
         catchLogPrefix: 'Offline fallback also failed:',
         countSelectorExtraOptions: { preferStringSearchOperator: true },
-      });
+      }) as unknown as HydrateFilteredEntitiesResult<BusinessEntity>;
     }
   }
 
@@ -1168,12 +1166,12 @@ class SpaceStore {
    */
   private async fetchIDsFromSupabase(
     entityType: string,
-    filters: Record<string, any>,
-    fieldConfigs: Record<string, any>,
+    filters: FilterMap,
+    fieldConfigs: FilterFieldConfigMap,
     limit: number,
     cursor: string | null,
     orderBy: OrderBy
-  ): Promise<Array<{ id: string; [key: string]: any }>> {
+  ): Promise<HydratableEntityRecord[]> {
     console.log(`[SpaceStore] 🆔 Fetching IDs for ${entityType}...`);
     const sourceName = getSupabaseSource(entityType);
 
@@ -1183,16 +1181,16 @@ class SpaceStore {
         ? buildHybridSearchPlan(filters, fieldConfigs, limit)
         : null;
     if (hybridSearchPlan) {
-      return executeHybridSearch({
+      return await executeHybridSearch({
         supabase,
         sourceName,
         hybridSearchPlan,
         fieldConfigs,
         limit,
         orderBy,
-      });
+      }) as HydratableEntityRecord[];
     }
-    return executeRegularIdFetch({
+    return await executeRegularIdFetch({
       supabase,
       sourceName,
       filters,
@@ -1200,14 +1198,14 @@ class SpaceStore {
       limit,
       cursor,
       orderBy,
-    });
+    }) as HydratableEntityRecord[];
   }
 
   /** 🌐 Phase 3: fetch full records for ids not cached in RxDB. */
   private async fetchRecordsByIDs(
     entityType: string,
     ids: string[]
-  ): Promise<any[]> {
+  ): Promise<BusinessEntity[]> {
     if (ids.length === 0) {
       return [];
     }
@@ -1231,7 +1229,7 @@ class SpaceStore {
 
     console.log(`[SpaceStore] ✅ Fetched ${data?.length || 0} full records (~${Math.round((data?.length || 0) * 1)}KB)`);
 
-    return data || [];
+    return (data || []) as unknown as BusinessEntity[];
   }
 
   /**
@@ -1241,7 +1239,7 @@ class SpaceStore {
     entityType: string,
     refs: PartitionedEntityRef[],
     partitionField?: string,
-  ): Promise<any[]> {
+  ): Promise<BusinessEntity[]> {
     const normalizedRefs = normalizePartitionedEntityRefs(refs);
     if (normalizedRefs.length === 0) {
       return [];
@@ -1264,12 +1262,12 @@ class SpaceStore {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as unknown as BusinessEntity[];
     }
 
     const { partitionedIds, unpartitionedIds } =
       groupPartitionedEntityRefs(normalizedRefs);
-    const results: any[] = [];
+    const results: BusinessEntity[] = [];
 
     if (unpartitionedIds.length > 0) {
       const { data, error } = await supabase
@@ -1284,7 +1282,7 @@ class SpaceStore {
       }
 
       if (data) {
-        results.push(...data);
+        results.push(...data as unknown as BusinessEntity[]);
       }
     }
 
@@ -1302,7 +1300,7 @@ class SpaceStore {
       }
 
       if (data) {
-        results.push(...data);
+        results.push(...data as unknown as BusinessEntity[]);
       }
     }
 
@@ -1310,14 +1308,20 @@ class SpaceStore {
   }
 
   /** Map Supabase record to RxDB shape via the collection's jsonSchema. */
-  public mapToRxDBFormat(supabaseDoc: any, entityType: string): any {
+  public mapToRxDBFormat(
+    supabaseDoc: Record<string, unknown>,
+    entityType: string,
+  ): Record<string, unknown> {
     const collection = this.db?.collections[entityType];
     if (!collection) {
       console.warn(`[SpaceStore] Collection ${entityType} not found for mapping`);
       return supabaseDoc;
     }
 
-    return mapSupabaseToRxDBDoc(supabaseDoc, collection.schema.jsonSchema);
+    return mapSupabaseToRxDBDoc(
+      supabaseDoc,
+      collection.schema.jsonSchema,
+    ) as Record<string, unknown>;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1363,7 +1367,11 @@ class SpaceStore {
   }
 
   /** Load entity from RxDB and add to entityStore (for selection outside paginated list). */
-  private async loadEntityFromRxDB(entityType: string, id: string, entityStore: EntityStore<any>): Promise<void> {
+  private async loadEntityFromRxDB(
+    entityType: string,
+    id: string,
+    entityStore: EntityStore<BusinessEntity>,
+  ): Promise<void> {
     if (!this.db) {
       console.warn('[SpaceStore] Database not initialized');
       return;
@@ -1376,7 +1384,7 @@ class SpaceStore {
     }
 
     try {
-      const entity = await this.findCachedEntityById(entityType, id);
+      const entity = await this.findCachedEntityById<BusinessEntity>(entityType, id);
       if (entity) {
         console.log(`[SpaceStore] Loaded entity ${id} from RxDB, adding to store`);
         entityStore.addOne(entity);
@@ -1517,16 +1525,19 @@ class SpaceStore {
         return null;
       }
 
-      await this.cacheFetchedEntity(entityType, data);
+      await this.cacheFetchedEntity(
+        entityType,
+        data as unknown as Record<string, unknown>,
+      );
 
-      return data as T;
+      return data as unknown as T;
     } catch (err) {
       console.error(`[SpaceStore] Error fetching by id from Supabase:`, err);
       return null;
     }
   }
 
-  private async findCachedEntityBySlug<T = any>(
+  private async findCachedEntityBySlug<T = unknown>(
     entityType: string,
     slug: string,
   ): Promise<T | null> {
@@ -1545,7 +1556,7 @@ class SpaceStore {
     }
   }
 
-  private async findCachedEntityById<T = any>(
+  private async findCachedEntityById<T = unknown>(
     entityType: string,
     id: string,
   ): Promise<T | null> {
@@ -1555,7 +1566,10 @@ class SpaceStore {
     }
 
     try {
-      return await findDocumentDataById(collection, id);
+      return await findDocumentDataById<T>(
+        collection as unknown as RxCollection<T>,
+        id,
+      );
     } catch (err) {
       console.warn(`[SpaceStore] Error querying RxDB by id:`, err);
       return null;
@@ -1564,7 +1578,7 @@ class SpaceStore {
 
   private async cacheFetchedEntity(
     entityType: string,
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ): Promise<void> {
     const collectionName = entityType.toLowerCase();
     const collection = this.db?.collections[collectionName];
@@ -1608,7 +1622,7 @@ class SpaceStore {
       }
     }
 
-    return loadPartitionedEntitiesByRefs<T>({
+    return loadPartitionedEntitiesByRefs<T, Record<string, unknown>>({
       entityType,
       refs: normalizedRefs,
       partitionField,
@@ -1662,9 +1676,16 @@ class SpaceStore {
    * this.childCollections or this.db.collections). Uses pre-defined child
    * schemas (breed_children, pet_children, kennel_children).
    */
-  async ensureChildCollection(entityType: string): Promise<RxCollection<any> | null> {
+  async ensureChildCollection(
+    entityType: string,
+  ): Promise<StoreCollection<ChildCacheRecord> | null> {
     const collectionName = getChildCollectionName(entityType);
-    const existingCollection = getExistingChildCollection(entityType, { childCollections: this.childCollections, dbCollections: this.db?.collections });
+    const existingCollection = getExistingChildCollection(entityType, {
+      childCollections: this.childCollections,
+      dbCollections: this.db?.collections as
+        | Record<string, StoreCollection<ChildCacheRecord>>
+        | undefined,
+    });
     if (existingCollection) {
       this.childCollections.set(collectionName, existingCollection);
       return existingCollection;
@@ -1693,7 +1714,7 @@ class SpaceStore {
         }
       });
 
-      const collection = collections[collectionName];
+      const collection = collections[collectionName] as StoreCollection<ChildCacheRecord>;
       this.childCollections.set(collectionName, collection);
 
       return collection;
@@ -1713,7 +1734,7 @@ class SpaceStore {
       parentField?: string;
       select?: string[];
     } = {}
-  ): Promise<any[]> {
+  ): Promise<ChildCacheRecord[]> {
     if (!parentId || !tableType) {
       console.warn('[SpaceStore] loadChildRecords: parentId and tableType are required');
       return [];
@@ -1775,7 +1796,7 @@ class SpaceStore {
       fetchChildRecords: async () => {
         const { limit = 50, orderBy, orderDirection = 'asc' } = options;
         const query = applyChildListQueryOptions(
-          (supabase as any)
+          getSupabaseSelectClient<ChildSourceRow>()
             .from(tableType)
             .select(selectFields),
           {
@@ -1789,7 +1810,11 @@ class SpaceStore {
           },
         );
 
-        return await query;
+        const response = await query;
+        return {
+          data: response.data ?? null,
+          error: response.error ?? null,
+        };
       },
     });
   }
@@ -1818,7 +1843,7 @@ class SpaceStore {
   }
 
   // Mapping ID cache: avoids Supabase call on tab switch
-  private mappingCache = new Map<string, any[]>();
+  private mappingCache = new Map<string, MappingRow[]>();
 
   /** Clear mapping ID cache — call after entity_child create/delete to force re-fetch */
   invalidateMappingCache(): void {
@@ -1826,10 +1851,15 @@ class SpaceStore {
   }
 
   /** Optimistically add a record to mapping cache (before server trigger creates it) */
-  addToMappingCache(mappingTable: string, parentField: string, parentId: string, record: { id: string; [key: string]: any }): void {
+  addToMappingCache(
+    mappingTable: string,
+    parentField: string,
+    parentId: string,
+    record: MappingRow,
+  ): void {
     const cacheKey = buildMappingCacheKey(mappingTable, parentField, parentId);
     const existing = this.mappingCache.get(cacheKey) || [];
-    if (!existing.some((r: any) => r.id === record.id)) {
+    if (!existing.some((r) => r.id === record.id)) {
       this.mappingCache.set(cacheKey, [...existing, record]);
     }
   }
@@ -1837,7 +1867,7 @@ class SpaceStore {
   /** Remove a specific record from mapping cache (after entity_child delete) */
   removeFromMappingCache(recordId: string): void {
     for (const [key, entries] of this.mappingCache) {
-      const filtered = entries.filter((r: any) => r.id !== recordId);
+      const filtered = entries.filter((r) => r.id !== recordId);
       if (filtered.length !== entries.length) {
         this.mappingCache.set(key, filtered);
       }
@@ -1855,7 +1885,7 @@ class SpaceStore {
     parentField: string,
     parentId: string,
     partitionField?: string,
-  ): Promise<any[]> {
+  ): Promise<BusinessEntity[]> {
     await this.ensureCollection(entityTable);
     const collection = this.db?.collections[entityTable];
     const cacheKey = buildMappingCacheKey(mappingTable, parentField, parentId);
@@ -1864,7 +1894,7 @@ class SpaceStore {
       collection?.schema?.jsonSchema,
     );
 
-    return loadEntitiesViaMappingFlow({
+    return loadEntitiesViaMappingFlow<BusinessEntity, Record<string, unknown>>({
       entityTable,
       mappingTable,
       parentField,
@@ -1891,18 +1921,18 @@ class SpaceStore {
               .from(entityTable)
               .select(selectFields)
               .in('id', ids);
-            return data || [];
+            return (data || []) as unknown as BusinessEntity[];
           },
           fetchPartition: async (partitionValue, ids) => {
             const { data } = await supabase.from(entityTable)
               .select(selectFields)
               .eq(partitionField!, partitionValue)
               .in('id', ids);
-            return data || [];
+            return (data || []) as unknown as BusinessEntity[];
           },
         }),
       mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityTable),
-      offlineScanPredicate: (record: any) =>
+      offlineScanPredicate: (record) =>
         record.father_id === parentId || record.mother_id === parentId,
     });
   }
@@ -1913,8 +1943,13 @@ class SpaceStore {
     tableType: string,
     parentId: string,
     parentIdField: string,
-    options: any,
-    partitionConfig: any,
+    options: {
+      limit?: number;
+      orderBy?: string;
+      orderDirection?: 'asc' | 'desc';
+      select?: string[];
+    },
+    partitionConfig: PartitionConfig | undefined,
     partitionValue: string | undefined
   ): Promise<void> {
     try {
@@ -1926,7 +1961,7 @@ class SpaceStore {
         orderingFields: orderBy ? [orderBy] : undefined,
       });
       const query = applyChildListQueryOptions(
-        (supabase as any)
+        getSupabaseSelectClient<ChildSourceRow>()
           .from(tableType)
           .select(selectFields),
         {
@@ -1970,7 +2005,7 @@ class SpaceStore {
     parentId: string,
     tableType: string,
     options: { limit?: number; orderBy?: string; orderDirection?: 'asc' | 'desc'; partitionId?: string } = {}
-  ): Promise<any[]> {
+  ): Promise<ChildCacheRecord[]> {
     if (!parentId || !tableType) {
       return [];
     }
@@ -1980,7 +2015,12 @@ class SpaceStore {
       return [];
     }
 
-    const collection = getExistingChildCollection(entityType, { childCollections: this.childCollections, dbCollections: this.db?.collections });
+    const collection = getExistingChildCollection(entityType, {
+      childCollections: this.childCollections,
+      dbCollections: this.db?.collections as
+        | Record<string, StoreCollection<ChildCacheRecord>>
+        | undefined,
+    });
     if (!collection) {
       return [];
     }
@@ -2057,12 +2097,12 @@ class SpaceStore {
     entityType: string,
     tableType: string,
     parentId: string,
-    data: Record<string, any>
+    data: Record<string, unknown>
   ): Promise<{ id: string }> {
     const id = crypto.randomUUID();
 
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
-    const plainData = JSON.parse(JSON.stringify(data));
+    const plainData = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
 
     const now = new Date().toISOString();
     const userId = userStore.currentUserId.value;
@@ -2081,7 +2121,7 @@ class SpaceStore {
     // Insert into RxDB
     const collection = await this.ensureChildCollection(entityType);
     if (collection) {
-      const rxdbRecord: Record<string, any> = {
+      const rxdbRecord: ChildCacheRecord = {
         id,
         tableType: normalizedType,
         parentId,
@@ -2124,10 +2164,10 @@ class SpaceStore {
     entityType: string,
     tableType: string,
     recordId: string,
-    data: Record<string, any>
+    data: Record<string, unknown>
   ): Promise<void> {
     // Sanitize data: ensure plain JSON (no Date objects, Proxy, etc.)
-    const plainData = JSON.parse(JSON.stringify(data));
+    const plainData = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
     const { normalizedType, partitionConfig } = getChildMutationMetadata(this.entitySchemas, entityType, tableType);
 
     // Update RxDB
@@ -2147,7 +2187,7 @@ class SpaceStore {
         });
 
         // Enqueue for Supabase sync (V3 queue-based push)
-        const updatedDoc = patchedDoc.toJSON();
+        const updatedDoc = patchedDoc.toJSON() as ChildCacheRecord;
         await syncQueueService.enqueueChild(
           entityType, normalizedType, recordId, 'upsert',
           buildChildPayload(updatedDoc, entityType, partitionConfig),
@@ -2158,7 +2198,7 @@ class SpaceStore {
         await this.rebuildParentDenormFields(
           entityType,
           normalizedType,
-          updatedDoc.parentId,
+          updatedDoc.parentId!,
           updatedDoc.partitionId,
         );
 
@@ -2168,7 +2208,7 @@ class SpaceStore {
           this.forceRefreshChildRecords.bind(this),
           entityType,
           normalizedType,
-          updatedDoc.parentId,
+          updatedDoc.parentId!,
         );
       }
     }
@@ -2187,7 +2227,7 @@ class SpaceStore {
     if (collection) {
       const doc = await findDocumentById(collection, recordId);
       if (doc) {
-        const docData = doc.toJSON();
+        const docData = doc.toJSON() as ChildCacheRecord;
         await syncQueueService.enqueueChild(
           entityType, normalizedType, recordId, 'delete',
           buildChildPayload(docData, entityType, partitionConfig),
@@ -2200,7 +2240,7 @@ class SpaceStore {
         await this.rebuildParentDenormFields(
           entityType,
           normalizedType,
-          docData.parentId,
+          docData.parentId!,
           docData.partitionId,
         );
       }
@@ -2219,14 +2259,14 @@ class SpaceStore {
   async applyChildFilters(
     parentId: string,
     tableType: string,
-    filters: Record<string, any> = {},
+    filters: FilterMap = {},
     options: {
       limit?: number;
       cursor?: string | null;
       orderBy?: OrderBy;
       select?: string[];
     } = {}
-  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+  ): Promise<ChildPageResult<ChildCacheRecord>> {
     const limit = options.limit || 30;
     const cursor = options.cursor ?? null;
     const orderBy: OrderBy = options.orderBy || getDefaultChildOrderBy();
@@ -2340,13 +2380,13 @@ class SpaceStore {
     parentId: string,
     tableType: string,
     parentIdField: string,
-    filters: Record<string, any>,
+    filters: FilterMap,
     limit: number,
     cursor: string | null,
     orderBy: OrderBy,
     partitionField?: string,
     partitionValue?: string
-  ): Promise<Array<{ id: string; [key: string]: any }>> {
+  ): Promise<HydratableEntityRecord[]> {
     const selectFields = getSelectFieldsForOrderBy(orderBy);
 
     let query = supabase
@@ -2383,7 +2423,7 @@ class SpaceStore {
       throw error;
     }
 
-    return (data || []) as unknown as Array<{ [key: string]: any; id: string }>;
+    return (data || []) as unknown as HydratableEntityRecord[];
   }
 
   /**
@@ -2398,7 +2438,7 @@ class SpaceStore {
     select?: string[],
     partitionField?: string,
     partitionValue?: string
-  ): Promise<any[]> {
+  ): Promise<ChildCacheRecord[]> {
     if (ids.length === 0) return [];
 
     const selectFields = buildChildSelectClause({
@@ -2463,7 +2503,7 @@ class SpaceStore {
       orderBy?: OrderBy;
       select?: string[];
     } = {}
-  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+  ): Promise<LoadChildViewPageResult<ChildSourceRow | ChildCacheRecord>> {
     const limit = options.limit || 30;
     const cursor = options.cursor ?? null;
     const orderBy: OrderBy = options.orderBy || getDefaultChildOrderBy();
@@ -2572,11 +2612,11 @@ class SpaceStore {
   private async loadLocalChildPage(
     parentId: string,
     tableType: string,
-    filters: Record<string, any>,
+    filters: FilterMap,
     limit: number,
     cursor: string | null,
     orderBy: OrderBy,
-  ): Promise<{ records: any[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+  ): Promise<ChildPageResult<ChildCacheRecord>> {
     const entityType = CC.getEntityTypeFromTableType(tableType);
     const localQuery = await filterLocalChildEntities({
       collection: entityType
@@ -2657,7 +2697,7 @@ class SpaceStore {
     if (!this.db) return;
 
     // Build collections list for cleanup
-    const collections: Array<{ collection: RxCollection<any>; name: string }> = [];
+    const collections: Array<{ collection: StoreCollection; name: string }> = [];
 
     // 1. Add entity collections (breed, pet, kennel, etc.)
     for (const entityType of this.availableEntityTypes.value) {
