@@ -158,7 +158,7 @@ export function NameOutlet({
 
       {/* Action buttons - bottom right */}
       {onTop && (
-        <div className="absolute bottom-1 right-4 sm:right-0 flex gap-1">
+        <div className="absolute bottom-2 right-4 sm:right-0 flex gap-1">
           {/* Edit button - only on md+ screens, with extra spacing from action buttons */}
           {showEditButton && (
             <Tooltip>

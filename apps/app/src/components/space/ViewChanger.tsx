@@ -77,7 +77,7 @@ export function ViewChanger({
                     "small-button-icon border border-secondary-600 transition-all",
                     isActive
                       ? "bg-secondary-600 text-white z-10 cursor-default"
-                      : "bg-transparent hover:bg-secondary-600/10 text-secondary-600 cursor-pointer"
+                      : "bg-transparent hover:bg-secondary-600/10 text-secondary-600 hover:text-secondary-600 cursor-pointer"
                   )}
                   aria-label={view.tooltip}
                 >
