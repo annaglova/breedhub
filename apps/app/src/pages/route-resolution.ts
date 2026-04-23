@@ -52,8 +52,6 @@ export async function resolveRouteBySlug(slug: string): Promise<ResolvedRoute | 
     return cached;
   }
 
-  console.log("[route-resolution] Resolving slug:", slug);
-
   if (!routeStore.initialized.value) {
     await routeStore.initialize();
   }
@@ -61,7 +59,6 @@ export async function resolveRouteBySlug(slug: string): Promise<ResolvedRoute | 
   const route = await routeStore.resolveRoute(slug);
 
   if (route) {
-    console.log("[route-resolution] Resolved route:", route);
     resolvedRoutesCache.set(slug, route);
   }
 
