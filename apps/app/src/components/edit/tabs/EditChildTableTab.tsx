@@ -176,13 +176,30 @@ async function enrichRecords(
         const val = r[fk.fieldName] ?? r.additional?.[fk.fieldName];
         if (val) ids.add(val);
       }
-      const resolved = new Map<string, string>();
-      await Promise.all(
-        [...ids].map(async (id) => {
-          const rec = await dictionaryStore.getRecordById(fk.referencedTable, id);
-          if (rec) resolved.set(id, String(rec[fk.referencedFieldName] || rec.name || ''));
-        }),
+      if (ids.size === 0) {
+        lookups.set(fk.fieldName, new Map());
+        return;
+      }
+      // Batch fetch via getDictionary's filterByIds path — one `.in(id, [...])`
+      // query instead of N single-row `.eq(id, X).single()` calls. Single-row
+      // fan-out previously exhausted PostgREST's max_locks_per_transaction on
+      // large child lists (53200 "out of shared memory" errors).
+      const { records: fetched } = await dictionaryStore.getDictionary(
+        fk.referencedTable,
+        {
+          nameField: fk.referencedFieldName,
+          filterByIds: [...ids],
+          limit: ids.size,
+        },
       );
+      const resolved = new Map<string, string>();
+      for (const rec of fetched) {
+        const label =
+          (rec as unknown as Record<string, unknown>)[fk.referencedFieldName] ??
+          rec.name ??
+          '';
+        resolved.set(rec.id, String(label));
+      }
       lookups.set(fk.fieldName, resolved);
     }),
   );
@@ -249,14 +266,26 @@ function useEnrichedRecords(
           }
 
           const resolved = new Map<string, string>();
-          await Promise.all(
-            [...ids].map(async (id) => {
-              const rec = await dictionaryStore.getRecordById(fk.referencedTable, id);
-              if (rec) {
-                resolved.set(id, String(rec[fk.referencedFieldName] || rec.name || ""));
-              }
-            }),
+          if (ids.size === 0) {
+            lookups.set(fk.fieldName, resolved);
+            return;
+          }
+          // Batch fetch — avoids 53200 "out of shared memory" on large N.
+          const { records: fetched } = await dictionaryStore.getDictionary(
+            fk.referencedTable,
+            {
+              nameField: fk.referencedFieldName,
+              filterByIds: [...ids],
+              limit: ids.size,
+            },
           );
+          for (const rec of fetched) {
+            const label =
+              (rec as unknown as Record<string, unknown>)[fk.referencedFieldName] ??
+              rec.name ??
+              "";
+            resolved.set(rec.id, String(label));
+          }
           lookups.set(fk.fieldName, resolved);
         }),
       );
