@@ -45,12 +45,21 @@ function resolvePrefill(
     const isFatherField = parentField.includes('father');
     const isMotherField = parentField.includes('mother');
 
-    if (parentSex) {
-      if (parentSex === 'male' && isFatherField) result[parentField] = parentId;
-      else if (parentSex === 'female' && isMotherField) result[parentField] = parentId;
-      else if (!isFatherField && !isMotherField) result[parentField] = parentId;
-    } else {
-      result[parentField] = parentId;
+    // For `entity_child` datasources the parentField points at a column in
+    // the junction table (e.g. `pet_in_litter.litter_id`), NOT at the entity
+    // itself. Writing it onto the pet form produced VD2 additionalProperties
+    // errors because pet has no litter_id column. The junction row is added
+    // separately via addToMappingCache + sync queue in handleSave.
+    const isJunctionParentField = ds.type === 'entity_child';
+
+    if (!isJunctionParentField) {
+      if (parentSex) {
+        if (parentSex === 'male' && isFatherField) result[parentField] = parentId;
+        else if (parentSex === 'female' && isMotherField) result[parentField] = parentId;
+        else if (!isFatherField && !isMotherField) result[parentField] = parentId;
+      } else {
+        result[parentField] = parentId;
+      }
     }
 
     if (ds.prefill && parentEntity) {
