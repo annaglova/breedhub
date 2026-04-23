@@ -18,7 +18,9 @@ export interface PartitionedRefGroups {
 
 export type ParentPartitionLookupSource = "memory" | "RxDB" | null;
 
-export interface LoadPartitionedEntitiesCollection<TCachedRecord = any>
+export type PartitionRecord = Record<string, unknown> & { id: string };
+
+export interface LoadPartitionedEntitiesCollection<TCachedRecord = unknown>
   extends BulkUpsertCollection<TCachedRecord> {
   findByIds(ids: string[]): {
     exec(): Promise<Map<string, { toJSON(): unknown }>>;
@@ -26,7 +28,7 @@ export interface LoadPartitionedEntitiesCollection<TCachedRecord = any>
 }
 
 export interface LoadPartitionedEntitiesByRefsOptions<
-  TRecord extends Record<string, any> & { id: string },
+  TRecord extends PartitionRecord,
   TCachedRecord = TRecord,
 > {
   entityType: string;
@@ -62,7 +64,7 @@ export function normalizePartitionedEntityRefs(
   return normalized;
 }
 
-export function recordMatchesPartition<TRecord extends Record<string, any>>(
+export function recordMatchesPartition<TRecord extends Record<string, unknown>>(
   record: TRecord | undefined,
   partitionField?: string,
   partitionId?: string | null,
@@ -78,7 +80,7 @@ export function recordMatchesPartition<TRecord extends Record<string, any>>(
   return record[partitionField] === partitionId;
 }
 
-export function splitCachedAndMissingPartitionRefs<TRecord extends Record<string, any>>(
+export function splitCachedAndMissingPartitionRefs<TRecord extends PartitionRecord>(
   refs: PartitionedEntityRef[],
   cachedMap: Map<string, TRecord>,
   partitionField?: string,
@@ -124,7 +126,7 @@ export function groupPartitionedEntityRefs(
   return { partitionedIds, unpartitionedIds };
 }
 
-export function orderRecordsByPartitionRefs<TRecord extends { id: string }>(
+export function orderRecordsByPartitionRefs<TRecord extends PartitionRecord>(
   refs: PartitionedEntityRef[],
   records: TRecord[],
   partitionField?: string,
@@ -144,11 +146,7 @@ export function orderRecordsByPartitionRefs<TRecord extends { id: string }>(
   for (const ref of refs) {
     const candidates = recordsById.get(ref.id) || [];
     const matching = candidates.find((record) =>
-      recordMatchesPartition(
-        record as unknown as Record<string, any>,
-        partitionField,
-        ref.partitionId,
-      ),
+      recordMatchesPartition(record, partitionField, ref.partitionId),
     );
 
     if (matching) {
@@ -160,7 +158,7 @@ export function orderRecordsByPartitionRefs<TRecord extends { id: string }>(
 }
 
 export async function cacheAndOrderRecordsByPartitionRefs<
-  TRecord extends { id: string },
+  TRecord extends PartitionRecord,
   TCachedRecord = TRecord,
 >(
   refs: PartitionedEntityRef[],
@@ -191,7 +189,7 @@ export async function cacheAndOrderRecordsByPartitionRefs<
 }
 
 export async function loadPartitionedEntitiesByRefs<
-  TRecord extends Record<string, any> & { id: string },
+  TRecord extends PartitionRecord,
   TCachedRecord = TRecord,
 >(
   options: LoadPartitionedEntitiesByRefsOptions<TRecord, TCachedRecord>,
@@ -310,11 +308,11 @@ export async function resolveChildPartitionContext(options: {
   loadFromMemory: (
     entityType: string,
     parentId: string,
-  ) => Promise<Record<string, any> | undefined>;
+  ) => Promise<Record<string, unknown> | undefined>;
   loadFromCache: (
     entityType: string,
     parentId: string,
-  ) => Promise<Record<string, any> | null>;
+  ) => Promise<Record<string, unknown> | null>;
   contextLabel?: string;
   targetLabel?: string;
   logResolved?: boolean;
@@ -343,7 +341,9 @@ export async function resolveChildPartitionContext(options: {
     return { partitionConfig };
   }
 
-  const partitionValue = parentEntity[partitionConfig.keyField];
+  const partitionValue = parentEntity[partitionConfig.keyField] as
+    | string
+    | undefined;
 
   if (options.logResolved !== false) {
     const label = options.contextLabel ? `${options.contextLabel} ` : "";

@@ -11,8 +11,10 @@ import {
   splitCachedAndMissingPartitionRefs,
 } from "../space-partition.helpers";
 
-function createPartitionCollection(records: Array<Record<string, any>>) {
-  const upserted: any[] = [];
+type PartitionTestRecord = Record<string, unknown> & { id: string };
+
+function createPartitionCollection(records: PartitionTestRecord[]) {
+  const upserted: unknown[] = [];
   const docs = new Map(
     records.map((record) => [
       record.id,
@@ -34,7 +36,7 @@ function createPartitionCollection(records: Array<Record<string, any>>) {
             ),
         };
       },
-      async bulkUpsert(recordsToUpsert: any[]) {
+      async bulkUpsert(recordsToUpsert: unknown[]) {
         upserted.push(...recordsToUpsert);
       },
     },
@@ -56,7 +58,7 @@ function overrideNavigatorOnLine(value: boolean): () => void {
       return;
     }
 
-    delete (globalThis.navigator as Record<string, unknown>).onLine;
+    delete (globalThis.navigator as unknown as Record<string, unknown>).onLine;
   };
 }
 
@@ -162,7 +164,10 @@ describe("space-partition.helpers", () => {
   it("caches mapped fresh records and rebuilds partition-aware order", async () => {
     const upserted: Array<{ id: string; cached: true }> = [];
 
-    const result = await cacheAndOrderRecordsByPartitionRefs(
+    const result = await cacheAndOrderRecordsByPartitionRefs<
+      { id: string; breed_id: string; name: string },
+      { id: string; cached: true }
+    >(
       [
         { id: "pet-1", partitionId: "breed-1" },
         { id: "pet-1", partitionId: "breed-2" },
@@ -348,7 +353,7 @@ describe("space-partition.helpers", () => {
       ]);
       expect(errorSpy).toHaveBeenCalledWith(
         "[SpaceStore] Failed to load partition refs for pet:",
-        expect.any(Error),
+        expect.objectContaining({ message: "boom" }),
       );
     } finally {
       restoreOnLine();
@@ -450,7 +455,7 @@ describe("space-partition.helpers", () => {
       expect(result).toEqual([]);
       expect(errorSpy).toHaveBeenCalledWith(
         "[SpaceStore] Failed to load partition refs for pet:",
-        expect.any(Error),
+        expect.objectContaining({ message: "boom" }),
       );
     } finally {
       restoreOnLine();
@@ -473,9 +478,9 @@ describe("space-partition.helpers", () => {
   });
 
   it("resolves child partition context with logged source and partition value", async () => {
-    const logCalls: any[][] = [];
+    const logCalls: unknown[][] = [];
     const originalLog = console.log;
-    console.log = (...args: any[]) => {
+    console.log = (...args: unknown[]) => {
       logCalls.push(args);
     };
 
@@ -517,9 +522,9 @@ describe("space-partition.helpers", () => {
   });
 
   it("warns and returns partition config when parent entity is missing", async () => {
-    const warnCalls: any[][] = [];
+    const warnCalls: unknown[][] = [];
     const originalWarn = console.warn;
-    console.warn = (...args: any[]) => {
+    console.warn = (...args: unknown[]) => {
       warnCalls.push(args);
     };
 

@@ -1,6 +1,8 @@
 import { removeFieldPrefix } from "../utils/field-normalization";
 import { ENTITY_VIEW_SOURCES } from "../utils/schema-builder";
 
+type ConfigRecord = Record<string, unknown>;
+
 export interface FieldConfig {
   fieldType: string;
   displayName: string;
@@ -9,11 +11,88 @@ export interface FieldConfig {
   isUnique?: boolean;
   isPrimaryKey?: boolean;
   maxLength?: number;
-  validation?: any;
-  permissions?: any;
-  defaultValue?: any;
+  validation?: unknown;
+  permissions?: unknown;
+  defaultValue?: unknown;
   component?: string;
   originalConfigKey?: string;
+}
+
+export interface EntityFieldConfig extends ConfigRecord {
+  fieldType?: string;
+  displayName?: string;
+  required?: boolean;
+  isSystem?: boolean;
+  isUnique?: boolean;
+  isPrimaryKey?: boolean;
+  maxLength?: number;
+  validation?: unknown;
+  permissions?: unknown;
+  defaultValue?: unknown;
+  component?: string;
+}
+
+export interface SpaceSortTieBreakerConfig extends ConfigRecord {
+  field?: string;
+  direction?: string;
+  parameter?: string;
+}
+
+export interface SpaceSortOrderConfig extends ConfigRecord {
+  slug?: string;
+  parametr?: string;
+  direction?: string;
+  label?: string;
+  icon?: string;
+  isDefault?: boolean | string;
+  order?: number;
+  tieBreaker?: SpaceSortTieBreakerConfig;
+}
+
+export interface SpaceSortFieldConfig extends ConfigRecord {
+  displayName?: string;
+  order?: number;
+  sortOrder?: SpaceSortOrderConfig[];
+}
+
+export interface SpaceFilterFieldConfig extends ConfigRecord {
+  displayName?: string;
+  component?: string;
+  placeholder?: string;
+  fieldType?: string;
+  required?: boolean;
+  operator?: string;
+  slug?: string;
+  value?: unknown;
+  validation?: unknown;
+  order?: number;
+  referencedTable?: string;
+  referencedFieldID?: string;
+  referencedFieldName?: string;
+  dataSource?: "dictionary" | "collection";
+  dependsOn?: string;
+  disabledUntil?: string;
+  filterBy?: string;
+  junctionTable?: string;
+  junctionField?: string;
+  junctionFilterField?: string;
+  orFields?: string[];
+  mainFilterField?: boolean;
+  searchSlug?: string;
+}
+
+export interface SpaceViewRawConfig extends ConfigRecord {
+  viewType?: string;
+  slug?: string;
+  isDefault?: boolean;
+  rows?: number;
+  icon?: string;
+  tooltip?: string;
+  component?: string;
+  itemHeight?: number;
+  dividers?: boolean;
+  overscan?: number;
+  recordsCount?: number;
 }
 
 export interface SpaceConfig {
@@ -27,16 +106,16 @@ export interface SpaceConfig {
   entitySchemaModel?: string;
   totalFilterKey?: string;
   fields?: Record<string, FieldConfig>;
-  sort_fields?: Record<string, any>;
-  filter_fields?: Record<string, any>;
+  sort_fields?: Record<string, SpaceSortFieldConfig>;
+  filter_fields?: Record<string, SpaceFilterFieldConfig>;
   recordsCount?: number;
   rows?: number;
-  pages?: Record<string, any>;
-  views?: Record<string, any>;
+  pages?: Record<string, unknown>;
+  views?: Record<string, SpaceViewRawConfig>;
   canAdd?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
-  defaultFilters?: Record<string, any>;
+  defaultFilters?: Record<string, unknown>;
 }
 
 export interface SpaceViewConfig {
@@ -74,8 +153,8 @@ export interface SpaceFilterField {
   required?: boolean;
   operator?: string;
   slug?: string;
-  value?: any;
-  validation?: any;
+  value?: unknown;
+  validation?: unknown;
   order: number;
   referencedTable?: string;
   referencedFieldID?: string;
@@ -118,8 +197,45 @@ export interface PartitionConfig {
 
 export interface EntitySchemaConfig {
   entitySchemaName: string;
-  fields: Record<string, any>;
+  fields?: Record<string, EntityFieldConfig>;
   partition?: PartitionConfig;
+}
+
+export interface RawEntitySchemaConfig extends ConfigRecord {
+  entitySchemaName?: string;
+  fields?: Record<string, EntityFieldConfig>;
+  partition?: PartitionConfig;
+}
+
+export interface RawSpaceConfig extends ConfigRecord {
+  id?: string;
+  icon?: string;
+  slug?: string;
+  path?: string;
+  label?: string;
+  order?: number;
+  entitySchemaName?: string;
+  entitySchemaModel?: string;
+  totalFilterKey?: string;
+  sort_fields?: Record<string, SpaceSortFieldConfig>;
+  filter_fields?: Record<string, SpaceFilterFieldConfig>;
+  recordsCount?: number;
+  rows?: number;
+  pages?: Record<string, unknown>;
+  views?: Record<string, SpaceViewRawConfig>;
+  canAdd?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  defaultFilters?: Record<string, unknown>;
+}
+
+export interface WorkspaceConfig {
+  spaces?: Record<string, RawSpaceConfig>;
+}
+
+export interface AppConfig {
+  entities?: Record<string, RawEntitySchemaConfig>;
+  workspaces?: Record<string, WorkspaceConfig>;
 }
 
 export interface ParsedSpaceConfigurations {
@@ -128,7 +244,9 @@ export interface ParsedSpaceConfigurations {
   entityTypes: string[];
 }
 
-export function buildEntitySchemasMap(appConfig: any): Map<string, EntitySchemaConfig> {
+export function buildEntitySchemasMap(
+  appConfig: AppConfig | null | undefined,
+): Map<string, EntitySchemaConfig> {
   const entitySchemas = new Map<string, EntitySchemaConfig>();
 
   if (!appConfig?.entities) {
@@ -136,9 +254,12 @@ export function buildEntitySchemasMap(appConfig: any): Map<string, EntitySchemaC
     return entitySchemas;
   }
 
-  Object.entries(appConfig.entities).forEach(([_, schema]: [string, any]) => {
+  Object.entries(appConfig.entities).forEach(([, schema]) => {
     if (schema.entitySchemaName) {
-      entitySchemas.set(schema.entitySchemaName, schema);
+      entitySchemas.set(schema.entitySchemaName, {
+        ...schema,
+        entitySchemaName: schema.entitySchemaName,
+      });
     }
   });
 
@@ -150,7 +271,7 @@ export function buildEntitySchemasMap(appConfig: any): Map<string, EntitySchemaC
 }
 
 export function getEntityFieldsSchema(
-  entitySchema: any,
+  entitySchema: Pick<EntitySchemaConfig, "fields"> | null | undefined,
   entitySchemaName: string,
 ): Map<string, FieldConfig> {
   const uniqueFields = new Map<string, FieldConfig>();
@@ -159,9 +280,8 @@ export function getEntityFieldsSchema(
     return uniqueFields;
   }
 
-  Object.entries(entitySchema.fields).forEach(([fieldKey, fieldValue]: [string, any]) => {
+  Object.entries(entitySchema.fields).forEach(([fieldKey, fieldData]) => {
     const normalizedFieldName = removeFieldPrefix(fieldKey, entitySchemaName);
-    const fieldData = fieldValue;
 
     uniqueFields.set(normalizedFieldName, {
       fieldType: fieldData.fieldType || "string",
@@ -183,7 +303,7 @@ export function getEntityFieldsSchema(
 }
 
 export function parseSpaceConfigurations(
-  appConfig: any,
+  appConfig: AppConfig | null | undefined,
 ): ParsedSpaceConfigurations | null {
   if (!appConfig?.workspaces) {
     console.warn("[SpaceStore] No workspaces found in app config");
@@ -194,53 +314,54 @@ export function parseSpaceConfigurations(
   const spaceConfigs = new Map<string, SpaceConfig>();
   const entitySchemas = buildEntitySchemasMap(appConfig);
 
-  Object.entries(appConfig.workspaces).forEach(([_, workspace]: [string, any]) => {
+  Object.entries(appConfig.workspaces).forEach(([, workspace]) => {
     if (!workspace.spaces) {
       return;
     }
 
-    Object.entries(workspace.spaces).forEach(([spaceKey, space]: [string, any]) => {
+    Object.entries(workspace.spaces).forEach(([spaceKey, space]) => {
       if (!space.entitySchemaName) {
         return;
       }
 
-      const entitySchema = entitySchemas.get(space.entitySchemaName);
+      const entitySchemaName = space.entitySchemaName;
+      const entitySchema = entitySchemas.get(entitySchemaName);
       const uniqueFields = entitySchema
-        ? getEntityFieldsSchema(entitySchema, space.entitySchemaName)
+        ? getEntityFieldsSchema(entitySchema, entitySchemaName)
         : new Map<string, FieldConfig>();
 
       if (!entitySchema) {
-        console.warn(`[SpaceStore] No entity schema found for ${space.entitySchemaName}`);
+        console.warn(`[SpaceStore] No entity schema found for ${entitySchemaName}`);
       }
 
-      const normalizedSortFields = space.sort_fields
+      const normalizedSortFields: Record<string, SpaceSortFieldConfig> | undefined = space.sort_fields
         ? Object.fromEntries(
             Object.entries(space.sort_fields).map(([key, value]) => [
-              removeFieldPrefix(key, space.entitySchemaName),
+              removeFieldPrefix(key, entitySchemaName),
               value,
             ]),
           )
         : undefined;
 
-      const normalizedFilterFields = space.filter_fields
+      const normalizedFilterFields: Record<string, SpaceFilterFieldConfig> | undefined = space.filter_fields
         ? Object.fromEntries(
             Object.entries(space.filter_fields).map(([key, value]) => [
-              removeFieldPrefix(key, space.entitySchemaName),
+              removeFieldPrefix(key, entitySchemaName),
               value,
             ]),
           )
         : undefined;
 
-      const entitySchemaModel = space.entitySchemaModel || space.entitySchemaName;
+      const entitySchemaModel = space.entitySchemaModel || entitySchemaName;
 
-      spaceConfigs.set(space.entitySchemaName, {
+      spaceConfigs.set(entitySchemaName, {
         id: space.id || spaceKey,
         icon: space.icon,
         slug: space.slug || space.path?.replace(/^\//, ""),
         path: space.path,
         label: space.label,
         order: space.order,
-        entitySchemaName: space.entitySchemaName,
+        entitySchemaName,
         entitySchemaModel,
         totalFilterKey: space.totalFilterKey,
         fields: Object.fromEntries(uniqueFields),
@@ -254,7 +375,7 @@ export function parseSpaceConfigurations(
         canDelete: !!space.canDelete,
         defaultFilters: space.defaultFilters,
       });
-      entityTypes.push(space.entitySchemaName);
+      entityTypes.push(entitySchemaName);
     });
   });
 
@@ -309,7 +430,7 @@ function extractViewConfigs(spaceConfig: SpaceConfig): SpaceViewConfig[] {
     return viewConfigs;
   }
 
-  Object.values(spaceConfig.views).forEach((view: any) => {
+  Object.values(spaceConfig.views).forEach((view) => {
     if (!view?.viewType) {
       return;
     }
@@ -410,14 +531,14 @@ export function getSortOptionsFromConfig(
   const sortOptions: Array<SpaceSortOption & { fieldOrder?: number; optionOrder?: number }> = [];
 
   for (const [fieldId, fieldConfig] of Object.entries(sortFields)) {
-    const field = fieldConfig as any;
+    const field = fieldConfig;
     const fieldOrder = field.order || 0;
 
     if (!field.sortOrder || !Array.isArray(field.sortOrder)) {
       continue;
     }
 
-    field.sortOrder.forEach((sortOption: any) => {
+    field.sortOrder.forEach((sortOption) => {
       const optionId = sortOption.slug || (
         sortOption.parametr
           ? `${fieldId}_${sortOption.parametr}_${sortOption.direction}`
@@ -435,8 +556,8 @@ export function getSortOptionsFromConfig(
         fieldOrder,
         optionOrder: sortOption.order || 0,
         tieBreaker: sortOption.tieBreaker ? {
-          field: sortOption.tieBreaker.field,
-          direction: sortOption.tieBreaker.direction,
+          field: sortOption.tieBreaker.field as string,
+          direction: sortOption.tieBreaker.direction as "asc" | "desc",
           parameter: sortOption.tieBreaker.parameter,
         } : undefined,
       });
@@ -471,7 +592,7 @@ export function getFilterFieldsFromConfig(
   const filterOptions: SpaceFilterField[] = [];
 
   for (const [fieldId, fieldConfig] of Object.entries(filterFields)) {
-    const field = fieldConfig as any;
+    const field = fieldConfig;
     if (field.mainFilterField === true) {
       continue;
     }
@@ -514,7 +635,7 @@ export function getMainFilterFieldFromConfig(
   }
 
   for (const [fieldId, fieldConfig] of Object.entries(spaceConfig.filter_fields)) {
-    const field = fieldConfig as any;
+    const field = fieldConfig;
     if (field.mainFilterField === true) {
       return {
         id: fieldId,
@@ -542,7 +663,7 @@ export function getMainFilterFieldsFromConfig(
   let searchSlug: string | undefined;
 
   for (const [fieldId, fieldConfig] of Object.entries(spaceConfig.filter_fields)) {
-    const field = fieldConfig as any;
+    const field = fieldConfig;
     if (field.mainFilterField !== true) {
       continue;
     }

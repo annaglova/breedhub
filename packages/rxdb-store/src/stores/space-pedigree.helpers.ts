@@ -29,7 +29,7 @@ export interface PedigreePet {
   mother?: PedigreePet;
 }
 
-export interface PedigreeAncestorRecord extends Record<string, any> {
+export interface PedigreeAncestorRecord extends Record<string, unknown> {
   id: string;
   name?: string | null;
   slug?: string | null;
