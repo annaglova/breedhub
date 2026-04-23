@@ -102,6 +102,9 @@ export type {
 // Export OrderBy type from SpaceStore
 export type { OrderBy, PedigreePet, PedigreeResult } from './stores/space-store.signal-store';
 
+// Mapping-row shape used by SpaceStore.addToMappingCache (optimistic inserts).
+export type { MappingRow } from './stores/space-mapping.helpers';
+
 // Utils - Field normalization helpers
 export {
   removeFieldPrefix,

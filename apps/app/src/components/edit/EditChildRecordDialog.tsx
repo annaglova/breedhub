@@ -1,7 +1,7 @@
 import { DynamicForm } from "@/components/edit/DynamicForm";
 import { FormDialog } from "@/components/edit/FormDialog";
 import { spaceStore, dictionaryStore, syncQueueService } from "@breedhub/rxdb-store";
-import type { DataSourceConfig, ReadFromConfig } from "@breedhub/rxdb-store";
+import type { DataSourceConfig, MappingRow, ReadFromConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditFieldConfig } from "@/types/field-config";
@@ -164,9 +164,13 @@ export function EditChildRecordDialog({
     const result = await withCrudToast(operation, { label: fullLabel, verb });
     if (result.ok) {
       if (isEntityChild && !isEditMode && (result as any).data?.id && readFrom) {
-        // Optimistic: add to mapping cache so refetch finds record from RxDB immediately
+        // Optimistic: add to mapping cache so refetch finds record from RxDB immediately.
+        // Generate a temp uuid for the mapping row itself — addToMappingCache
+        // dedupes via `existing.some(r => r.id === record.id)`, so two optimistic
+        // rows with undefined id would collapse into the first one added.
         const newEntityId = (result as any).data.id;
-        const mappingRow: Record<string, any> = {
+        const mappingRow: MappingRow = {
+          id: crypto.randomUUID(),
           [readFrom.entityIdField]: newEntityId,
         };
         if (readFrom.entityPartitionField) {
