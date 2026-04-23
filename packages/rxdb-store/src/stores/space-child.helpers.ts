@@ -499,10 +499,26 @@ export async function loadChildViewPage<TRawRecord extends ChildSourceRow>(
   const rawRecords = data || [];
   console.log(`[SpaceStore] ✅ Fetched ${rawRecords.length} VIEW records`);
 
+  // Some JOINed VIEWs (e.g. pet_sibling_with_sale, pet_child_with_sale) expose
+  // only natural composite keys (pet_id + sibling_pet_id) and no standalone
+  // `id` column, so they cannot be upserted into the child-cache collection
+  // whose primary key is `id`. Detect and fall through to the raw-records
+  // path below so the tab still renders.
+  const firstRow = rawRecords[0] as { id?: unknown } | undefined;
+  const hasStableId =
+    firstRow === undefined ||
+    (firstRow.id !== undefined && firstRow.id !== null);
+
   console.log("[SpaceStore] 💾 Phase 2: Caching in RxDB...");
 
-  if (!options.collection) {
-    console.warn("[SpaceStore] ⚠️ No collection, returning raw records");
+  if (!options.collection || !hasStableId) {
+    if (options.collection && !hasStableId) {
+      console.warn(
+        "[SpaceStore] ⚠️ VIEW rows have no id, skipping RxDB cache and returning raw records",
+      );
+    } else {
+      console.warn("[SpaceStore] ⚠️ No collection, returning raw records");
+    }
     const hasMore = rawRecords.length >= options.limit;
     const lastRecord = rawRecords[rawRecords.length - 1];
     const nextCursor = hasMore
