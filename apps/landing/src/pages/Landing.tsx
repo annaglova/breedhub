@@ -2,163 +2,23 @@ import LandingFigure from "@/assets/backgrounds/landing-figure.svg?react";
 import BreedSpaceImage from "@/assets/images/breed-space.jpeg";
 import KennelSpaceImage from "@/assets/images/kennel-space.jpeg";
 import PetSpaceImage from "@/assets/images/pet-space.jpeg";
-import { BreedProgress, type Breed } from "@/components/BreedProgress";
+import { BreedProgress } from "@/components/BreedProgress";
 import { LoadingButton } from "@/components/LoadingButton";
 import { TabHeader } from "@/components/TabHeader";
+// Mock data - replace with API calls when ready
+import {
+  achievements,
+  specialAchievements,
+  statisticsData,
+  topAchievementBreeds,
+  topRatingBreeds,
+} from "@/constants/landingMockData";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import LandingLayout from "@/layouts/LandingLayout";
 import { AlternatingTimeline } from "@ui/components/timeline";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-
-// Mock data - replace with API calls when ready
-const topAchievementBreeds: Breed[] = [
-  {
-    Name: "Labrador Retriever",
-    PetProfileCount: 1240,
-    KennelCount: 45,
-    PatronCount: 89,
-    AchievementProgress: 85,
-    LastAchievement: { Name: "Gold Standard" },
-  },
-  {
-    Name: "German Shepherd",
-    PetProfileCount: 980,
-    KennelCount: 38,
-    PatronCount: 72,
-    AchievementProgress: 78,
-    LastAchievement: { Name: "Silver Elite" },
-  },
-  {
-    Name: "Golden Retriever",
-    PetProfileCount: 856,
-    KennelCount: 32,
-    PatronCount: 65,
-    AchievementProgress: 72,
-    LastAchievement: { Name: "Silver Elite" },
-  },
-];
-
-const topRatingBreeds: Breed[] = [
-  {
-    Name: "Beagle",
-    PetProfileCount: 567,
-    KennelCount: 24,
-    PatronCount: 41,
-    AchievementProgress: 65,
-    LastAchievement: { Name: "Bronze Champion" },
-  },
-  {
-    Name: "Boxer",
-    PetProfileCount: 445,
-    KennelCount: 19,
-    PatronCount: 35,
-    AchievementProgress: 58,
-    LastAchievement: { Name: "Bronze Champion" },
-  },
-  {
-    Name: "Bulldog",
-    PetProfileCount: 398,
-    KennelCount: 16,
-    PatronCount: 28,
-    AchievementProgress: 52,
-    LastAchievement: { Name: "Rising Star" },
-  },
-  {
-    Name: "Poodle",
-    PetProfileCount: 334,
-    KennelCount: 14,
-    PatronCount: 24,
-    AchievementProgress: 45,
-    LastAchievement: { Name: "Rising Star" },
-  },
-  {
-    Name: "Rottweiler",
-    PetProfileCount: 289,
-    KennelCount: 12,
-    PatronCount: 19,
-    AchievementProgress: 38,
-    LastAchievement: { Name: "Newcomer" },
-  },
-];
-
-// Achievement levels data
-const achievements = [
-  {
-    Active: true,
-    Date: "2024-01-01",
-    Description: "Basic breed support with community access",
-    IntValue: 0,
-    Name: "Zero support level",
-    Position: 0,
-  },
-  {
-    Active: true,
-    Date: "2024-01-01",
-    Description: "Priority bug fixes and basic breed features",
-    IntValue: 50,
-    Name: "Bronze Support",
-    Position: 1,
-  },
-  {
-    Active: true,
-    Date: "2024-01-01",
-    Description: "Enhanced breed features and dedicated support",
-    IntValue: 150,
-    Name: "Silver Support",
-    Position: 2,
-  },
-  {
-    Active: true,
-    Date: "2024-01-01",
-    Description: "Advanced analytics and breeding tools",
-    IntValue: 300,
-    Name: "Gold Support",
-    Position: 3,
-  },
-  {
-    Active: true,
-    Date: "2024-01-01",
-    Description: "Premium features and priority development",
-    IntValue: 500,
-    Name: "Platinum Support",
-    Position: 4,
-  },
-  {
-    Active: true,
-    Date: "2024-01-01",
-    Description: "Full custom development and white-label options",
-    IntValue: 1000,
-    Name: "Diamond Support",
-    Position: 5,
-  },
-];
-
-const specialAchievements = achievements
-  .slice(1)
-  .sort((a, b) => (a.Position > b.Position ? -1 : 1));
-
-const statisticsData = [
-  {
-    value: "2,450+",
-    label: "Pet profiles",
-    color: "from-purple-100",
-    href: "/pets",
-  },
-  {
-    value: "180+",
-    label: "Kennels",
-    color: "from-blue-100",
-    href: "/kennels",
-  },
-  {
-    value: "120+",
-    label: "Events",
-    color: "from-orange-100",
-    href: "/events",
-  },
-];
 
 export default function Landing() {
   usePageTitle("Home");
