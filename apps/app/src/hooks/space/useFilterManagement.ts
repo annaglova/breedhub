@@ -26,6 +26,42 @@ import {
 } from "./filter-management.utils";
 import { readStorageValue } from "./space-query.utils";
 
+/**
+ * Shallow equality check for filter maps.
+ *
+ * buildFiltersFromSearchParams returns a fresh object on every call; when
+ * called inside a useEffect whose deps are unstable (e.g. URLSearchParams
+ * recreated on every render), the new reference propagates through
+ * useEntities → applyFilters → setData → re-render → infinite loop.
+ *
+ * Equality is shallow — filter maps only ever contain scalars (resolved ids
+ * or raw URL values) or simple arrays of scalars.
+ */
+function areFiltersEqual(
+  a: Record<string, unknown> | undefined,
+  b: Record<string, unknown> | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  for (const key of aKeys) {
+    const av = a[key];
+    const bv = b[key];
+    if (av === bv) continue;
+    if (Array.isArray(av) && Array.isArray(bv)) {
+      if (av.length !== bv.length) return false;
+      for (let i = 0; i < av.length; i++) {
+        if (av[i] !== bv[i]) return false;
+      }
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 interface UseFilterManagementOptions {
   searchParams: URLSearchParams;
   setSearchParams: (params: URLSearchParams, options?: { replace?: boolean }) => void;
@@ -56,6 +92,7 @@ export function useFilterManagement({
   );
 
   useEffect(() => {
+    let cancelled = false;
     const buildFilters = async () => {
       try {
         const nextFilters = await buildFiltersFromSearchParams({
@@ -65,14 +102,24 @@ export function useFilterManagement({
           searchParams,
           searchUrlSlug,
         });
-        setFilters(nextFilters);
+        if (cancelled) return;
+        // Dedup: skip setFilters if content is identical — setting a new object
+        // reference with the same content cascades into useEntities useEffect →
+        // applyFilters → setData → re-render → new dep refs → infinite loop.
+        setFilters((prev) =>
+          areFiltersEqual(prev, nextFilters) ? prev : nextFilters,
+        );
       } catch (error) {
+        if (cancelled) return;
         console.error("[useFilterManagement] Error building filters:", error);
-        setFilters(undefined);
+        setFilters((prev) => (prev === undefined ? prev : undefined));
       }
     };
 
     buildFilters();
+    return () => {
+      cancelled = true;
+    };
   }, [
     searchParams,
     filterFields,
