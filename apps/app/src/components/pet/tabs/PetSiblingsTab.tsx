@@ -126,7 +126,9 @@ export function PetSiblingsTab({
     if (!displayRaw || displayRaw.length === 0) return [];
 
     return displayRaw.map((item: any) => ({
-      id: item.id,
+      // View `pet_sibling_with_sale` has no `id` column — sibling pet id lives
+      // in `sibling_pet_id`.
+      id: item.id || item.sibling_pet_id || item.additional?.sibling_pet_id,
       name: item.name || item.additional?.name || "",
       url: item.slug || item.additional?.slug,
       sex: {

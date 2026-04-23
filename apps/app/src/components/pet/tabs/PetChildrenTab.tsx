@@ -135,8 +135,11 @@ export function PetChildrenTab({
       return { litters: [], parentRole: null };
     }
 
+    // Source view `pet_child_with_sale` exposes the child pet's id under
+    // `pet_id` (the view itself has no `id` column). Fall back to `id` for
+    // compatibility with the cached-child path.
     const children = displayRaw.map((item: any) => ({
-      id: item.id,
+      id: item.id || item.pet_id || item.additional?.pet_id,
       name: item.name || item.additional?.name || "",
       slug: item.slug || item.additional?.slug,
       date_of_birth: item.date_of_birth || item.additional?.date_of_birth,

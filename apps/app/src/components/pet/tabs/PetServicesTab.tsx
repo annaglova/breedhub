@@ -269,7 +269,9 @@ export function PetServicesTab({
 
     for (const item of childrenForSaleRaw) {
       const child = {
-        id: item.id,
+        // View `pet_child_with_sale` has no `id` column — child pet id lives
+        // in `pet_id`. Fallback keeps cached-path compatibility.
+        id: item.id || item.pet_id || item.additional?.pet_id,
         name: item.name || item.additional?.name || "",
         slug: item.slug || item.additional?.slug,
         date_of_birth: item.date_of_birth || item.additional?.date_of_birth,
