@@ -129,23 +129,30 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                             to={item.path}
                             className={cn(
                               "group flex items-center justify-center",
-                              "px-6 sm:px-10 md:px-16 lg:px-12 xl:px-22",
-                              "py-3 transition-colors"
+                              "px-0 sm:px-2 md:px-8 lg:px-4 xl:px-14",
+                              "py-3"
                             )}
                             onClick={(e) => {
                               if (isActive) e.preventDefault();
                             }}
                           >
-                            <Icon
-                              icon={item.icon}
-                              size={navIconSize}
+                            <span
                               className={cn(
-                                "transition-colors",
-                                isActive
-                                  ? "text-primary"
-                                  : "text-sub-header-color group-hover:text-slate-600"
+                                "flex items-center justify-center rounded-lg px-8 py-2 bg-transparent transition-colors",
+                                !isActive && "group-hover:bg-slate-200/60"
                               )}
-                            />
+                            >
+                              <Icon
+                                icon={item.icon}
+                                size={navIconSize}
+                                className={cn(
+                                  "transition-colors",
+                                  isActive
+                                    ? "text-primary"
+                                    : "text-sub-header-color group-hover:text-slate-600"
+                                )}
+                              />
+                            </span>
                           </Link>
                         </TooltipTrigger>
                         <TooltipContent side="bottom">
