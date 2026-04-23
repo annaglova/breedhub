@@ -431,17 +431,39 @@ class DictionaryStore {
         const cachedDoc = cachedMap.get(id);
         if (!cachedDoc) {
           missingIds.push(id);
-        } else {
-          const serverUpdatedAt = serverUpdatedAtMap.get(id);
-          if (serverUpdatedAt && cachedDoc.additional?.updated_at) {
-            // Server-based staleness: compare updated_at timestamps
-            if (serverUpdatedAt > cachedDoc.additional.updated_at) {
-              staleIds.push(id);
-            }
-          } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICT_STALE_MS) {
-            // Fallback: cachedAt-based TTL for tables without updated_at
+          continue;
+        }
+
+        // If the caller requested additional fields that the cached record
+        // doesn't carry (e.g. a previous getDictionary/getRecordById call
+        // stored only a narrow projection like { code }, and the current
+        // call needs { pet_type_id }), treat the record as stale so we
+        // re-fetch the full projection. Without this guard the dropdown
+        // cascade filter for sex on pet_type_id silently dropped Dog
+        // options because their cached `additional` only held `code`.
+        if (additionalFields?.length) {
+          const cachedAdditional = cachedDoc.additional ?? {};
+          const missingField = additionalFields.some(
+            (field) =>
+              field !== idField &&
+              field !== nameField &&
+              cachedAdditional[field] === undefined,
+          );
+          if (missingField) {
+            staleIds.push(id);
+            continue;
+          }
+        }
+
+        const serverUpdatedAt = serverUpdatedAtMap.get(id);
+        if (serverUpdatedAt && cachedDoc.additional?.updated_at) {
+          // Server-based staleness: compare updated_at timestamps
+          if (serverUpdatedAt > cachedDoc.additional.updated_at) {
             staleIds.push(id);
           }
+        } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICT_STALE_MS) {
+          // Fallback: cachedAt-based TTL for tables without updated_at
+          staleIds.push(id);
         }
       }
 
@@ -458,9 +480,25 @@ class DictionaryStore {
           additionalFields
         );
 
-        // Cache fresh records in RxDB (upsert for stale, insert for missing)
+        // Cache fresh records in RxDB (upsert for stale, insert for missing).
+        // Merge with existing `additional` so that a narrow projection (e.g.
+        // current call fetched only { pet_type_id }) doesn't wipe fields a
+        // previous call already cached (e.g. { code } from PetListCard). Without
+        // this merge the cache oscillates between projections and cascading
+        // callers keep re-fetching.
         if (freshRecords.length > 0) {
-          await this.collection.bulkUpsert(freshRecords);
+          const mergedRecords = freshRecords.map((record) => {
+            const existing = cachedMap.get(record.id);
+            if (!existing?.additional || !record.additional) {
+              return record;
+            }
+            return {
+              ...record,
+              additional: { ...existing.additional, ...record.additional },
+            };
+          });
+          await this.collection.bulkUpsert(mergedRecords);
+          freshRecords = mergedRecords;
         }
       }
 
