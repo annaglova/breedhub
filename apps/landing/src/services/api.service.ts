@@ -1,11 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-let supabase = null;
-let connectionError = null;
+let supabase: SupabaseClient | null = null;
+let connectionError: unknown = null;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials not found. Using mock data.');
@@ -52,10 +52,28 @@ export const landingService = {
 
       // For each service, get its conf_items
       if (services && services.length > 0) {
+        // Capture narrowed client so TS doesn't lose the non-null narrowing
+        // inside the Promise.all callbacks (flow analysis can't carry it
+        // across await boundaries).
+        const client = supabase;
+        interface ConfItemRow {
+          id: string;
+          name: string;
+          description: string | null;
+          icon: string | null;
+          status_id: string;
+        }
+        interface ConfItemRelationRow {
+          conf_item_id: string;
+          // PostgREST returns embedded relations as an array when the
+          // relationship isn't explicitly single — treat both shapes.
+          conf_item: ConfItemRow | ConfItemRow[] | null;
+        }
+
         const servicesWithConfItems = await Promise.all(
-          services.map(async (service) => {
+          services.map(async (service: { id: string } & Record<string, unknown>) => {
             // Get conf_items for this service
-            const { data: confItemRelations, error: relError } = await supabase
+            const { data: confItemRelations, error: relError } = await client
               .from('service_in_conf_item')
               .select(`
                 conf_item_id,
@@ -77,23 +95,26 @@ export const landingService = {
             // Status is hardcoded as fallback — conf_item_status lookup table
             // doesn't exist in this environment. See P3 audit in
             // CODEX_LANDING_WAVE_HANDOFF.md.
-            const confItems = (confItemRelations || [])
+            const confItems = ((confItemRelations ?? []) as unknown as ConfItemRelationRow[])
               .map((rel) => {
-                if (!rel.conf_item) return null;
+                const confItem = Array.isArray(rel.conf_item)
+                  ? rel.conf_item[0]
+                  : rel.conf_item;
+                if (!confItem) return null;
                 return {
-                  id: rel.conf_item.id,
-                  name: rel.conf_item.name,
-                  description: rel.conf_item.description,
-                  icon: rel.conf_item.icon || '',
-                  status: { id: rel.conf_item.status_id, name: '' },
-                  url: ''
+                  id: confItem.id,
+                  name: confItem.name,
+                  description: confItem.description,
+                  icon: confItem.icon || '',
+                  status: { id: confItem.status_id, name: '' },
+                  url: '',
                 };
               })
-              .filter((item) => item !== null);
+              .filter((item): item is NonNullable<typeof item> => item !== null);
 
             return {
               ...service,
-              confItems
+              confItems,
             };
           })
         );
