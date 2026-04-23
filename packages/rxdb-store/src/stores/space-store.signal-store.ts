@@ -2538,7 +2538,10 @@ class SpaceStore {
       select: options.select,
       parentField,
       partitionField: partitionConfig?.childFilterField,
-      orderingFields: [orderBy.field, orderBy.tieBreaker?.field || 'id'],
+      orderingFields: [
+        orderBy.field,
+        ...(orderBy.tieBreaker?.field ? [orderBy.tieBreaker.field] : []),
+      ],
     });
 
     // 📴 PREVENTIVE OFFLINE CHECK - use cached data

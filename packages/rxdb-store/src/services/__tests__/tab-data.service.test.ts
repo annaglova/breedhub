@@ -462,7 +462,6 @@ describe('TabDataService', () => {
           orderBy: {
             field: 'placement',
             direction: 'asc',
-            tieBreaker: { field: 'id', direction: 'asc' },
           },
         },
       );

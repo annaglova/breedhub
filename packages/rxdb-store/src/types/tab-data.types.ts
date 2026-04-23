@@ -15,6 +15,16 @@ export interface OrderConfig {
   field: string;
   /** Sort direction */
   direction: 'asc' | 'desc';
+  /**
+   * Optional tie-breaker for stable keyset pagination when the primary
+   * order field has duplicates. Required for VIEWs that don't expose an
+   * `id` column (otherwise Supabase returns 42703 on
+   * `.order('id', ...)`). For tables it defaults to `id` downstream.
+   */
+  tieBreaker?: {
+    field: string;
+    direction?: 'asc' | 'desc';
+  };
 }
 
 /**

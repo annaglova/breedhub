@@ -177,8 +177,10 @@ class TabDataService {
     // collection. Use the same direct-keyset path as loadChildPaginated
     // and return the first page of records.
     if (config.isView) {
-      const orderField = config.orderBy?.[0]?.field || 'id';
-      const orderDirection = config.orderBy?.[0]?.direction || 'asc';
+      const orderSpec = config.orderBy?.[0];
+      const orderField = orderSpec?.field || 'id';
+      const orderDirection = orderSpec?.direction || 'asc';
+      const tieBreaker = orderSpec?.tieBreaker;
 
       const result = await spaceStore.loadChildViewDirect(
         parentId,
@@ -191,7 +193,14 @@ class TabDataService {
           orderBy: {
             field: orderField,
             direction: orderDirection,
-            tieBreaker: { field: 'id', direction: 'asc' },
+            ...(tieBreaker
+              ? {
+                  tieBreaker: {
+                    field: tieBreaker.field,
+                    direction: tieBreaker.direction ?? 'asc',
+                  },
+                }
+              : {}),
           },
         },
       );
@@ -235,15 +244,17 @@ class TabDataService {
     if (isView) {
       // VIEWs with JOINs are slow with `WHERE id IN (...)`.
       // Use direct query with `WHERE parent_id = X` and cursor pagination.
-      const orderField = config.orderBy?.[0]?.field || 'id';
-      const orderDirection = config.orderBy?.[0]?.direction || 'asc';
+      const orderSpec = config.orderBy?.[0];
+      const orderField = orderSpec?.field || 'id';
+      const orderDirection = orderSpec?.direction || 'asc';
+      const tieBreaker = orderSpec?.tieBreaker;
 
       console.log('[TabDataService] loadChildPaginated (VIEW - direct keyset):', {
         table: config.table,
         parentId,
         limit,
         cursor,
-        orderField
+        orderField,
       });
 
       const result = await spaceStore.loadChildViewDirect(
@@ -257,9 +268,16 @@ class TabDataService {
           orderBy: {
             field: orderField,
             direction: orderDirection,
-            tieBreaker: { field: 'id', direction: 'asc' }
-          }
-        }
+            ...(tieBreaker
+              ? {
+                  tieBreaker: {
+                    field: tieBreaker.field,
+                    direction: tieBreaker.direction ?? 'asc',
+                  },
+                }
+              : {}),
+          },
+        },
       );
       return this.asPaginatedResult<ChildTabDataRecord>(result);
     }
