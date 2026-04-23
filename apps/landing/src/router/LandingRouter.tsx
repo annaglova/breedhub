@@ -19,7 +19,6 @@ import Pricing from "@/pages/Pricing";
 import Privacy from "@/pages/Privacy";
 import Product from "@/pages/Product";
 import Terms from "@/pages/Terms";
-import TestInputs from "@/pages/test-inputs";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 export default function LandingRouter() {
@@ -55,9 +54,6 @@ export default function LandingRouter() {
         <Route path="/privacy-policy" element={<Privacy />} />
         <Route path="/cookie" element={<Cookie />} />
         <Route path="/cookie-policy" element={<Cookie />} />
-
-        {/* Test pages */}
-        <Route path="/test-inputs" element={<TestInputs />} />
 
         {/* 404 catch-all route */}
         <Route path="*" element={<NotFound />} />
