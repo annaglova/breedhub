@@ -2422,13 +2422,16 @@ class SpaceStore {
 
     if (!data) return [];
 
-    const hydrationResult = await mapAndCacheChildRows(data, {
-      tableType,
-      parentId,
-      parentField: parentIdField,
-      partitionField,
-      partitionValue,
-    });
+    const hydrationResult = await mapAndCacheChildRows(
+      data as unknown as Array<Record<string, unknown> & { id: string }>,
+      {
+        tableType,
+        parentId,
+        parentField: parentIdField,
+        partitionField,
+        partitionValue,
+      },
+    );
 
     return hydrationResult.transformedRecords;
   }
@@ -2535,7 +2538,11 @@ class SpaceStore {
           query = applySupabaseOrderBy(query, orderBy);
           query = query.limit(limit);
 
-          return await query;
+          const response = await query;
+          return response as unknown as {
+            data: Array<Record<string, unknown> & { id: string }> | null;
+            error: unknown;
+          };
         },
       });
 

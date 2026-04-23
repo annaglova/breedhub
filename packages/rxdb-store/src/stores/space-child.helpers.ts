@@ -1,4 +1,3 @@
-import type { RxCollection, RxDocument } from "rxdb";
 import {
   cacheRecords,
   type BulkUpsertCollection,
@@ -10,7 +9,45 @@ import {
   type KeysetOrderBy,
 } from "./space-keyset.helpers";
 import type { PartitionConfig } from "./space-config.helpers";
-import { compareValues, getTieBreaker } from "./space-sort.helpers";
+import type { PartitionRecord } from "./space-partition.helpers";
+import {
+  compareValues,
+  getTieBreaker,
+  type ComparableValue,
+} from "./space-sort.helpers";
+import type { ChildTabDataRecord } from "../types/tab-data.types";
+
+export interface ChildCacheRecord extends ChildTabDataRecord {
+  id: string;
+  tableType?: string;
+  parentId?: string;
+  cachedAt?: number;
+  partitionId?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
+  updated_by?: string;
+  additional?: Record<string, unknown>;
+}
+
+export type ChildSourceRow = PartitionRecord;
+export type ChildSelector = Record<string, unknown>;
+export type ChildFilters = Record<string, unknown>;
+
+export interface ChildDocumentLike<TRecord extends Record<string, unknown>> {
+  toJSON(): TRecord;
+}
+
+export interface LocalChildCollectionLike<
+  TRecord extends ChildCacheRecord = ChildCacheRecord,
+> {
+  find(options: { selector: ChildSelector; limit?: number }): {
+    sort(sort: Record<string, "asc" | "desc">): {
+      exec(): Promise<Array<ChildDocumentLike<TRecord>>>;
+    };
+    exec(): Promise<Array<ChildDocumentLike<TRecord>>>;
+  };
+}
 
 export interface ChildCacheTransformOptions {
   tableType: string;
@@ -26,7 +63,7 @@ export interface ChildMutationEntitySchema {
 }
 
 export interface ChildListQueryLike<TQuery> {
-  eq(column: string, value: any): TQuery;
+  eq(column: string, value: unknown): TQuery;
   limit(limit: number): TQuery;
   order(
     column: string,
@@ -44,23 +81,29 @@ export interface BuildChildSelectClauseOptions {
   orderingFields?: string[];
 }
 
-export interface LocalChildQueryResult {
-  records: any[];
+export interface LocalChildQueryResult<
+  TRecord extends ChildCacheRecord = ChildCacheRecord,
+> {
+  records: TRecord[];
   hasMore: boolean;
   nextCursor: string | null;
 }
 
-export interface FilterLocalChildEntitiesOptions {
-  collection?: RxCollection<any>;
+export interface FilterLocalChildEntitiesOptions<
+  TRecord extends ChildCacheRecord = ChildCacheRecord,
+> {
+  collection?: LocalChildCollectionLike<TRecord>;
   parentId: string;
   tableType: string;
-  filters: Record<string, any>;
+  filters: ChildFilters;
   limit: number;
   cursor: string | null;
   orderBy: KeysetOrderBy;
 }
 
-export interface ChildPageResult<TRecord = any> {
+export interface ChildPageResult<
+  TRecord extends Record<string, unknown> = ChildCacheRecord,
+> {
   records: TRecord[];
   total: number;
   hasMore: boolean;
@@ -72,16 +115,13 @@ export interface ChildCollectionLookupOptions<TCollection> {
   dbCollections?: Record<string, TCollection>;
 }
 
-export interface QueryLocalChildRecordsCollection {
-  find(options: { selector: Record<string, any>; limit?: number }): {
-    sort(sort: Record<string, "asc" | "desc">): {
-      exec(): Promise<Array<{ toJSON(): unknown }>>;
-    };
-    exec(): Promise<Array<{ toJSON(): unknown }>>;
-  };
-}
+export type QueryLocalChildRecordsCollection<
+  TRecord extends ChildCacheRecord = ChildCacheRecord,
+> = LocalChildCollectionLike<TRecord>;
 
-export interface QueryLocalChildRecordsOptions<TCollection> {
+export interface QueryLocalChildRecordsOptions<
+  TCollection,
+> {
   collection: TCollection;
   parentId: string;
   tableType: string;
@@ -98,10 +138,13 @@ export interface FetchAndCacheChildRecordsOptions<TCollection> {
   partitionField?: string;
   partitionValue?: string;
   collection: TCollection;
-  fetchChildRecords: () => Promise<{ data: any[] | null; error: any }>;
+  fetchChildRecords: () => Promise<{
+    data: ChildSourceRow[] | null;
+    error: unknown;
+  }>;
 }
 
-export interface LoadChildViewPageOptions<TRawRecord extends Record<string, any>> {
+export interface LoadChildViewPageOptions<TRawRecord extends ChildSourceRow> {
   viewName: string;
   parentId: string;
   parentField: string;
@@ -109,11 +152,13 @@ export interface LoadChildViewPageOptions<TRawRecord extends Record<string, any>
   orderBy: KeysetOrderBy;
   partitionConfig?: PartitionConfig;
   partitionValue?: string;
-  collection?: BulkUpsertCollection<any>;
-  fetchViewRecords: () => Promise<{ data: TRawRecord[] | null; error: any }>;
+  collection?: BulkUpsertCollection<ChildCacheRecord>;
+  fetchViewRecords: () => Promise<{ data: TRawRecord[] | null; error: unknown }>;
 }
 
-export interface LoadChildViewPageResult<TRecord = any> {
+export interface LoadChildViewPageResult<
+  TRecord extends Record<string, unknown> = ChildCacheRecord,
+> {
   records: TRecord[];
   total: number;
   hasMore: boolean;
@@ -140,7 +185,7 @@ export function getExistingChildCollection<TCollection>(
   return options.childCollections.get(collectionName) || options.dbCollections?.[collectionName];
 }
 
-export function toChildPageResult<TRecord>(
+export function toChildPageResult<TRecord extends Record<string, unknown>>(
   queryResult: {
     records: TRecord[];
     hasMore: boolean;
@@ -155,7 +200,9 @@ export function toChildPageResult<TRecord>(
   };
 }
 
-export function createEmptyChildPageResult<TRecord = any>(): ChildPageResult<TRecord> {
+export function createEmptyChildPageResult<
+  TRecord extends Record<string, unknown> = ChildCacheRecord,
+>(): ChildPageResult<TRecord> {
   return {
     records: [],
     total: 0,
@@ -246,8 +293,10 @@ export function normalizeChildTableType(tableType: string): string {
   return tableType.replace(/_with_\w+$/, "");
 }
 
-export async function queryLocalChildRecords<TRecord = any>(
-  options: QueryLocalChildRecordsOptions<QueryLocalChildRecordsCollection>,
+export async function queryLocalChildRecords<
+  TRecord extends ChildCacheRecord = ChildCacheRecord,
+>(
+  options: QueryLocalChildRecordsOptions<QueryLocalChildRecordsCollection<TRecord>>,
 ): Promise<TRecord[]> {
   const normalizedTableType = normalizeChildTableType(options.tableType);
 
@@ -269,7 +318,7 @@ export async function queryLocalChildRecords<TRecord = any>(
     ]);
     const isSchemaField = orderBy ? schemaFields.has(orderBy) : false;
 
-    const selector: Record<string, any> = {
+    const selector: ChildSelector = {
       parentId: options.parentId,
       tableType: normalizedTableType,
     };
@@ -277,7 +326,7 @@ export async function queryLocalChildRecords<TRecord = any>(
       selector.partitionId = partitionId;
     }
 
-    const queryOptions: { selector: Record<string, any>; limit?: number } = {
+    const queryOptions: { selector: ChildSelector; limit?: number } = {
       selector,
     };
     if (limit > 0 && (!orderBy || isSchemaField)) {
@@ -288,17 +337,17 @@ export async function queryLocalChildRecords<TRecord = any>(
     const results = orderBy && isSchemaField
       ? await query.sort({ [orderBy]: orderDirection }).exec()
       : await query.exec();
-    let records = results.map((doc) => doc.toJSON() as TRecord);
+    let records = results.map((doc) => doc.toJSON());
 
     if (orderBy && !isSchemaField) {
-      records = sortLocalChildRecords(records as Record<string, any>[], {
+      records = sortLocalChildRecords(records, {
         field: orderBy,
         direction: orderDirection,
         tieBreaker: {
           field: "id",
           direction: "asc",
         },
-      }) as TRecord[];
+      });
 
       if (limit > 0) {
         records = records.slice(0, limit);
@@ -343,15 +392,15 @@ export function queueChildMutationRefresh(
 }
 
 export function mapChildRowsToCacheRecords(
-  rows: Record<string, any>[],
+  rows: ChildSourceRow[],
   options: ChildCacheTransformOptions,
-): any[] {
+): ChildCacheRecord[] {
   const normalizedTableType = normalizeChildTableType(options.tableType);
   const cachedAt = options.cachedAt ?? Date.now();
 
   return rows.map((row) => {
     const { id, created_at, updated_at, created_by, updated_by, ...rest } = row;
-    const additional: Record<string, any> = {};
+    const additional: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(rest)) {
       if (key === options.parentField) continue;
@@ -361,17 +410,17 @@ export function mapChildRowsToCacheRecords(
       }
     }
 
-    const record: Record<string, any> = {
+    const record: ChildCacheRecord = {
       id,
       tableType: normalizedTableType,
       parentId: options.parentId,
       cachedAt,
     };
 
-    if (updated_at) record.updated_at = updated_at;
-    if (created_at) record.created_at = created_at;
-    if (created_by) record.created_by = created_by;
-    if (updated_by) record.updated_by = updated_by;
+    if (typeof updated_at === "string") record.updated_at = updated_at;
+    if (typeof created_at === "string") record.created_at = created_at;
+    if (typeof created_by === "string") record.created_by = created_by;
+    if (typeof updated_by === "string") record.updated_by = updated_by;
     if (Object.keys(additional).length > 0) record.additional = additional;
     if (options.partitionValue) record.partitionId = options.partitionValue;
 
@@ -380,12 +429,12 @@ export function mapChildRowsToCacheRecords(
 }
 
 export async function mapAndCacheChildRows(
-  rows: Record<string, any>[],
+  rows: ChildSourceRow[],
   options: ChildCacheTransformOptions & {
-    collection?: BulkUpsertCollection<any>;
+    collection?: BulkUpsertCollection<ChildCacheRecord>;
   },
 ): Promise<{
-  transformedRecords: any[];
+  transformedRecords: ChildCacheRecord[];
   cachedRecordsCount: number;
 }> {
   const transformedRecords = mapChildRowsToCacheRecords(rows, options);
@@ -399,8 +448,10 @@ export async function mapAndCacheChildRows(
   };
 }
 
-export async function fetchAndCacheChildRecords<TRecord = any>(
-  options: FetchAndCacheChildRecordsOptions<BulkUpsertCollection<any>>,
+export async function fetchAndCacheChildRecords<
+  TRecord extends ChildCacheRecord = ChildCacheRecord,
+>(
+  options: FetchAndCacheChildRecordsOptions<BulkUpsertCollection<ChildCacheRecord>>,
 ): Promise<TRecord[]> {
   try {
     const { data, error } = await options.fetchChildRecords();
@@ -433,11 +484,9 @@ export async function fetchAndCacheChildRecords<TRecord = any>(
   }
 }
 
-export async function loadChildViewPage<
-  TRawRecord extends Record<string, any>,
->(
+export async function loadChildViewPage<TRawRecord extends ChildSourceRow>(
   options: LoadChildViewPageOptions<TRawRecord>,
-): Promise<LoadChildViewPageResult> {
+): Promise<LoadChildViewPageResult<TRawRecord | ChildCacheRecord>> {
   console.log("[SpaceStore] 🌐 Phase 1: Fetching VIEW records...");
 
   const { data, error } = await options.fetchViewRecords();
@@ -503,10 +552,10 @@ export async function loadChildViewPage<
 }
 
 function getChildFieldValue(
-  record: Record<string, any> | null | undefined,
+  record: ChildCacheRecord | null | undefined,
   field: string,
   parameter?: string,
-): any {
+): ComparableValue | null {
   if (!record) {
     return null;
   }
@@ -515,23 +564,26 @@ function getChildFieldValue(
   const topLevelValue = record[field];
 
   if (!parameter) {
-    return additionalValue ?? topLevelValue ?? null;
+    return toComparableValue(additionalValue ?? topLevelValue);
   }
 
-  return additionalValue?.[parameter] ?? topLevelValue?.[parameter] ?? null;
+  return (
+    getNestedComparableValue(additionalValue, parameter) ??
+    getNestedComparableValue(topLevelValue, parameter)
+  );
 }
 
 function getChildOrderValue(
-  record: Record<string, any> | null | undefined,
+  record: ChildCacheRecord | null | undefined,
   orderBy: KeysetOrderBy,
-): any {
+): ComparableValue | null {
   return getChildFieldValue(record, orderBy.field, orderBy.parameter);
 }
 
 function getChildTieBreakerValue(
-  record: Record<string, any> | null | undefined,
+  record: ChildCacheRecord | null | undefined,
   orderBy: KeysetOrderBy,
-): any {
+): ComparableValue | null {
   if (!record) {
     return null;
   }
@@ -544,10 +596,10 @@ function getChildTieBreakerValue(
   );
 }
 
-export function sortLocalChildRecords(
-  records: Record<string, any>[],
+export function sortLocalChildRecords<TRecord extends ChildCacheRecord>(
+  records: TRecord[],
   orderBy: KeysetOrderBy,
-): Record<string, any>[] {
+): TRecord[] {
   const tieBreaker = getTieBreaker(orderBy);
 
   return [...records].sort((leftRecord, rightRecord) => {
@@ -569,37 +621,58 @@ export function sortLocalChildRecords(
   });
 }
 
+function isRecordBag(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function toComparableValue(value: unknown): ComparableValue | null {
+  return (value ?? null) as ComparableValue | null;
+}
+
+function getNestedComparableValue(
+  value: unknown,
+  parameter: string,
+): ComparableValue | null {
+  if (!isRecordBag(value)) {
+    return null;
+  }
+
+  return toComparableValue(value[parameter]);
+}
+
 function isAfterCursor(
-  record: Record<string, any>,
-  cursorData: { value: any; tieBreaker: any },
+  record: ChildCacheRecord,
+  cursorData: { value: unknown; tieBreaker: unknown },
   orderBy: KeysetOrderBy,
 ): boolean {
   const value = getChildOrderValue(record, orderBy);
+  const cursorValue = cursorData.value as string | number;
   if (orderBy.direction === "asc") {
-    if (value > cursorData.value) return true;
-    if (value < cursorData.value) return false;
+    if ((value as string | number) > cursorValue) return true;
+    if ((value as string | number) < cursorValue) return false;
   } else {
-    if (value < cursorData.value) return true;
-    if (value > cursorData.value) return false;
+    if ((value as string | number) < cursorValue) return true;
+    if ((value as string | number) > cursorValue) return false;
   }
 
   const tieBreakerValue = getChildTieBreakerValue(record, orderBy);
+  const cursorTieBreaker = cursorData.tieBreaker as string | number;
   const tieBreakerDirection = getTieBreaker(orderBy).direction;
   return tieBreakerDirection === "asc"
-    ? tieBreakerValue > cursorData.tieBreaker
-    : tieBreakerValue < cursorData.tieBreaker;
+    ? (tieBreakerValue as string | number) > cursorTieBreaker
+    : (tieBreakerValue as string | number) < cursorTieBreaker;
 }
 
 export async function executeLocalChildQuery(options: {
-  collection: RxCollection<any>;
+  collection: LocalChildCollectionLike;
   parentId: string;
   tableType: string;
-  filters: Record<string, any>;
+  filters: ChildFilters;
   limit: number;
   cursor: string | null;
   orderBy: KeysetOrderBy;
 }): Promise<LocalChildQueryResult> {
-  const selector: Record<string, any> = {
+  const selector: ChildSelector = {
     parentId: options.parentId,
     tableType: normalizeChildTableType(options.tableType),
   };
@@ -611,7 +684,7 @@ export async function executeLocalChildQuery(options: {
   }
 
   const results = await options.collection.find({ selector }).exec();
-  let records = results.map((doc: RxDocument<any>) => doc.toJSON());
+  let records = results.map((doc) => doc.toJSON());
   records = sortLocalChildRecords(records, options.orderBy);
 
   if (options.cursor) {

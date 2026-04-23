@@ -17,15 +17,23 @@ import {
   queryLocalChildRecords,
   queueChildMutationRefresh,
   toChildPageResult,
+  type ChildCacheRecord,
+  type ChildSelector,
+  type LocalChildCollectionLike,
 } from "../space-child.helpers";
 
-function createMockCollection(records: Record<string, any>[]) {
+function createMockCollection<TRecord extends ChildCacheRecord>(
+  records: TRecord[],
+): LocalChildCollectionLike<TRecord> {
   return {
-    find: (options?: { selector?: Record<string, any> }) => ({
+    find: (options: { selector: ChildSelector; limit?: number }) => ({
+      sort: () => ({
+        exec: async () => [],
+      }),
       exec: async () =>
         records
           .filter((record) => {
-            const selector = options?.selector || {};
+            const selector = options.selector;
             return Object.entries(selector).every(([field, value]) => {
               if (field.startsWith("additional.")) {
                 return record.additional?.[field.replace("additional.", "")] === value;
@@ -37,17 +45,19 @@ function createMockCollection(records: Record<string, any>[]) {
             toJSON: () => record,
           })),
     }),
-  } as any;
+  };
 }
 
-function createQueryableChildCollection(records: Record<string, any>[]) {
+function createQueryableChildCollection<TRecord extends ChildCacheRecord>(
+  records: TRecord[],
+) {
   const calls = {
-    find: [] as Array<{ selector: Record<string, any>; limit?: number }>,
+    find: [] as Array<{ selector: ChildSelector; limit?: number }>,
     sort: [] as Array<Record<string, "asc" | "desc">>,
   };
 
-  const collection = {
-    find(options: { selector: Record<string, any>; limit?: number }) {
+  const collection: LocalChildCollectionLike<TRecord> = {
+    find(options: { selector: ChildSelector; limit?: number }) {
       calls.find.push(options);
       let sortArg: Record<string, "asc" | "desc"> | undefined;
 
@@ -64,8 +74,8 @@ function createQueryableChildCollection(records: Record<string, any>[]) {
             }
 
             const [[field, direction]] = Object.entries(sortArg);
-            const leftValue = left[field];
-            const rightValue = right[field];
+            const leftValue = left[field] as string | number;
+            const rightValue = right[field] as string | number;
 
             if (leftValue === rightValue) {
               return 0;
@@ -221,9 +231,9 @@ describe("space-child.helpers", () => {
   });
 
   it("applies child list query options in parent-partition-order sequence", () => {
-    const calls: Array<[string, ...any[]]> = [];
+    const calls: Array<[string, ...unknown[]]> = [];
     const query = {
-      eq(column: string, value: any) {
+      eq(column: string, value: unknown) {
         calls.push(["eq", column, value]);
         return this;
       },
@@ -352,7 +362,7 @@ describe("space-child.helpers", () => {
   });
 
   it("maps and caches child rows when a collection is provided", async () => {
-    const upserted: any[] = [];
+    const upserted: ChildCacheRecord[] = [];
 
     const result = await mapAndCacheChildRows(
       [
@@ -385,7 +395,7 @@ describe("space-child.helpers", () => {
   });
 
   it("fetches and caches child records from Supabase rows", async () => {
-    const upserted: any[] = [];
+    const upserted: ChildCacheRecord[] = [];
 
     const result = await fetchAndCacheChildRecords({
       tableType: "top_pet_in_breed_with_pet",
@@ -412,18 +422,17 @@ describe("space-child.helpers", () => {
     });
 
     expect(result).toEqual(upserted);
-    expect(result).toEqual([
-      {
-        id: "pet-1",
-        tableType: "top_pet_in_breed",
-        parentId: "breed-1",
-        partitionId: "breed-9",
-        additional: {
-          name: "Alpha",
-        },
-        cachedAt: expect.any(Number),
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: "pet-1",
+      tableType: "top_pet_in_breed",
+      parentId: "breed-1",
+      partitionId: "breed-9",
+      additional: {
+        name: "Alpha",
       },
-    ]);
+    });
+    expect(typeof result[0]?.cachedAt).toBe("number");
   });
 
   it("logs Supabase child-record errors and returns an empty array", async () => {
@@ -539,7 +548,7 @@ describe("space-child.helpers", () => {
 
   it("loads, caches, and paginates VIEW child records", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    const upserted: any[] = [];
+    const upserted: ChildCacheRecord[] = [];
 
     try {
       const result = await loadChildViewPage({
@@ -700,7 +709,7 @@ describe("space-child.helpers", () => {
 
   it("returns hasMore false and null nextCursor for partial VIEW pages", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    const upserted: any[] = [];
+    const upserted: ChildCacheRecord[] = [];
 
     try {
       const result = await loadChildViewPage({
@@ -746,7 +755,7 @@ describe("space-child.helpers", () => {
   it("returns an empty VIEW page without caching logs when no rows are fetched", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const upserted: any[] = [];
+    const upserted: ChildCacheRecord[] = [];
 
     try {
       const result = await loadChildViewPage({
@@ -980,14 +989,15 @@ describe("space-child.helpers", () => {
   it("logs and returns an empty array when local child querying fails", async () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("query failed");
+    const collection: LocalChildCollectionLike = {
+      find() {
+        throw error;
+      },
+    };
 
     try {
       const result = await queryLocalChildRecords({
-        collection: {
-          find() {
-            throw error;
-          },
-        } as any,
+        collection,
         parentId: "breed-1",
         tableType: "title_in_pet",
       });
