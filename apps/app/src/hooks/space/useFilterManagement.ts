@@ -26,6 +26,42 @@ import {
 } from "./filter-management.utils";
 import { readStorageValue } from "./space-query.utils";
 
+/**
+ * Shallow equality check for filter maps.
+ *
+ * buildFiltersFromSearchParams returns a fresh object on every call; without
+ * this guard `setFilters(newObj)` installs a new identity even when content
+ * is identical, which cascades through useEntities → applyFilters → setData
+ * → re-render and back into an infinite loop.
+ *
+ * Filter maps only ever contain scalars (resolved ids or raw URL values)
+ * or simple arrays of scalars.
+ */
+function areFiltersEqual(
+  a: Record<string, unknown> | undefined,
+  b: Record<string, unknown> | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  for (const key of aKeys) {
+    const av = a[key];
+    const bv = b[key];
+    if (av === bv) continue;
+    if (Array.isArray(av) && Array.isArray(bv)) {
+      if (av.length !== bv.length) return false;
+      for (let i = 0; i < av.length; i++) {
+        if (av[i] !== bv[i]) return false;
+      }
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 interface UseFilterManagementOptions {
   searchParams: URLSearchParams;
   setSearchParams: (params: URLSearchParams, options?: { replace?: boolean }) => void;
@@ -56,6 +92,16 @@ export function useFilterManagement({
   );
 
   useEffect(() => {
+    // Skip building filters until the space config is ready — otherwise
+    // buildFiltersFromSearchParams returns undefined because no filterField
+    // matches the URL key, and the resulting setFilters(undefined) → new
+    // render → new memo deps → new effect fire cascades into an infinite
+    // loop when combined with useEntities' filter-dep useEffect.
+    if (filterFields.length === 0 && !mainFilterField) {
+      return;
+    }
+
+    let cancelled = false;
     const buildFilters = async () => {
       try {
         const nextFilters = await buildFiltersFromSearchParams({
@@ -65,14 +111,21 @@ export function useFilterManagement({
           searchParams,
           searchUrlSlug,
         });
-        setFilters(nextFilters);
+        if (cancelled) return;
+        setFilters((prev) =>
+          areFiltersEqual(prev, nextFilters) ? prev : nextFilters,
+        );
       } catch (error) {
+        if (cancelled) return;
         console.error("[useFilterManagement] Error building filters:", error);
-        setFilters(undefined);
+        setFilters((prev) => (prev === undefined ? prev : undefined));
       }
     };
 
     buildFilters();
+    return () => {
+      cancelled = true;
+    };
   }, [
     searchParams,
     filterFields,
