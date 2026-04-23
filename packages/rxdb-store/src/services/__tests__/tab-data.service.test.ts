@@ -128,7 +128,15 @@ describe('TabDataService', () => {
     });
 
     it('should handle VIEW tables (with isView: true) via child type', async () => {
-      vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([{ id: '1' }]);
+      // VIEWs have no stable primary key — route through loadChildViewDirect
+      // instead of loadChildRecords (which would try to upsert into the RxDB
+      // child-cache and fail with COL3 on a null id).
+      vi.mocked(spaceStore.loadChildViewDirect).mockResolvedValue({
+        records: [{ id: '1' }],
+        total: 1,
+        hasMore: false,
+        nextCursor: null,
+      });
 
       const result = await tabDataService.loadTabData('parent-id', {
         type: 'child',
@@ -139,12 +147,13 @@ describe('TabDataService', () => {
         },
       });
 
-      // VIEWs use isView config flag, handled by loadChild
-      expect(spaceStore.loadChildRecords).toHaveBeenCalledWith(
+      expect(spaceStore.loadChildViewDirect).toHaveBeenCalledWith(
         'parent-id',
         'top_patron_in_breed_with_contact',
-        expect.any(Object)
+        'breed_id',
+        expect.objectContaining({ cursor: null }),
       );
+      expect(spaceStore.loadChildRecords).not.toHaveBeenCalled();
       expect(result).toEqual([{ id: '1' }]);
     });
   });

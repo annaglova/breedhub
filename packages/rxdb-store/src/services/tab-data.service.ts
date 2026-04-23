@@ -171,6 +171,33 @@ class TabDataService {
       return [];
     }
 
+    // VIEWs with JOINs don't expose a stable primary key (e.g.
+    // pet_sibling_with_sale exposes pet_id + sibling_pet_id but no `id`
+    // column), so they can't be upserted into the RxDB child-cache
+    // collection. Use the same direct-keyset path as loadChildPaginated
+    // and return the first page of records.
+    if (config.isView) {
+      const orderField = config.orderBy?.[0]?.field || 'id';
+      const orderDirection = config.orderBy?.[0]?.direction || 'asc';
+
+      const result = await spaceStore.loadChildViewDirect(
+        parentId,
+        config.table,
+        config.parentField,
+        {
+          limit: config.limit,
+          cursor: null,
+          select: config.select,
+          orderBy: {
+            field: orderField,
+            direction: orderDirection,
+            tieBreaker: { field: 'id', direction: 'asc' },
+          },
+        },
+      );
+      return this.asRecords<ChildTabDataRecord>(result.records);
+    }
+
     const records = await spaceStore.loadChildRecords(parentId, config.table, {
       limit: config.limit,
       orderBy: config.orderBy?.[0]?.field,
