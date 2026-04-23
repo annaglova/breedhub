@@ -123,24 +123,21 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                       ));
 
                     return (
-                      <Tooltip key={item.id}>
-                        <TooltipTrigger asChild>
-                          <Link
-                            to={item.path}
-                            className={cn(
-                              "group flex items-center justify-center",
-                              "px-0 sm:px-2 md:px-8 lg:px-4 xl:px-14",
-                              "py-3"
-                            )}
-                            onClick={(e) => {
-                              if (isActive) e.preventDefault();
-                            }}
-                          >
-                            <span
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-center px-0 sm:px-2 md:px-8 lg:px-4 xl:px-14 py-3"
+                      >
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link
+                              to={item.path}
                               className={cn(
                                 "flex items-center justify-center rounded-lg px-8 py-2 bg-transparent transition-colors",
-                                !isActive && "group-hover:bg-slate-200/60"
+                                !isActive && "hover:bg-slate-200/60"
                               )}
+                              onClick={(e) => {
+                                if (isActive) e.preventDefault();
+                              }}
                             >
                               <Icon
                                 icon={item.icon}
@@ -149,16 +146,16 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
                                   "transition-colors",
                                   isActive
                                     ? "text-primary"
-                                    : "text-sub-header-color group-hover:text-slate-600"
+                                    : "text-sub-header-color hover:text-slate-600"
                                 )}
                               />
-                            </span>
-                          </Link>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p>{item.label}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>{item.label}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     );
                   })
                 )}
