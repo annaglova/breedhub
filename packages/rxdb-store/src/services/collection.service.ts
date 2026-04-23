@@ -48,7 +48,7 @@ export abstract class CollectionService<T> {
     // Subscribe to all documents
     const sub = this.collection.find().$.subscribe({
       next: (docs) => {
-        this._items.value = docs.map(doc => doc.toJSON());
+        this._items.value = (docs.map(doc => doc.toJSON()) as T[]);
         this._loading.value = false;
       },
       error: (err) => {
@@ -155,7 +155,7 @@ export abstract class CollectionService<T> {
         ? await this.collection.find(query).exec()
         : await this.collection.find().exec();
       
-      return result.map(doc => doc.toJSON());
+      return result.map(doc => doc.toJSON()) as T[];
     } catch (error) {
       this._error.value = error as Error;
       throw error;
@@ -189,10 +189,10 @@ export abstract class CollectionService<T> {
     
     const sub = query
       ? this.collection.find(query).$.subscribe(docs => {
-          result.value = docs.map(doc => doc.toJSON());
+          result.value = (docs.map(doc => doc.toJSON()) as T[]);
         })
       : this.collection.find().$.subscribe(docs => {
-          result.value = docs.map(doc => doc.toJSON());
+          result.value = (docs.map(doc => doc.toJSON()) as T[]);
         });
     
     this.subscriptions.push(() => sub.unsubscribe());

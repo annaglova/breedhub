@@ -57,7 +57,6 @@ export const petSchema: RxJsonSchema<any> = {
   properties: {
     id: {
       type: 'string',
-      primary: true,
       maxLength: 50
     },
     breed_id: {

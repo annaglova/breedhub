@@ -14,7 +14,7 @@ let dbInstance: RxDatabase | null = null;
 
 export async function getSimpleDB(): Promise<RxDatabase> {
   // If database exists, return it
-  if (dbInstance && !dbInstance.destroyed) {
+  if (dbInstance && !(dbInstance as { destroyed?: boolean }).destroyed) {
     console.log('Returning existing database');
     return dbInstance;
   }
@@ -43,8 +43,8 @@ export async function getSimpleDB(): Promise<RxDatabase> {
 }
 
 export async function destroySimpleDB() {
-  if (dbInstance && !dbInstance.destroyed) {
-    await dbInstance.destroy();
+  if (dbInstance && !(dbInstance as { destroyed?: boolean }).destroyed) {
+    await (dbInstance as unknown as { destroy: () => Promise<unknown> }).destroy();
     dbInstance = null;
     console.log('Database destroyed');
   }

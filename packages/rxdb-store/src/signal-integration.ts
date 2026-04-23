@@ -34,9 +34,11 @@ export class RxDBSignalStore<T> {
    * Setup default subscription to all documents in collection
    */
   private setupDefaultSubscription(): void {
-    const subscription = this.collection.$.subscribe({
+    // Subscribe to find().$ (doc list stream), not collection.$ (single change events).
+    // This matches the pattern used by RxDBCollectionService.
+    const subscription = this.collection.find().$.subscribe({
       next: (docs) => {
-        this.items.value = docs.map(doc => doc.toJSON());
+        this.items.value = docs.map(doc => doc.toJSON() as T);
         this.lastUpdated.value = new Date();
         this.error.value = null;
       },

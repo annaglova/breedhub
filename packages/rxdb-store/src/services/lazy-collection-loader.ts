@@ -138,7 +138,7 @@ export class LazyCollectionLoader {
       // Add additional indexes if specified
       if (config.indexes?.length) {
         for (const index of config.indexes) {
-          await collection.addIndex(index);
+          await (collection as unknown as { addIndex: (i: unknown) => Promise<unknown> }).addIndex(index);
         }
       }
       
@@ -217,7 +217,7 @@ export class LazyCollectionLoader {
     if (!collection) return;
     
     // Destroy collection
-    await collection.destroy();
+    await (collection as unknown as { destroy: () => Promise<unknown> }).destroy();
     
     // Remove from maps
     this.collections.delete(name);

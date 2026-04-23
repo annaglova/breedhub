@@ -49,7 +49,7 @@ export async function getAllTables(): Promise<string[]> {
     return tables?.map(t => t.table_name) || [];
   }
 
-  return data || [];
+  return (data as string[] | null) || [];
 }
 
 /**

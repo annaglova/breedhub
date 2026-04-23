@@ -18,7 +18,7 @@ let globalDb: RxDatabase | null = null;
  */
 export async function getTempDatabase(): Promise<RxDatabase> {
   // Return existing if available
-  if (globalDb && !globalDb.destroyed) {
+  if (globalDb && !(globalDb as { destroyed?: boolean }).destroyed) {
     console.log('Using existing database');
     return globalDb;
   }
@@ -54,7 +54,7 @@ async function cleanupOldDatabases() {
   // Destroy existing global database
   if (globalDb) {
     try {
-      await globalDb.destroy();
+      await (globalDb as unknown as { destroy: () => Promise<unknown> }).destroy();
     } catch (e) {
       console.log('Could not destroy old database:', e);
     }
@@ -86,7 +86,7 @@ async function cleanupOldDatabases() {
  */
 export async function destroyTempDatabase() {
   if (globalDb) {
-    await globalDb.destroy();
+    await (globalDb as unknown as { destroy: () => Promise<unknown> }).destroy();
     globalDb = null;
   }
 }
