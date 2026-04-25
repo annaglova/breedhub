@@ -53,6 +53,7 @@ const tableEntityMap: Record<string, string> = {
   pet_sibling: 'pet',
   pet_child: 'pet',
   pet_child_for_sale: 'pet',
+  pet_measurement: 'pet',
   program_result: 'program',
   judge_in_program: 'program',
   contact_communication: 'contact',

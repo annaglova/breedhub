@@ -63,6 +63,8 @@ export interface ReadFromConfig {
   entityIdField: string;
   /** Column in mapping row holding the target entity partition value (e.g., 'pet_breed_id') */
   entityPartitionField?: string;
+  /** Target entity table name (e.g., 'pet'). Used by matrix tabs for column labels. */
+  entityTable?: string;
 }
 
 /**
