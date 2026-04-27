@@ -509,7 +509,10 @@ export function EditChildMatrixTab({
           <TableHeader>
             <TableRow className="min-h-[48.5px] h-[48.5px] hover:bg-transparent">
               {hasRowHeader && (
-                <TableHead className="font-bold text-secondary first:pl-4 last:pr-4">
+                <TableHead
+                  className="font-bold text-secondary first:pl-4 last:pr-4 whitespace-nowrap"
+                  style={{ width: "1%" }}
+                >
                   {parsed.rowHeader!.field.displayName ?? "Date"}
                 </TableHead>
               )}
@@ -521,7 +524,12 @@ export function EditChildMatrixTab({
                   </TableHead>
                 );
               })}
-              {canDeleteRow && <TableHead className="first:pl-4 last:pr-4" />}
+              {canDeleteRow && (
+                <TableHead
+                  className="first:pl-4 last:pr-4"
+                  style={{ width: "1%" }}
+                />
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -547,7 +555,10 @@ export function EditChildMatrixTab({
             allRows.map((row) => (
               <TableRow key={row.key} className="min-h-[56px] h-[56px] hover:bg-slate-50">
                 {hasRowHeader && (
-                  <TableCell className="first:pl-4 last:pr-4">
+                  <TableCell
+                    className="first:pl-4 last:pr-4 whitespace-nowrap"
+                    style={{ width: "1%" }}
+                  >
                     {parsed.rowHeader!.field.fieldType === "datetime" ? (
                       <DateTimeInput
                         value={(row.header as string | null) ?? null}
@@ -594,7 +605,10 @@ export function EditChildMatrixTab({
                   );
                 })}
                 {canDeleteRow && (
-                  <TableCell className="first:pl-4 last:pr-4 text-center">
+                  <TableCell
+                    className="first:pl-4 last:pr-4 text-center"
+                    style={{ width: "1%" }}
+                  >
                     <Button
                       type="button"
                       variant="ghost-secondary"

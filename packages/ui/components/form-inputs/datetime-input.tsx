@@ -67,7 +67,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
     };
 
     return (
-      <div className={cn("flex gap-2", className)}>
+      <div className={cn("flex w-fit gap-2", className)}>
         <DateInput
           ref={ref}
           value={safe}
@@ -75,7 +75,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           dateFormat={dateFormat}
           disabled={disabled}
           placeholder={placeholder}
-          className="flex-1"
+          className="w-[140px]"
         />
         <TimeInput
           value={timeStr}
@@ -85,7 +85,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           use24Hour={use24Hour}
           step={timeStep}
           disabled={disabled}
-          className="flex-1"
+          className="w-[110px]"
         />
       </div>
     );
