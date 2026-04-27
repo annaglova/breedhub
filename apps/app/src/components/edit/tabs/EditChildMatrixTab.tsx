@@ -504,14 +504,13 @@ export function EditChildMatrixTab({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="border border-border">
+      <div className="border border-border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="min-h-[48.5px] h-[48.5px] hover:bg-transparent">
               {hasRowHeader && (
                 <TableHead
-                  className="font-bold text-secondary first:pl-4 last:pr-4 whitespace-nowrap"
-                  style={{ width: "1%" }}
+                  className="font-bold text-secondary first:pl-4 last:pr-4 whitespace-nowrap w-0"
                 >
                   {parsed.rowHeader!.field.displayName ?? "Date"}
                 </TableHead>
@@ -519,15 +518,23 @@ export function EditChildMatrixTab({
               {columnEntities.map((entity) => {
                 const id = entity.id as string;
                 return (
-                  <TableHead key={id} className="font-bold text-secondary first:pl-4 last:pr-4 text-center">
-                    {columnLabels[id] ?? String(entity.name ?? id)}
+                  <TableHead
+                    key={id}
+                    className="font-bold text-secondary first:pl-4 last:pr-4 text-center"
+                    style={{ minWidth: "120px" }}
+                  >
+                    <span
+                      className="block truncate"
+                      title={columnLabels[id] ?? String(entity.name ?? id)}
+                    >
+                      {columnLabels[id] ?? String(entity.name ?? id)}
+                    </span>
                   </TableHead>
                 );
               })}
               {canDeleteRow && (
                 <TableHead
-                  className="first:pl-4 last:pr-4"
-                  style={{ width: "1%" }}
+                  className="first:pl-4 last:pr-4 w-0"
                 />
               )}
             </TableRow>
@@ -556,8 +563,7 @@ export function EditChildMatrixTab({
               <TableRow key={row.key} className="min-h-[56px] h-[56px] hover:bg-slate-50">
                 {hasRowHeader && (
                   <TableCell
-                    className="first:pl-4 last:pr-4 whitespace-nowrap"
-                    style={{ width: "1%" }}
+                    className="first:pl-4 last:pr-4 whitespace-nowrap w-0"
                   >
                     {parsed.rowHeader!.field.fieldType === "datetime" ? (
                       <DateTimeInput
@@ -590,7 +596,11 @@ export function EditChildMatrixTab({
                     ? (cellRec.additional as Record<string, any>)?.[parsed.cell!.column]
                     : null;
                   return (
-                    <TableCell key={id} className="first:pl-4 last:pr-4 text-center">
+                    <TableCell
+                      key={id}
+                      className="first:pl-4 last:pr-4 text-center"
+                      style={{ minWidth: "120px" }}
+                    >
                       <Input
                         type="number"
                         size="default"
@@ -606,8 +616,7 @@ export function EditChildMatrixTab({
                 })}
                 {canDeleteRow && (
                   <TableCell
-                    className="first:pl-4 last:pr-4 text-center"
-                    style={{ width: "1%" }}
+                    className="first:pl-4 last:pr-4 text-center w-0"
                   >
                     <Button
                       type="button"
