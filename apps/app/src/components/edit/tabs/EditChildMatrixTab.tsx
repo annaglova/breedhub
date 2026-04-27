@@ -509,32 +509,33 @@ export function EditChildMatrixTab({
     !columnsLoading && !cellsLoading && allRows.length === 0 && columnEntities.length === 0;
 
   return (
-    <div className="space-y-3">
-      <Table variant="bordered" size="sm">
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            {hasRowHeader && (
-              <TableHead className="font-bold">
-                {parsed.rowHeader!.field.displayName ?? "Date"}
-              </TableHead>
-            )}
-            {columnEntities.map((entity) => {
-              const id = entity.id as string;
-              return (
-                <TableHead key={id} className="font-bold text-center">
-                  {columnLabels[id] ?? String(entity.name ?? id)}
+    <div className="flex flex-col gap-3">
+      <div className="border border-border">
+        <Table>
+          <TableHeader>
+            <TableRow className="min-h-[48.5px] h-[48.5px] hover:bg-transparent">
+              {hasRowHeader && (
+                <TableHead className="font-bold text-secondary first:pl-4 last:pr-4">
+                  {parsed.rowHeader!.field.displayName ?? "Date"}
                 </TableHead>
-              );
-            })}
-            {canDeleteRow && <TableHead className="w-10" />}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+              )}
+              {columnEntities.map((entity) => {
+                const id = entity.id as string;
+                return (
+                  <TableHead key={id} className="font-bold text-secondary first:pl-4 last:pr-4 text-center">
+                    {columnLabels[id] ?? String(entity.name ?? id)}
+                  </TableHead>
+                );
+              })}
+              {canDeleteRow && <TableHead className="w-10 first:pl-4 last:pr-4" />}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {showEmpty ? (
             <TableRow className="hover:bg-transparent">
               <TableCell
                 colSpan={Math.max(columnEntities.length + (hasRowHeader ? 1 : 0) + (canDeleteRow ? 1 : 0), 1)}
-                className="h-20 text-center text-secondary"
+                className="h-24 text-center text-secondary first:pl-4 last:pr-4"
               >
                 No {label ?? "records"} yet
               </TableCell>
@@ -543,21 +544,21 @@ export function EditChildMatrixTab({
             <TableRow className="hover:bg-transparent">
               <TableCell
                 colSpan={Math.max(columnEntities.length + (hasRowHeader ? 1 : 0) + (canDeleteRow ? 1 : 0), 1)}
-                className="h-20 text-center text-secondary"
+                className="h-24 text-center text-secondary first:pl-4 last:pr-4"
               >
                 Loading…
               </TableCell>
             </TableRow>
           ) : (
             allRows.map((row) => (
-              <TableRow key={row.key} className="hover:bg-transparent">
+              <TableRow key={row.key} className="min-h-[48.5px] h-[48.5px] hover:bg-slate-50">
                 {hasRowHeader && (
-                  <TableCell>
+                  <TableCell className="p-0 first:pl-4 last:pr-4">
                     <input
                       type={inputTypeForFieldType(parsed.rowHeader!.field.fieldType)}
                       className={cn(
-                        "w-full bg-transparent outline-none",
-                        "focus:ring-1 focus:ring-primary focus:rounded px-1 py-0.5",
+                        "block w-full h-full border-0 bg-transparent outline-none px-2",
+                        "focus:ring-1 focus:ring-primary focus:rounded",
                       )}
                       value={
                         parsed.rowHeader!.field.fieldType === "datetime"
@@ -585,12 +586,12 @@ export function EditChildMatrixTab({
                     ? (cellRec.additional as Record<string, any>)?.[parsed.cell!.column]
                     : null;
                   return (
-                    <TableCell key={id}>
+                    <TableCell key={id} className="p-0 first:pl-4 last:pr-4 text-center">
                       <input
                         type="number"
                         className={cn(
-                          "w-full bg-transparent outline-none text-right",
-                          "focus:ring-1 focus:ring-primary focus:rounded px-1 py-0.5",
+                          "block w-full h-full border-0 bg-transparent outline-none text-center px-2",
+                          "focus:ring-1 focus:ring-primary focus:rounded",
                         )}
                         defaultValue={(value as string | number | null | undefined) ?? ""}
                         key={`${row.key}-${id}-${cellRec?.id ?? "new"}`}
@@ -602,12 +603,12 @@ export function EditChildMatrixTab({
                   );
                 })}
                 {canDeleteRow && (
-                  <TableCell className="w-10 text-center">
+                  <TableCell className="w-10 first:pl-4 last:pr-4 text-center">
                     <Button
                       type="button"
                       variant="ghost-secondary"
                       size="icon"
-                      className="size-7"
+                      className="size-7 text-secondary"
                       onClick={() => handleRemoveRow(row)}
                     >
                       <Trash2 className="size-4" />
@@ -617,8 +618,9 @@ export function EditChildMatrixTab({
               </TableRow>
             ))
           )}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

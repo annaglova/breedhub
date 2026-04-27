@@ -256,7 +256,7 @@ function DataTable<TData>({
         <Table variant={variant}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+              <TableRow key={headerGroup.id} className="min-h-[48.5px] h-[48.5px] hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -290,7 +290,7 @@ function DataTable<TData>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className={cn("hover:bg-slate-50", onRowClick && "cursor-pointer")}
+                  className={cn("min-h-[48.5px] h-[48.5px] hover:bg-slate-50", onRowClick && "cursor-pointer")}
                   onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
