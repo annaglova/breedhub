@@ -2,6 +2,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
+import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
 import { DateTimeInput } from "@ui/components/form-inputs";
@@ -164,6 +165,7 @@ export function EditChildMatrixTab({
   addDialogOpen,
   onAddDialogClose,
 }: EditChildMatrixTabProps) {
+  useSignals();
   const selectedEntity = useSelectedEntity();
   const parentId = selectedEntity?.id;
 
@@ -173,6 +175,13 @@ export function EditChildMatrixTab({
 
   const parsed = useMemo(() => parseFields(fields), [fields]);
   const cellTable = cellTableFromDataSource || parsed.cellTable;
+  // Stable constants ref — parseFields recreates `constants` each render, but
+  // its content is stable when `fields` is stable. Used as effect dep so we
+  // don't re-fetch on every render.
+  const constantsKey = useMemo(
+    () => JSON.stringify(parsed.constants),
+    [parsed.constants],
+  );
 
   // Entity type whose child-collection holds cell records (e.g., 'pet')
   const columnEntityTable = readFrom?.entityTable;
@@ -247,6 +256,7 @@ export function EditChildMatrixTab({
       return;
     }
     setCellsLoading(true);
+
     Promise.all(
       columnEntities.map((entity) =>
         spaceStore.loadChildRecords(entity.id as string, cellTable),
@@ -255,10 +265,12 @@ export function EditChildMatrixTab({
       .then((results) => {
         if (cancelled) return;
         const all = results.flat();
-        // Filter by constants (e.g., measurement_type_id = Weight UUID)
+        const constants = JSON.parse(constantsKey) as Record<string, unknown>;
         const filtered = all.filter((record) => {
           const data = (record.additional as Record<string, any>) || record;
-          for (const [col, val] of Object.entries(parsed.constants)) {
+          // Skip soft-deleted records.
+          if (data.deleted === true) return false;
+          for (const [col, val] of Object.entries(constants)) {
             if (data[col] !== val) return false;
           }
           return true;
@@ -275,7 +287,21 @@ export function EditChildMatrixTab({
     return () => {
       cancelled = true;
     };
-  }, [columnEntities, cellTable, columnEntityTable, parsed.constants, refreshTick]);
+  }, [columnEntities, cellTable, columnEntityTable, constantsKey, refreshTick]);
+
+  // Subscribe to childRefreshSignal — when sync completes for any pet's
+  // measurement, bump refreshTick so we re-read RxDB. Same mechanism that
+  // useTabData uses to stay live with background syncs.
+  const refreshSignal = spaceStore.childRefreshSignal.value;
+  useEffect(() => {
+    if (!refreshSignal || !cellTable) return;
+    const expectedTable = cellTable.replace(/_with_\w+$/, "");
+    if (refreshSignal.tableType !== expectedTable) return;
+    const petIds = new Set(columnEntities.map((e) => e.id as string));
+    if (petIds.has(refreshSignal.parentId)) {
+      setRefreshTick((t) => t + 1);
+    }
+  }, [refreshSignal, cellTable, columnEntities]);
 
   // ── Group cells into rows by rowHeader field ────────────────────────────
   const persistedRows = useMemo<MatrixRow[]>(() => {
@@ -287,7 +313,9 @@ export function EditChildMatrixTab({
     for (const record of cellRecords) {
       const data = (record.additional as Record<string, any>) || {};
       const headerValue = data[headerCol];
-      const columnId = data[colCol];
+      // Universal child cache strips parentField (pet_id) from `additional`
+      // and stores it at `record.parentId`. Fall back to that for the column ID.
+      const columnId = data[colCol] ?? record.parentId;
       if (headerValue == null || !columnId) continue;
 
       const key = String(headerValue);
