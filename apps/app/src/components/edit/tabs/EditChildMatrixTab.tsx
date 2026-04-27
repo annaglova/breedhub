@@ -3,6 +3,8 @@ import { spaceStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import { Button } from "@ui/components/button";
+import { Input } from "@ui/components/input";
+import { DateTimeInput } from "@ui/components/form-inputs";
 import {
   Table,
   TableBody,
@@ -111,14 +113,6 @@ function inputTypeForFieldType(fieldType?: string): string {
     default:
       return "text";
   }
-}
-
-function formatDatetimeLocal(value: unknown): string {
-  if (!value) return "";
-  const date = new Date(value as string);
-  if (Number.isNaN(date.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function parseHeaderInput(value: string, fieldType?: string): string | null {
@@ -527,7 +521,7 @@ export function EditChildMatrixTab({
                   </TableHead>
                 );
               })}
-              {canDeleteRow && <TableHead className="w-10 first:pl-4 last:pr-4" />}
+              {canDeleteRow && <TableHead className="first:pl-4 last:pr-4" />}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -551,32 +545,31 @@ export function EditChildMatrixTab({
             </TableRow>
           ) : (
             allRows.map((row) => (
-              <TableRow key={row.key} className="min-h-[48.5px] h-[48.5px] hover:bg-slate-50">
+              <TableRow key={row.key} className="min-h-[56px] h-[56px] hover:bg-slate-50">
                 {hasRowHeader && (
-                  <TableCell className="p-0 first:pl-4 last:pr-4">
-                    <input
-                      type={inputTypeForFieldType(parsed.rowHeader!.field.fieldType)}
-                      className={cn(
-                        "block w-full h-full border-0 bg-transparent outline-none px-2",
-                        "focus:ring-1 focus:ring-primary focus:rounded",
-                      )}
-                      value={
-                        parsed.rowHeader!.field.fieldType === "datetime"
-                          ? formatDatetimeLocal(row.header)
-                          : (row.header as string | number | null) ?? ""
-                      }
-                      onChange={(event) =>
-                        // For drafts, update immediately; for persisted, cascade on blur
-                        row.isDraft
-                          ? handleHeaderChange(row, event.target.value)
-                          : undefined
-                      }
-                      onBlur={
-                        !row.isDraft
-                          ? (event) => handleHeaderChange(row, event.target.value)
-                          : undefined
-                      }
-                    />
+                  <TableCell className="first:pl-4 last:pr-4">
+                    {parsed.rowHeader!.field.fieldType === "datetime" ? (
+                      <DateTimeInput
+                        value={(row.header as string | null) ?? null}
+                        onValueChange={(iso) => handleHeaderChange(row, iso ?? "")}
+                      />
+                    ) : (
+                      <Input
+                        type={inputTypeForFieldType(parsed.rowHeader!.field.fieldType)}
+                        size="default"
+                        value={(row.header as string | number | null) ?? ""}
+                        onChange={(event) =>
+                          row.isDraft
+                            ? handleHeaderChange(row, event.target.value)
+                            : undefined
+                        }
+                        onBlur={
+                          !row.isDraft
+                            ? (event) => handleHeaderChange(row, event.target.value)
+                            : undefined
+                        }
+                      />
+                    )}
                   </TableCell>
                 )}
                 {columnEntities.map((entity) => {
@@ -586,13 +579,11 @@ export function EditChildMatrixTab({
                     ? (cellRec.additional as Record<string, any>)?.[parsed.cell!.column]
                     : null;
                   return (
-                    <TableCell key={id} className="p-0 first:pl-4 last:pr-4 text-center">
-                      <input
+                    <TableCell key={id} className="first:pl-4 last:pr-4 text-center">
+                      <Input
                         type="number"
-                        className={cn(
-                          "block w-full h-full border-0 bg-transparent outline-none text-center px-2",
-                          "focus:ring-1 focus:ring-primary focus:rounded",
-                        )}
+                        size="default"
+                        className="text-center"
                         defaultValue={(value as string | number | null | undefined) ?? ""}
                         key={`${row.key}-${id}-${cellRec?.id ?? "new"}`}
                         onBlur={(event) =>
@@ -603,15 +594,17 @@ export function EditChildMatrixTab({
                   );
                 })}
                 {canDeleteRow && (
-                  <TableCell className="w-10 first:pl-4 last:pr-4 text-center">
+                  <TableCell className="first:pl-4 last:pr-4 text-center">
                     <Button
                       type="button"
                       variant="ghost-secondary"
-                      size="icon"
-                      className="size-7 text-secondary"
-                      onClick={() => handleRemoveRow(row)}
+                      className="size-[2.25rem] rounded-full p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveRow(row);
+                      }}
                     >
-                      <Trash2 className="size-4" />
+                      <Trash2 size={16} />
                     </Button>
                   </TableCell>
                 )}
