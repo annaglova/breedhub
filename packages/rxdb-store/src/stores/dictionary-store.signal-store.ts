@@ -70,6 +70,29 @@ class DictionaryStore {
     }>
   >();
 
+  /**
+   * Cache hit/miss telemetry. Counters mirror the structure used by
+   * spaceStore — `dedup` increments when a concurrent identical request
+   * shared the in-flight promise (P3), `miss` when we ran the full Phase
+   * 1+3 pipeline, `hit` when the eventual result was fully populated from
+   * RxDB without Phase 3 fetch.
+   */
+  cacheStats = {
+    getDictionary: {
+      hit: 0,
+      miss: 0,
+      dedup: 0,
+    },
+  };
+
+  resetCacheStats(): void {
+    for (const k of Object.keys(this.cacheStats.getDictionary) as Array<
+      keyof typeof this.cacheStats.getDictionary
+    >) {
+      this.cacheStats.getDictionary[k] = 0;
+    }
+  }
+
   private constructor() {}
 
   static getInstance(): DictionaryStore {
@@ -389,6 +412,7 @@ class DictionaryStore {
     const dedupeKey = this.buildDedupeKey(tableName, options);
     const inflight = this.inflightDictionary.get(dedupeKey);
     if (inflight) {
+      this.cacheStats.getDictionary.dedup += 1;
       return inflight;
     }
     const promise = this.runGetDictionary(tableName, options).finally(() => {
@@ -556,6 +580,13 @@ class DictionaryStore {
       }
 
       const toFetchIds = [...missingIds, ...staleIds];
+
+      if (toFetchIds.length === 0) {
+        // Full RxDB cache hit — no Phase 3 traffic.
+        this.cacheStats.getDictionary.hit += 1;
+      } else {
+        this.cacheStats.getDictionary.miss += 1;
+      }
 
       // 🌐 PHASE 3: Fetch missing + stale records from Supabase
       let freshRecords: DictionaryDocument[] = [];

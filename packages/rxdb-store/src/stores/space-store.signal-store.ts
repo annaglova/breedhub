@@ -1777,14 +1777,17 @@ class SpaceStore {
     });
 
     if (existingRecords.length > 0) {
+      this.cacheStats.childRecords.hit += 1;
       // Staleness check: if oldest record cached > 5 min ago, refetch in background
       const CHILD_STALE_MS = 5 * 60 * 1000; // 5 minutes
       if (hasStaleChildRecords(existingRecords, CHILD_STALE_MS)) {
         // Return stale data immediately, refresh in background
+        this.cacheStats.childRecords.staleRevalidate += 1;
         this.refreshChildRecordsInBackground(entityType, tableType, parentId, parentIdField, options, partitionConfig, partitionValue);
       }
       return existingRecords;
     }
+    this.cacheStats.childRecords.miss += 1;
 
     return fetchAndCacheChildRecords({
       tableType,
@@ -1833,6 +1836,47 @@ class SpaceStore {
   >();
   private rpcInflight = new Map<string, Promise<unknown>>();
 
+  /**
+   * Cache hit/miss/stale telemetry. Plain counters per cache layer for
+   * tuning and ad-hoc debugging; in dev the whole object is exposed at
+   * `window.spaceStoreCacheStats`. Each counter increments at the hot
+   * path that observes the event, no batching.
+   */
+  cacheStats = {
+    childRecords: {
+      hit: 0,
+      miss: 0,
+      staleRevalidate: 0,
+    },
+    childRecordsBatch: {
+      hit: 0,
+      miss: 0,
+      staleRevalidate: 0,
+    },
+    rpc: {
+      hit: 0,
+      miss: 0,
+      dedup: 0,
+    },
+    mapping: {
+      hit: 0,
+      miss: 0,
+      staleRevalidate: 0,
+    },
+  };
+
+  /** Reset all cache counters (useful for scoped scenario measurements). */
+  resetCacheStats(): void {
+    for (const key of Object.keys(this.cacheStats) as Array<
+      keyof typeof this.cacheStats
+    >) {
+      const layer = this.cacheStats[key] as Record<string, number>;
+      for (const k of Object.keys(layer)) {
+        layer[k] = 0;
+      }
+    }
+  }
+
   async callRpc<TResult = unknown>(
     rpcName: string,
     args: Record<string, unknown> = {},
@@ -1844,14 +1888,17 @@ class SpaceStore {
     if (cacheTtlMs > 0) {
       const cached = this.rpcCache.get(key);
       if (cached && cached.expiresAt > now) {
+        this.cacheStats.rpc.hit += 1;
         return { data: cached.value as TResult, error: null };
       }
     }
     const inflight = this.rpcInflight.get(key);
     if (inflight) {
+      this.cacheStats.rpc.dedup += 1;
       return inflight as Promise<{ data: TResult | null; error: unknown }>;
     }
     const promise = (async () => {
+      this.cacheStats.rpc.miss += 1;
       const { data, error } = await supabase.rpc(rpcName, args);
       if (!error && cacheTtlMs > 0) {
         this.rpcCache.set(key, {
@@ -1941,6 +1988,11 @@ class SpaceStore {
     const haveByParent = new Set(cached.map((r) => r.parentId).filter(Boolean) as string[]);
     const missingParentIds = parentIds.filter((id) => !haveByParent.has(id));
 
+    // Tally per-parent hit/miss so the batch counter reflects fan-out
+    // semantics (one batch covering N parents → N hits/misses recorded).
+    this.cacheStats.childRecordsBatch.hit += parentIds.length - missingParentIds.length;
+    this.cacheStats.childRecordsBatch.miss += missingParentIds.length;
+
     // Cache miss → group missing parents by partition value, one Supabase
     // `IN (...)` per partition group.
     if (missingParentIds.length > 0) {
@@ -2013,6 +2065,7 @@ class SpaceStore {
     if (cached.length > 0) {
       const CHILD_STALE_MS = 5 * 60 * 1000;
       if (hasStaleChildRecords(cached, CHILD_STALE_MS)) {
+        this.cacheStats.childRecordsBatch.staleRevalidate += 1;
         const staleByPartition = new Map<string | undefined, string[]>();
         for (const id of parentIds) {
           const partitionValue = partitionByParent.get(id);
