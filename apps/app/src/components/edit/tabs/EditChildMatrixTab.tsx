@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, syncQueueService } from "@breedhub/rxdb-store";
+import { spaceStore, syncQueueService, toast } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -276,6 +276,10 @@ export function EditChildMatrixTab({
   const [cellRecords, setCellRecords] = useState<Array<Record<string, any>>>([]);
   const [cellsLoading, setCellsLoading] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
+  // Bumped when a header change is rejected (date collision). Used as part of
+  // the DateTimeInput key so the input remounts and its internal state resets
+  // back to the row's current header instead of keeping the user's typing.
+  const [rejectionTick, setRejectionTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -385,6 +389,24 @@ export function EditChildMatrixTab({
       parsed.rowHeader.field.autoFillOnAdd === "clientNow"
         ? clientNowMinuteIso()
         : null;
+    // Reject adding a row that collides with an existing row's date — the
+    // matrix design assumes one row per date, otherwise a user typing into
+    // either of the two clones creates parallel records that the cascade
+    // logic can't tell apart.
+    if (autoFill != null) {
+      const collidingPersisted = persistedRows.some(
+        (r) => String(r.header) === autoFill,
+      );
+      const collidingDraft = draftRows.some(
+        (r) => r.header != null && String(r.header) === autoFill,
+      );
+      if (collidingPersisted || collidingDraft) {
+        toast.error(
+          `${parsed.rowHeader.field.displayName ?? "Record"} for this date already exists`,
+        );
+        return;
+      }
+    }
     const key =
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
@@ -393,7 +415,7 @@ export function EditChildMatrixTab({
       ...prev,
       { key, header: autoFill, isDraft: true, cellRecords: {}, allRecords: [] },
     ]);
-  }, [parsed.rowHeader]);
+  }, [parsed.rowHeader, persistedRows, draftRows]);
 
   // PageMenu's "+ Add" button signals through addDialogOpen — add a draft row
   // and immediately close the signal (no dialog flow for matrix).
@@ -409,6 +431,24 @@ export function EditChildMatrixTab({
       const parsedValue = parseHeaderInput(rawValue, parsed.rowHeader.field.fieldType);
 
       if (row.isDraft) {
+        // Reject if another row already owns this date — see handleAddRow.
+        if (parsedValue != null) {
+          const collides =
+            persistedRows.some((r) => String(r.header) === parsedValue) ||
+            draftRows.some(
+              (r) =>
+                r.key !== row.key &&
+                r.header != null &&
+                String(r.header) === parsedValue,
+            );
+          if (collides) {
+            toast.error(
+              `${parsed.rowHeader.field.displayName ?? "Record"} for this date already exists`,
+            );
+            setRejectionTick((t) => t + 1);
+            return;
+          }
+        }
         setDraftRows((prev) =>
           prev.map((r) =>
             r.key === row.key ? { ...r, header: parsedValue, key: String(parsedValue ?? r.key) } : r,
@@ -423,6 +463,22 @@ export function EditChildMatrixTab({
       if (!columnEntityTable) return;
       if (parsedValue == null) return;
       if (parsedValue === row.header) return;
+      // Reject if another row already owns the new date — silently merging
+      // would otherwise drop one row's cells under the other's.
+      const collides =
+        persistedRows.some(
+          (r) => r.key !== row.key && String(r.header) === parsedValue,
+        ) ||
+        draftRows.some(
+          (r) => r.header != null && String(r.header) === parsedValue,
+        );
+      if (collides) {
+        toast.error(
+          `${parsed.rowHeader.field.displayName ?? "Record"} for this date already exists`,
+        );
+        setRejectionTick((t) => t + 1);
+        return;
+      }
 
       const headerCol = parsed.rowHeader.column;
       // Use the row's `allRecords` snapshot — that's every record that grouped
@@ -467,7 +523,7 @@ export function EditChildMatrixTab({
       );
       setRefreshTick((t) => t + 1);
     },
-    [parsed.rowHeader, cellTable, columnEntityTable, label],
+    [parsed.rowHeader, cellTable, columnEntityTable, label, persistedRows, draftRows],
   );
 
   const handleCellChange = useCallback(
@@ -680,6 +736,7 @@ export function EditChildMatrixTab({
                   >
                     {parsed.rowHeader!.field.fieldType === "datetime" ? (
                       <DateTimeInput
+                        key={`${row.key}-${rejectionTick}`}
                         value={(row.header as string | null) ?? null}
                         onValueChange={(iso) => handleHeaderChange(row, iso ?? "")}
                       />
