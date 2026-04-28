@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore, supabase } from "@breedhub/rxdb-store";
+import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import {
   Table,
@@ -35,11 +35,19 @@ interface RpcRow {
   has_children: boolean;
 }
 
+// Cache each level for 2 min — the judge tree changes when a contact gets a
+// new entry but most expand/collapse traffic happens within seconds.
+const JUDGE_TREE_TTL_MS = 2 * 60 * 1000;
+
 async function loadLevel(contactId: string, parentId: string | null): Promise<TreeNode[]> {
-  const { data, error } = await supabase.rpc('get_contact_judge_tree_level', {
-    p_contact_id: contactId,
-    p_parent_id: parentId,
-  });
+  const { data, error } = await spaceStore.callRpc<RpcRow[]>(
+    'get_contact_judge_tree_level',
+    {
+      p_contact_id: contactId,
+      p_parent_id: parentId,
+    },
+    { cacheTtlMs: JUDGE_TREE_TTL_MS },
+  );
   if (error) {
     console.error('Failed to load judge tree level:', error);
     return [];

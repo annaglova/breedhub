@@ -1820,6 +1820,67 @@ class SpaceStore {
   }
 
   /**
+   * In-memory RPC result cache. Concurrent identical calls share an
+   * in-flight promise, and resolved values stay cached for `cacheTtlMs` so
+   * tabs that re-mount (e.g. lazy-tree expand → switch tab → switch back)
+   * don't re-issue the round-trip. Components used to call
+   * `supabase.rpc()` directly, which bypassed both caching and offline
+   * support; routing through here keeps the local-first contract.
+   */
+  private rpcCache = new Map<
+    string,
+    { value: unknown; expiresAt: number }
+  >();
+  private rpcInflight = new Map<string, Promise<unknown>>();
+
+  async callRpc<TResult = unknown>(
+    rpcName: string,
+    args: Record<string, unknown> = {},
+    options: { cacheTtlMs?: number } = {},
+  ): Promise<{ data: TResult | null; error: unknown }> {
+    const cacheTtlMs = options.cacheTtlMs ?? 0;
+    const key = `${rpcName}::${JSON.stringify(args ?? {})}`;
+    const now = Date.now();
+    if (cacheTtlMs > 0) {
+      const cached = this.rpcCache.get(key);
+      if (cached && cached.expiresAt > now) {
+        return { data: cached.value as TResult, error: null };
+      }
+    }
+    const inflight = this.rpcInflight.get(key);
+    if (inflight) {
+      return inflight as Promise<{ data: TResult | null; error: unknown }>;
+    }
+    const promise = (async () => {
+      const { data, error } = await supabase.rpc(rpcName, args);
+      if (!error && cacheTtlMs > 0) {
+        this.rpcCache.set(key, {
+          value: data,
+          expiresAt: Date.now() + cacheTtlMs,
+        });
+      }
+      return { data: data as TResult | null, error };
+    })().finally(() => {
+      this.rpcInflight.delete(key);
+    });
+    this.rpcInflight.set(key, promise);
+    return promise;
+  }
+
+  /** Drop a cached RPC entry — used after mutations that invalidate it. */
+  invalidateRpcCache(rpcName: string, args?: Record<string, unknown>): void {
+    if (args === undefined) {
+      // Drop everything for this RPC name (any args).
+      const prefix = `${rpcName}::`;
+      for (const k of this.rpcCache.keys()) {
+        if (k.startsWith(prefix)) this.rpcCache.delete(k);
+      }
+      return;
+    }
+    this.rpcCache.delete(`${rpcName}::${JSON.stringify(args)}`);
+  }
+
+  /**
    * Load child records for many parents in one shot. Replaces the
    * `Promise.all(parentIds.map(loadChildRecords))` pattern: one RxDB selector
    * with `parentId IN (...)`, one Supabase fallback per partition group, and
