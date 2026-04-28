@@ -294,16 +294,20 @@ export function EditChildMatrixTab({
     }
     setCellsLoading(true);
 
-    Promise.all(
-      columnEntities.map((entity) =>
-        spaceStore.loadChildRecords(entity.id as string, cellTable),
-      ),
-    )
-      .then((results) => {
+    // Single batched load — one RxDB selector with `parentId IN (...)` and
+    // (if needed) one Supabase fallback per partition. Replaces the
+    // per-pet Promise.all that issued N RxDB queries and fanned out N
+    // independent staleness-driven background refreshes.
+    spaceStore
+      .loadChildRecordsForParents(
+        columnEntityTable,
+        cellTable,
+        columnEntities.map((entity) => entity.id as string),
+      )
+      .then((records) => {
         if (cancelled) return;
-        const all = results.flat();
         const constants = JSON.parse(constantsKey) as Record<string, unknown>;
-        const filtered = all.filter((record) => {
+        const filtered = records.filter((record) => {
           const data = (record.additional as Record<string, any>) || record;
           // Skip soft-deleted records.
           if (data.deleted === true) return false;
@@ -315,7 +319,7 @@ export function EditChildMatrixTab({
         setCellRecords(filtered);
       })
       .catch((err) => {
-        console.error("[EditChildMatrixTab] loadChildRecords error:", err);
+        console.error("[EditChildMatrixTab] loadChildRecordsForParents error:", err);
         if (!cancelled) setCellRecords([]);
       })
       .finally(() => {

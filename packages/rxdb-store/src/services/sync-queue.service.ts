@@ -174,21 +174,8 @@ class SyncQueueService {
     this.processing = true;
     this.currentProcess = (async () => {
       try {
-        // Drain in a loop. Parallel callers can enqueue items after we've
-        // started a batch; the original single-pass flow left those items
-        // un-processed for the next interval, which broke awaiters that
-        // expected a clean queue when `processNow()` resolved.
-        for (let pass = 0; pass < 10; pass++) {
-          const entityCount = this.entityQueue
-            ? (await this.entityQueue.find().exec()).length
-            : 0;
-          const childCount = this.childQueue
-            ? (await this.childQueue.find().exec()).length
-            : 0;
-          if (entityCount === 0 && childCount === 0) break;
-          await this.processEntityQueue();
-          await this.processChildQueue();
-        }
+        await this.processEntityQueue();
+        await this.processChildQueue();
         this.updateCounts();
       } finally {
         this.processing = false;

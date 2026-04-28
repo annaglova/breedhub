@@ -1819,6 +1819,234 @@ class SpaceStore {
     });
   }
 
+  /**
+   * Load child records for many parents in one shot. Replaces the
+   * `Promise.all(parentIds.map(loadChildRecords))` pattern: one RxDB selector
+   * with `parentId IN (...)`, one Supabase fallback per partition group, and
+   * at most one staleness-driven background refresh per partition. The
+   * matrix needs this — the per-pet fan-out triggered N independent
+   * background refreshes for the same table.
+   */
+  async loadChildRecordsForParents(
+    entityType: string,
+    tableType: string,
+    parentIds: string[],
+    options: {
+      limit?: number;
+      orderBy?: string;
+      orderDirection?: 'asc' | 'desc';
+      parentField?: string;
+      select?: string[];
+    } = {},
+  ): Promise<ChildCacheRecord[]> {
+    if (!entityType || !tableType || parentIds.length === 0) return [];
+
+    const collection = await this.ensureChildCollection(entityType);
+    if (!collection) return [];
+
+    const normalizedType = normalizeChildTableType(tableType);
+    const parentIdField = options.parentField || `${entityType}_id`;
+    const partitionConfig = this.entitySchemas.get(entityType)?.partition;
+    const partitionField = partitionConfig?.childFilterField;
+
+    // Resolve partition value for every parent in parallel (cache-only, fast).
+    const partitionByParent = new Map<string, string | undefined>();
+    if (partitionConfig) {
+      await Promise.all(
+        parentIds.map(async (parentId) => {
+          const { partitionValue } = await resolveChildPartitionContext({
+            ...this.partitionContextDeps,
+            entityType,
+            parentId,
+            warnIfMissing: false,
+            logResolved: false,
+          });
+          partitionByParent.set(parentId, partitionValue);
+        }),
+      );
+    }
+
+    // Single RxDB query for the whole batch.
+    const findResult = await collection
+      .find({
+        selector: {
+          parentId: { $in: parentIds },
+          tableType: normalizedType,
+        },
+      })
+      .exec();
+    const cached = findResult.map((doc) => doc.toJSON()) as ChildCacheRecord[];
+
+    const haveByParent = new Set(cached.map((r) => r.parentId).filter(Boolean) as string[]);
+    const missingParentIds = parentIds.filter((id) => !haveByParent.has(id));
+
+    // Cache miss → group missing parents by partition value, one Supabase
+    // `IN (...)` per partition group.
+    if (missingParentIds.length > 0) {
+      const groupsByPartition = new Map<string | undefined, string[]>();
+      for (const parentId of missingParentIds) {
+        const partitionValue = partitionByParent.get(parentId);
+        const group = groupsByPartition.get(partitionValue) ?? [];
+        group.push(parentId);
+        groupsByPartition.set(partitionValue, group);
+      }
+
+      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+      const selectFields = buildChildSelectClause({
+        select: options.select,
+        parentField: parentIdField,
+        partitionField,
+        orderingFields: orderBy ? [orderBy] : undefined,
+      });
+
+      for (const [partitionValue, ids] of groupsByPartition) {
+        try {
+          let query = supabase
+            .from(normalizedType)
+            .select(selectFields)
+            .in(parentIdField, ids)
+            // Per-parent limit guard isn't enforceable in a single query;
+            // multiply by ids.length so a hot batch doesn't truncate.
+            .limit(limit * ids.length);
+          if (partitionField && partitionValue) {
+            query = query.eq(partitionField, partitionValue);
+          }
+          if (orderBy) {
+            query = query.order(orderBy, {
+              ascending: orderDirection === 'asc',
+              nullsFirst: false,
+            });
+          }
+          const { data, error } = await query;
+          if (error || !data || data.length === 0) continue;
+          const rows = data as unknown as ChildSourceRow[];
+
+          // Hydrate per-parent so `mapChildRowsToCacheRecords` keeps its
+          // single-parent assumption (`parentId` constant per call).
+          for (const parentId of ids) {
+            const parentRows = rows.filter(
+              (row) => (row as Record<string, unknown>)[parentIdField] === parentId,
+            );
+            if (parentRows.length === 0) continue;
+            const hydrated = await mapAndCacheChildRows(parentRows, {
+              tableType: normalizedType,
+              parentId,
+              parentField: parentIdField,
+              partitionField,
+              partitionValue,
+              collection,
+            });
+            cached.push(...(hydrated.transformedRecords as ChildCacheRecord[]));
+          }
+        } catch (err) {
+          console.error(
+            '[SpaceStore] loadChildRecordsForParents fetch error:',
+            err,
+          );
+        }
+      }
+    }
+
+    // Single staleness-driven background refresh per partition group, mirroring
+    // loadChildRecords' per-parent behaviour but batched.
+    if (cached.length > 0) {
+      const CHILD_STALE_MS = 5 * 60 * 1000;
+      if (hasStaleChildRecords(cached, CHILD_STALE_MS)) {
+        const staleByPartition = new Map<string | undefined, string[]>();
+        for (const id of parentIds) {
+          const partitionValue = partitionByParent.get(id);
+          const group = staleByPartition.get(partitionValue) ?? [];
+          group.push(id);
+          staleByPartition.set(partitionValue, group);
+        }
+        for (const [partitionValue, ids] of staleByPartition) {
+          void this.refreshChildRecordsBatchInBackground(
+            entityType,
+            normalizedType,
+            ids,
+            parentIdField,
+            options,
+            partitionConfig,
+            partitionValue,
+          );
+        }
+      }
+    }
+
+    return cached;
+  }
+
+  /** Background refresh for many parents in a single Supabase IN query. */
+  private async refreshChildRecordsBatchInBackground(
+    entityType: string,
+    tableType: string,
+    parentIds: string[],
+    parentIdField: string,
+    options: {
+      limit?: number;
+      orderBy?: string;
+      orderDirection?: 'asc' | 'desc';
+      select?: string[];
+    },
+    partitionConfig: PartitionConfig | undefined,
+    partitionValue: string | undefined,
+  ): Promise<void> {
+    if (parentIds.length === 0) return;
+    try {
+      const { limit = 50, orderBy, orderDirection = 'asc' } = options;
+      const partitionField = partitionConfig?.childFilterField;
+      const selectFields = buildChildSelectClause({
+        select: options.select,
+        parentField: parentIdField,
+        partitionField,
+        orderingFields: orderBy ? [orderBy] : undefined,
+      });
+      let query = supabase
+        .from(tableType)
+        .select(selectFields)
+        .in(parentIdField, parentIds)
+        .limit(limit * parentIds.length);
+      if (partitionField && partitionValue) {
+        query = query.eq(partitionField, partitionValue);
+      }
+      if (orderBy) {
+        query = query.order(orderBy, {
+          ascending: orderDirection === 'asc',
+          nullsFirst: false,
+        });
+      }
+      const { data, error } = await query;
+      if (error || !data || data.length === 0) return;
+      const rows = data as unknown as ChildSourceRow[];
+
+      const collection = await this.ensureChildCollection(entityType);
+      if (!collection) return;
+
+      for (const parentId of parentIds) {
+        const parentRows = rows.filter(
+          (row) => (row as Record<string, unknown>)[parentIdField] === parentId,
+        );
+        if (parentRows.length === 0) continue;
+        await mapAndCacheChildRows(parentRows, {
+          tableType,
+          parentId,
+          parentField: parentIdField,
+          partitionField,
+          partitionValue,
+          collection,
+        });
+        // Fire one signal per parent so subscribed UIs (matrix, useTabData)
+        // refetch only their own data.
+        this.childRefreshSignal.value = {
+          tableType: normalizeChildTableType(tableType),
+          parentId,
+        };
+      }
+    } catch {
+      // Silent background refresh.
+    }
+  }
+
   /** Force refresh child records from Supabase — use after operations with server-side triggers */
   async forceRefreshChildRecords(
     entityType: string,
