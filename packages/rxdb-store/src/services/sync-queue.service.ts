@@ -156,19 +156,46 @@ class SyncQueueService {
     return this.processAll();
   }
 
+  private currentProcess: Promise<void> | null = null;
+
   private async processAll(): Promise<void> {
-    if (!this.initialized || this.processing) return;
+    // Coalesce concurrent callers — they all await the same in-flight cycle.
+    // The earlier guard (`if (processing) return`) caused parallel callers to
+    // get back a no-op promise and resume too early, so any forceRefresh
+    // chained after `processNow().then(...)` would fetch stale Supabase data
+    // and overwrite a just-applied local patch.
+    if (this.currentProcess) {
+      return this.currentProcess;
+    }
+    if (!this.initialized) return;
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
     if (this.circuitBreakerOpen) return;
 
     this.processing = true;
-    try {
-      await this.processEntityQueue();
-      await this.processChildQueue();
-      this.updateCounts();
-    } finally {
-      this.processing = false;
-    }
+    this.currentProcess = (async () => {
+      try {
+        // Drain in a loop. Parallel callers can enqueue items after we've
+        // started a batch; the original single-pass flow left those items
+        // un-processed for the next interval, which broke awaiters that
+        // expected a clean queue when `processNow()` resolved.
+        for (let pass = 0; pass < 10; pass++) {
+          const entityCount = this.entityQueue
+            ? (await this.entityQueue.find().exec()).length
+            : 0;
+          const childCount = this.childQueue
+            ? (await this.childQueue.find().exec()).length
+            : 0;
+          if (entityCount === 0 && childCount === 0) break;
+          await this.processEntityQueue();
+          await this.processChildQueue();
+        }
+        this.updateCounts();
+      } finally {
+        this.processing = false;
+        this.currentProcess = null;
+      }
+    })();
+    return this.currentProcess;
   }
 
   private async processEntityQueue(): Promise<void> {

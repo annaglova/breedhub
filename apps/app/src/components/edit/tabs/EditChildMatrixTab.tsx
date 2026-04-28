@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { spaceStore, syncQueueService } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -432,8 +432,20 @@ export function EditChildMatrixTab({
       // PostgREST's `+00:00`.
       const updates = row.allRecords;
       if (updates.length === 0) return;
+      const parentIds = new Set(
+        updates.map((r) => r.parentId).filter(Boolean) as string[],
+      );
       await withCrudToast(
         async () => {
+          // Patch RxDB locally for every record (fast, parallel). Each call
+          // also fire-and-forgets queueChildMutationRefresh (processNow + then
+          // forceRefresh per parent). When several parents queue concurrently,
+          // the second processNow short-circuits on the `processing` guard and
+          // its `.then(refresh)` fires BEFORE Supabase actually has the upsert
+          // — pulling stale data that overwrites the local patch. To dodge that
+          // race, after the patches we drain the queue ourselves, then issue
+          // an authoritative forceRefresh per parent, which lands AFTER the
+          // racy ones and resolves the cache to truth.
           await Promise.all(
             updates.map((rec) =>
               spaceStore.updateChildRecord(columnEntityTable, cellTable, rec.id, {
@@ -441,6 +453,14 @@ export function EditChildMatrixTab({
               }),
             ),
           );
+          await syncQueueService.processNow();
+          for (const parentId of parentIds) {
+            await spaceStore.forceRefreshChildRecords(
+              columnEntityTable,
+              cellTable,
+              parentId,
+            );
+          }
           return { data: null };
         },
         { label: `${label ?? "Row"} ${parsed.rowHeader.field.displayName ?? "header"}`, verb: "update" },
@@ -536,13 +556,27 @@ export function EditChildMatrixTab({
       // column with another) so row delete clears the entire row.
       const recs = row.allRecords;
       if (recs.length === 0) return;
+      const parentIds = new Set(
+        recs.map((r) => r.parentId).filter(Boolean) as string[],
+      );
       await withCrudToast(
         async () => {
+          // See handleHeaderChange — drain the sync queue and force-refresh
+          // per parent after the deletes so the racy queueChildMutationRefresh
+          // fires don't leave RxDB out of sync with Supabase.
           await Promise.all(
             recs.map((rec) =>
               spaceStore.deleteChildRecord(columnEntityTable, cellTable, rec.id),
             ),
           );
+          await syncQueueService.processNow();
+          for (const parentId of parentIds) {
+            await spaceStore.forceRefreshChildRecords(
+              columnEntityTable,
+              cellTable,
+              parentId,
+            );
+          }
           return { data: null };
         },
         { label: label ?? "Row", verb: "delete" },
