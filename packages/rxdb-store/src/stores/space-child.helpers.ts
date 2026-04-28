@@ -34,6 +34,36 @@ export type ChildSourceRow = PartitionRecord;
 export type ChildSelector = Record<string, unknown>;
 export type ChildFilters = Record<string, unknown>;
 
+/**
+ * Universal child cache splits row data: top-level for system fields
+ * (`id`, `parentId`, `tableType`, `cachedAt`, `partitionId`, …) and
+ * `additional` for everything else. Locally-inserted records keep the
+ * parent-field at top level too (because `mapChildRowsToCacheRecords`
+ * runs only on Supabase fetches), so consumers must check both places
+ * or risk silently dropping records.
+ *
+ * Use this helper instead of inlining the `record[name] ?? record.additional?.[name]`
+ * pattern — single point to evolve if the storage shape ever changes.
+ *
+ * Returns `undefined` when the field is absent in both locations. Use
+ * `getChildField(rec, 'id') ?? rec.id` style if you want a top-level
+ * fallback to a guaranteed schema field (e.g. `id`, `parentId`).
+ */
+export function getChildField<T = unknown>(
+  record: Record<string, unknown> | null | undefined,
+  name: string,
+): T | undefined {
+  if (!record) return undefined;
+  const top = record[name];
+  if (top !== undefined && top !== null) return top as T;
+  const additional = record.additional;
+  if (additional && typeof additional === "object") {
+    const value = (additional as Record<string, unknown>)[name];
+    if (value !== undefined && value !== null) return value as T;
+  }
+  return undefined;
+}
+
 export interface ChildDocumentLike<TRecord extends Record<string, unknown>> {
   toJSON(): TRecord;
 }

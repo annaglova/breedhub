@@ -122,3 +122,6 @@ export {
   DICTIONARY_RECORDS_STALE_MS,
   RPC_CACHE_DEFAULT_TTL_MS,
 } from './cache/cache-policies';
+
+// Child-record field helpers
+export { getChildField } from './stores/space-child.helpers';

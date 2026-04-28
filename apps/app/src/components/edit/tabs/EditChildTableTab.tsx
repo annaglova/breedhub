@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { dictionaryStore, spaceStore, useTabData } from "@breedhub/rxdb-store";
+import { dictionaryStore, getChildField, spaceStore, useTabData } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import type {
   DataSourceConfig,
@@ -143,7 +143,7 @@ function buildColumns(fields: Record<string, FieldConfig>): ColumnDef<any>[] {
       const fieldName = extractFieldName(key);
       return {
         id: fieldName,
-        accessorFn: (row: any) => row[fieldName] ?? row.additional?.[fieldName] ?? "",
+        accessorFn: (row: any) => getChildField(row, fieldName) ?? "",
         enableGlobalFilter: !!config.searchable,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={config.displayName} />
@@ -173,7 +173,7 @@ async function enrichRecords(
     fkFields.map(async (fk) => {
       const ids = new Set<string>();
       for (const r of records) {
-        const val = r[fk.fieldName] ?? r.additional?.[fk.fieldName];
+        const val = getChildField<string>(r, fk.fieldName);
         if (val) ids.add(val);
       }
       if (ids.size === 0) {
@@ -285,10 +285,7 @@ function useEnrichedRecords(
       .map((r) => {
         const id = r.id ?? "";
         const fkVals = fkFields
-          .map((f) => {
-            const v = r[f.fieldName] ?? r.additional?.[f.fieldName] ?? "";
-            return String(v);
-          })
+          .map((f) => String(getChildField(r, f.fieldName) ?? ""))
           .join(",");
         return `${id}=${fkVals}`;
       })
@@ -315,7 +312,7 @@ function useEnrichedRecords(
         fkFields.map(async (fk) => {
           const ids = new Set<string>();
           for (const r of records!) {
-            const val = r[fk.fieldName] ?? r.additional?.[fk.fieldName];
+            const val = getChildField<string>(r, fk.fieldName);
             if (val) ids.add(val);
           }
 
