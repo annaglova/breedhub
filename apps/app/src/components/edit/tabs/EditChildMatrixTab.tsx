@@ -276,6 +276,11 @@ export function EditChildMatrixTab({
   const [cellRecords, setCellRecords] = useState<Array<Record<string, any>>>([]);
   const [cellsLoading, setCellsLoading] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
+  // True until the first cell-load settles. Lets us render skeleton rows on
+  // the very first render — without it, the gap between mount and the load
+  // effect firing showed a momentary "no records" / blank state on tab switch
+  // (other tabs use useTabData which is loading-from-mount via loadPhase).
+  const [firstLoaded, setFirstLoaded] = useState(false);
   // Bumped when a header change is rejected (date collision). Used as part of
   // the DateTimeInput key so the input remounts and its internal state resets
   // back to the row's current header instead of keeping the user's typing.
@@ -314,7 +319,17 @@ export function EditChildMatrixTab({
         if (!cancelled) setCellRecords([]);
       })
       .finally(() => {
-        if (!cancelled) setCellsLoading(false);
+        if (cancelled) return;
+        setCellsLoading(false);
+        // Defer firstLoaded → next animation frame so the skeleton actually
+        // paints once. Without this, RxDB cache hits resolve in microtasks
+        // fast enough that React batches mount → loaded into a single commit
+        // and the user sees no skeleton — asymmetric vs other edit tabs that
+        // go through useTabData's waitForSpaceStoreReady + tabDataService
+        // pipeline.
+        requestAnimationFrame(() => {
+          if (!cancelled) setFirstLoaded(true);
+        });
       });
     return () => {
       cancelled = true;
@@ -661,8 +676,14 @@ export function EditChildMatrixTab({
   }
 
   const hasRowHeader = !!parsed.rowHeader;
+  const isLoading = !firstLoaded || columnsLoading || cellsLoading;
   const showEmpty =
-    !columnsLoading && !cellsLoading && allRows.length === 0 && columnEntities.length === 0;
+    !isLoading && allRows.length === 0 && columnEntities.length === 0;
+  const skeletonColumnCount = Math.max(
+    columnEntities.length + (hasRowHeader ? 1 : 0) + (canDeleteRow ? 1 : 0),
+    3,
+  );
+  const skeletonRowCount = 4;
 
   return (
     <div className="flex flex-col gap-3">
@@ -708,22 +729,23 @@ export function EditChildMatrixTab({
             </TableRow>
           </TableHeader>
           <TableBody>
-          {showEmpty ? (
+          {isLoading ? (
+            Array.from({ length: skeletonRowCount }).map((_, i) => (
+              <TableRow key={`skeleton-${i}`} className="min-h-[56px] h-[56px] hover:bg-transparent">
+                {Array.from({ length: skeletonColumnCount }).map((__, j) => (
+                  <TableCell key={`skeleton-${i}-${j}`} className="first:pl-4 last:pr-4 py-4">
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : showEmpty ? (
             <TableRow className="hover:bg-transparent">
               <TableCell
-                colSpan={Math.max(columnEntities.length + (hasRowHeader ? 1 : 0) + (canDeleteRow ? 1 : 0), 1)}
+                colSpan={skeletonColumnCount}
                 className="h-24 text-center text-secondary first:pl-4 last:pr-4"
               >
                 No {label ?? "records"} yet
-              </TableCell>
-            </TableRow>
-          ) : columnsLoading || cellsLoading ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell
-                colSpan={Math.max(columnEntities.length + (hasRowHeader ? 1 : 0) + (canDeleteRow ? 1 : 0), 1)}
-                className="h-24 text-center text-secondary first:pl-4 last:pr-4"
-              >
-                Loading…
               </TableCell>
             </TableRow>
           ) : (
