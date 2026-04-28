@@ -220,6 +220,31 @@ async function enrichRecords(
   });
 }
 
+/**
+ * Module-level enrichment cache (signature → enriched records). Survives
+ * tab unmount/remount, which is exactly the case we need to optimise — every
+ * tab switch tore down the per-component `useRef` cache and re-issued the
+ * whole `dictionaryStore.getDictionary` fan-out. The cache is keyed by FK
+ * config + per-record FK values; any mutation invalidates the signature and
+ * forces a fresh fetch.
+ *
+ * Bounded to keep memory predictable on long sessions. LRU-ish: drop the
+ * oldest entry on overflow.
+ */
+const ENRICHMENT_CACHE_LIMIT = 32;
+const enrichmentCache = new Map<string, any[]>();
+
+function rememberEnrichment(key: string, result: any[]): void {
+  // Re-insert to refresh recency.
+  if (enrichmentCache.has(key)) enrichmentCache.delete(key);
+  enrichmentCache.set(key, result);
+  while (enrichmentCache.size > ENRICHMENT_CACHE_LIMIT) {
+    const oldest = enrichmentCache.keys().next().value;
+    if (oldest === undefined) break;
+    enrichmentCache.delete(oldest);
+  }
+}
+
 /** Resolve FK UUIDs to display names using DictionaryStore */
 function useEnrichedRecords(
   records: any[] | undefined,
@@ -247,6 +272,35 @@ function useEnrichedRecords(
     }
     if (fkFields.length === 0) {
       setEnriched(records);
+      return;
+    }
+
+    const signatureFkFields = fkFields
+      .map(
+        (f) =>
+          `${f.fieldName}:${f.referencedTable}:${f.referencedFieldName}`,
+      )
+      .join("|");
+    const signatureValues = records
+      .map((r) => {
+        const id = r.id ?? "";
+        const fkVals = fkFields
+          .map((f) => {
+            const v = r[f.fieldName] ?? r.additional?.[f.fieldName] ?? "";
+            return String(v);
+          })
+          .join(",");
+        return `${id}=${fkVals}`;
+      })
+      .join("|");
+    const signature = `${signatureFkFields}::${signatureValues}`;
+
+    const cached = enrichmentCache.get(signature);
+    if (cached) {
+      // Refresh recency on read so frequently-touched tabs stay warm.
+      rememberEnrichment(signature, cached);
+      setEnriched(cached);
+      setIsEnriching(false);
       return;
     }
 
@@ -311,6 +365,7 @@ function useEnrichedRecords(
         return enrichedRecord;
       });
 
+      rememberEnrichment(signature, result);
       setEnriched(result);
       setIsEnriching(false);
     }
