@@ -55,6 +55,21 @@ class DictionaryStore {
   // Cleanup interval reference
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
+  // In-flight Promise cache for getDictionary. Concurrent callers asking for
+  // the same `(table, args)` shape await the same promise instead of issuing
+  // duplicate Phase 1 + Phase 3 Supabase round-trips. The cache entry is
+  // dropped as soon as the promise settles — staleness is still governed by
+  // the regular RxDB + 24h staleness layer.
+  private inflightDictionary = new Map<
+    string,
+    Promise<{
+      records: DictionaryDocument[];
+      total: number;
+      hasMore: boolean;
+      nextCursor: string | null;
+    }>
+  >();
+
   private constructor() {}
 
   static getInstance(): DictionaryStore {
@@ -363,6 +378,79 @@ class DictionaryStore {
       };
       defaultFilters?: Record<string, any>; // Static filter on referenced table (e.g. { for_pet: true })
     } = {}
+  ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
+    if (!this.collection) {
+      throw new Error('[DictionaryStore] Not initialized');
+    }
+
+    // In-flight dedupe: two callers asking for the exact same `(table, args)`
+    // shape share the underlying network round-trip. Stable key requires a
+    // deterministic order over option fields and a sorted ID list.
+    const dedupeKey = this.buildDedupeKey(tableName, options);
+    const inflight = this.inflightDictionary.get(dedupeKey);
+    if (inflight) {
+      return inflight;
+    }
+    const promise = this.runGetDictionary(tableName, options).finally(() => {
+      // Drop the in-flight entry once the promise settles so the next call
+      // re-runs through the regular RxDB + staleness pipeline.
+      this.inflightDictionary.delete(dedupeKey);
+    });
+    this.inflightDictionary.set(dedupeKey, promise);
+    return promise;
+  }
+
+  private buildDedupeKey(
+    tableName: string,
+    options: Record<string, unknown>,
+  ): string {
+    const o = options as {
+      idField?: string;
+      nameField?: string;
+      search?: string;
+      limit?: number;
+      cursor?: string | null;
+      additionalFields?: string[];
+      filterByIds?: string[];
+      junctionFilter?: {
+        junctionTable: string;
+        junctionFilterField: string;
+        filterValue: string;
+      };
+      defaultFilters?: Record<string, unknown>;
+    };
+    const ids = o.filterByIds ? [...o.filterByIds].sort().join(',') : '';
+    const fields = o.additionalFields ? [...o.additionalFields].sort().join(',') : '';
+    const filters = o.defaultFilters
+      ? JSON.stringify(
+          Object.keys(o.defaultFilters)
+            .sort()
+            .reduce<Record<string, unknown>>((acc, k) => {
+              acc[k] = o.defaultFilters![k];
+              return acc;
+            }, {}),
+        )
+      : '';
+    const junction = o.junctionFilter
+      ? `${o.junctionFilter.junctionTable}|${o.junctionFilter.junctionFilterField}|${o.junctionFilter.filterValue}`
+      : '';
+    return [
+      tableName,
+      o.idField ?? 'id',
+      o.nameField ?? 'name',
+      o.search ?? '',
+      o.limit ?? 30,
+      o.cursor ?? '',
+      fields,
+      ids,
+      junction,
+      filters,
+    ].join('::');
+  }
+
+  private async runGetDictionary(
+    tableName: string,
+    options: Parameters<DictionaryStore['getDictionary']>[1] = {},
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     if (!this.collection) {
       throw new Error('[DictionaryStore] Not initialized');
