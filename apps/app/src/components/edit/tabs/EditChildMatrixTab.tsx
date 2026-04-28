@@ -116,13 +116,37 @@ function inputTypeForFieldType(fieldType?: string): string {
   }
 }
 
+/**
+ * Format a Date as a local "YYYY-MM-DDTHH:mm:00" string with no timezone
+ * marker. The pet_measurement.date column is `timestamp without time zone`,
+ * which strips any UTC offset on insert; sending an ISO with `Z` means the
+ * value lands in the DB shifted by the user's tz offset and reads back wrong
+ * (e.g., user picks 11:08, DB stores 09:08, display shows 09:08).
+ */
+function toLocalIsoMinute(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${y}-${m}-${dd}T${hh}:${mm}:00`;
+}
+
 function parseHeaderInput(value: string, fieldType?: string): string | null {
   if (!value) return null;
   if (fieldType === "datetime") {
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+    return Number.isNaN(date.getTime()) ? null : toLocalIsoMinute(date);
   }
   return value;
+}
+
+/**
+ * Client-now in local time, minute precision, no timezone marker — see
+ * `toLocalIsoMinute` for why we don't use `toISOString()`.
+ */
+function clientNowMinuteIso(): string {
+  return toLocalIsoMinute(new Date());
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -133,8 +157,12 @@ interface MatrixRow {
   key: string;
   header: unknown;
   isDraft: boolean;
-  /** columnId -> cell record (RxDB child doc with .additional) */
+  /** columnId -> cell record (RxDB child doc with .additional). Map dedupes
+   *  by column, so use `allRecords` for any cascade that must hit every
+   *  record regardless of column collision. */
   cellRecords: Record<string, Record<string, any>>;
+  /** Every record that grouped into this row (no column dedupe). */
+  allRecords: Record<string, any>[];
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -325,9 +353,12 @@ export function EditChildMatrixTab({
           header: headerValue,
           isDraft: false,
           cellRecords: {},
+          allRecords: [],
         });
       }
-      byKey.get(key)!.cellRecords[columnId] = record;
+      const bucket = byKey.get(key)!;
+      bucket.cellRecords[columnId] = record;
+      bucket.allRecords.push(record);
     }
     return Array.from(byKey.values());
   }, [cellRecords, parsed.rowHeader, parsed.columnHeader]);
@@ -352,7 +383,7 @@ export function EditChildMatrixTab({
     if (!parsed.rowHeader) return;
     const autoFill =
       parsed.rowHeader.field.autoFillOnAdd === "clientNow"
-        ? new Date().toISOString()
+        ? clientNowMinuteIso()
         : null;
     const key =
       typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -360,7 +391,7 @@ export function EditChildMatrixTab({
         : `draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setDraftRows((prev) => [
       ...prev,
-      { key, header: autoFill, isDraft: true, cellRecords: {} },
+      { key, header: autoFill, isDraft: true, cellRecords: {}, allRecords: [] },
     ]);
   }, [parsed.rowHeader]);
 
@@ -386,16 +417,27 @@ export function EditChildMatrixTab({
         return;
       }
 
-      // Persisted row: cascade new header value to all existing cell records
+      // Persisted row: cascade new header value to all existing cell records.
+      // Skip if the parsed value is null/empty (would blank out dates) or
+      // unchanged (no-op fires from DateTimeInput re-emitting on focus/blur).
       if (!columnEntityTable) return;
-      const updates = Object.values(row.cellRecords);
+      if (parsedValue == null) return;
+      if (parsedValue === row.header) return;
+
+      const headerCol = parsed.rowHeader.column;
+      // Use the row's `allRecords` snapshot — that's every record that grouped
+      // into this row, including duplicates that the column-keyed `cellRecords`
+      // map silently overwrote. Filtering live `cellRecords` again by date
+      // string is fragile if formats drift between local toISOString and
+      // PostgREST's `+00:00`.
+      const updates = row.allRecords;
       if (updates.length === 0) return;
       await withCrudToast(
         async () => {
           await Promise.all(
             updates.map((rec) =>
               spaceStore.updateChildRecord(columnEntityTable, cellTable, rec.id, {
-                [parsed.rowHeader!.column]: parsedValue,
+                [headerCol]: parsedValue,
               }),
             ),
           );
@@ -449,7 +491,7 @@ export function EditChildMatrixTab({
       // Insert: header must be set (autoFill or user input)
       let headerValue = row.header;
       if (headerValue == null && parsed.rowHeader.field.autoFillOnAdd === "clientNow") {
-        headerValue = new Date().toISOString();
+        headerValue = clientNowMinuteIso();
       }
       if (headerValue == null) return;
 
@@ -490,7 +532,9 @@ export function EditChildMatrixTab({
         return;
       }
       if (!columnEntityTable) return;
-      const recs = Object.values(row.cellRecords);
+      // Use allRecords (every record in the row, including any that share a
+      // column with another) so row delete clears the entire row.
+      const recs = row.allRecords;
       if (recs.length === 0) return;
       await withCrudToast(
         async () => {
