@@ -1,5 +1,9 @@
 import { signal, computed } from '@preact/signals-react';
 import type { ReadonlySignal } from '@preact/signals-react';
+import {
+  CHILD_RECORDS_STALE_MS,
+  MAPPING_CACHE_STALE_MS,
+} from '../cache/cache-policies';
 import { getDatabase, type AppDatabase } from '../services/database.service';
 import { Subscription } from 'rxjs';
 import { RxCollection, RxDocument } from 'rxdb';
@@ -1778,9 +1782,8 @@ class SpaceStore {
 
     if (existingRecords.length > 0) {
       this.cacheStats.childRecords.hit += 1;
-      // Staleness check: if oldest record cached > 5 min ago, refetch in background
-      const CHILD_STALE_MS = 5 * 60 * 1000; // 5 minutes
-      if (hasStaleChildRecords(existingRecords, CHILD_STALE_MS)) {
+      // Staleness check: if oldest record cached > CHILD_RECORDS_STALE_MS, refetch in background.
+      if (hasStaleChildRecords(existingRecords, CHILD_RECORDS_STALE_MS)) {
         // Return stale data immediately, refresh in background
         this.cacheStats.childRecords.staleRevalidate += 1;
         this.refreshChildRecordsInBackground(entityType, tableType, parentId, parentIdField, options, partitionConfig, partitionValue);
@@ -2063,8 +2066,7 @@ class SpaceStore {
     // Single staleness-driven background refresh per partition group, mirroring
     // loadChildRecords' per-parent behaviour but batched.
     if (cached.length > 0) {
-      const CHILD_STALE_MS = 5 * 60 * 1000;
-      if (hasStaleChildRecords(cached, CHILD_STALE_MS)) {
+      if (hasStaleChildRecords(cached, CHILD_RECORDS_STALE_MS)) {
         this.cacheStats.childRecordsBatch.staleRevalidate += 1;
         const staleByPartition = new Map<string | undefined, string[]>();
         for (const id of parentIds) {
@@ -2233,7 +2235,6 @@ class SpaceStore {
     await this.ensureCollection(entityTable);
     const collection = this.db?.collections[entityTable];
     const cacheKey = buildMappingCacheKey(mappingTable, parentField, parentId);
-    const STALE_MS = 5 * 60 * 1000;
     const selectFields = buildSupabaseSelectFromRxDBSchema(
       collection?.schema?.jsonSchema,
     );
@@ -2254,7 +2255,7 @@ class SpaceStore {
       entityIdField,
       entityPartitionField,
       cacheKey,
-      staleMs: STALE_MS,
+      staleMs: MAPPING_CACHE_STALE_MS,
       mappingCache: this.mappingCache,
       collection,
       isOffline: isOffline(),

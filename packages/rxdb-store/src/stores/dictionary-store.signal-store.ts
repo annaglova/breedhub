@@ -1,5 +1,6 @@
 import { signal } from '@preact/signals-react';
 import type { RxCollection } from 'rxdb';
+import { DICTIONARY_RECORDS_STALE_MS } from '../cache/cache-policies';
 import { getDatabase } from '../services/database.service';
 import type { AppDatabase } from '../services/database.service';
 import { dictionariesSchema, type DictionaryDocument } from '../collections/dictionaries.schema';
@@ -531,7 +532,7 @@ class DictionaryStore {
 
       // Staleness check: compare server updated_at with cached updated_at
       // Fallback to 24h cachedAt-based TTL if updated_at not available
-      const DICT_STALE_MS = 24 * 60 * 60 * 1000; // 24 hours
+      const DICT_STALE_MS = DICTIONARY_RECORDS_STALE_MS;
       const now = Date.now();
       const serverUpdatedAtMap = new Map(
         idsData.filter(r => r.updated_at).map(r => [r.id, r.updated_at!])

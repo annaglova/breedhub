@@ -114,3 +114,11 @@ export {
   normalizeToDbField,
   normalizeToConfigField
 } from './utils';
+
+// Cache policies - centralised TTLs for SWR / hard-TTL caches.
+export {
+  CHILD_RECORDS_STALE_MS,
+  MAPPING_CACHE_STALE_MS,
+  DICTIONARY_RECORDS_STALE_MS,
+  RPC_CACHE_DEFAULT_TTL_MS,
+} from './cache/cache-policies';
