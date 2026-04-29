@@ -186,7 +186,41 @@ describe('TabDataService', () => {
           orderDirection: 'asc',
           parentField: 'parent_id',
           select: ['position', 'description'],
+          linkedFilters: undefined,
         }
+      );
+    });
+
+    it('forwards linkedFilters from childTable config into loadChildRecords', async () => {
+      vi.mocked(spaceStore.loadChildRecords).mockResolvedValue([]);
+
+      await tabDataService.loadTabData('pet-1', {
+        type: 'child',
+        childTable: {
+          table: 'pet_identifier',
+          parentField: 'pet_id',
+          linkedFilters: [
+            {
+              fk: 'pet_identifier_type_id',
+              table: 'pet_identifier_type',
+              filter: { is_public: true },
+            },
+          ],
+        },
+      });
+
+      expect(spaceStore.loadChildRecords).toHaveBeenCalledWith(
+        'pet-1',
+        'pet_identifier',
+        expect.objectContaining({
+          linkedFilters: [
+            {
+              fk: 'pet_identifier_type_id',
+              table: 'pet_identifier_type',
+              filter: { is_public: true },
+            },
+          ],
+        }),
       );
     });
 
@@ -419,6 +453,7 @@ describe('TabDataService', () => {
             direction: 'asc',
             tieBreaker: { field: 'id', direction: 'asc' },
           },
+          linkedFilters: undefined,
         },
       );
       expect(result).toEqual({
@@ -427,6 +462,45 @@ describe('TabDataService', () => {
         hasMore: false,
         nextCursor: null,
       });
+    });
+
+    it('forwards linkedFilters from childTable config into applyChildFilters', async () => {
+      vi.mocked(spaceStore.applyChildFilters).mockResolvedValue({
+        records: [{ id: 'child-1' }],
+        total: 1,
+        hasMore: false,
+        nextCursor: null,
+      });
+
+      await tabDataService.loadTabDataPaginated('pet-1', {
+        type: 'child',
+        childTable: {
+          table: 'pet_identifier',
+          parentField: 'pet_id',
+          linkedFilters: [
+            {
+              fk: 'pet_identifier_type_id',
+              table: 'pet_identifier_type',
+              filter: { is_public: true },
+            },
+          ],
+        },
+      }, { limit: 30, cursor: null });
+
+      expect(spaceStore.applyChildFilters).toHaveBeenCalledWith(
+        'pet-1',
+        'pet_identifier',
+        {},
+        expect.objectContaining({
+          linkedFilters: [
+            {
+              fk: 'pet_identifier_type_id',
+              table: 'pet_identifier_type',
+              filter: { is_public: true },
+            },
+          ],
+        }),
+      );
     });
 
     it('passes childTable.select through to loadChildViewDirect for VIEW pagination', async () => {

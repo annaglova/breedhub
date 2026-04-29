@@ -28,6 +28,25 @@ export interface OrderConfig {
 }
 
 /**
+ * Cross-table filter applied to a child loader through a foreign key.
+ *
+ * Lets callers express predicates that live on a referenced table without
+ * dropping to a SQL VIEW. PostgREST translates `!inner` resource embeds
+ * into INNER JOINs with the equality filters pinned on the joined table.
+ *
+ * Equality only — extend later if `gt/in/not_eq` shapes are actually
+ * needed.
+ */
+export interface LinkedFilterConfig {
+  /** FK column on the child table (e.g. 'pet_identifier_type_id'). */
+  fk: string;
+  /** Referenced table name (e.g. 'pet_identifier_type'). */
+  table: string;
+  /** Equality predicates applied to the referenced table. */
+  filter: Record<string, string | number | boolean>;
+}
+
+/**
  * Child table configuration
  * Used for types: child, child_with_dictionary
  */
@@ -44,6 +63,13 @@ export interface ChildTableConfig {
   limit?: number;
   /** Whether this table is a database VIEW (uses direct keyset pagination instead of ID-First) */
   isView?: boolean;
+  /**
+   * Cross-table predicates applied through FK joins. PostgREST `!inner`
+   * embeds turn these into server-side INNER JOIN filters — replaces
+   * the typical "wrap it in a VIEW" workaround for cases like
+   * "show only rows whose type is_public = true".
+   */
+  linkedFilters?: LinkedFilterConfig[];
 }
 
 /**

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   applyChildListQueryOptions,
+  applyLinkedFilters,
   buildChildSelectClause,
   buildBatchedSelector,
   createEmptyChildPageResult,
@@ -148,6 +149,45 @@ describe("space-child.helpers", () => {
     ).toBe(
       "id, pet_id, created_at, updated_at, created_by, updated_by, position, contact_id",
     );
+  });
+
+  it("appends `<table>!inner(id)` resource embeds for each linkedFilter when select is empty", () => {
+    expect(
+      buildChildSelectClause({
+        parentField: "pet_id",
+        linkedFilters: [{ table: "pet_identifier_type" }],
+      }),
+    ).toBe("*, pet_identifier_type!inner(id)");
+  });
+
+  it("appends linkedFilter embeds after explicit select fields", () => {
+    expect(
+      buildChildSelectClause({
+        select: ["pet_identifier_type_id", "value"],
+        parentField: "pet_id",
+        linkedFilters: [{ table: "pet_identifier_type" }],
+      }),
+    ).toBe(
+      "id, pet_id, created_at, updated_at, created_by, updated_by, pet_identifier_type_id, value, pet_identifier_type!inner(id)",
+    );
+  });
+
+  it("emits multiple linkedFilter embeds comma-separated", () => {
+    expect(
+      buildChildSelectClause({
+        parentField: "pet_id",
+        linkedFilters: [{ table: "pet_identifier_type" }, { table: "audit_log" }],
+      }),
+    ).toBe("*, pet_identifier_type!inner(id), audit_log!inner(id)");
+  });
+
+  it("returns plain * when linkedFilters is an empty array", () => {
+    expect(
+      buildChildSelectClause({
+        parentField: "pet_id",
+        linkedFilters: [],
+      }),
+    ).toBe("*");
   });
 
   it("builds the default child orderBy with id tie-breaker", () => {
@@ -397,6 +437,96 @@ describe("space-child.helpers", () => {
       ["eq", "breed_id", "breed-1"],
       ["or", "deleted.is.null,deleted.eq.false"],
       ["limit", 25],
+    ]);
+  });
+
+  it("applyLinkedFilters returns the query unchanged when filters are missing or empty", () => {
+    const noopQuery = {
+      eq() {
+        throw new Error("eq should not be called when there are no filters");
+      },
+      or() { return this; },
+      limit() { return this; },
+      order() { return this; },
+    };
+    expect(applyLinkedFilters(noopQuery, undefined)).toBe(noopQuery);
+    expect(applyLinkedFilters(noopQuery, [])).toBe(noopQuery);
+  });
+
+  it("applyLinkedFilters emits one eq per (table, column) pair across all linked filters", () => {
+    const calls: Array<[string, unknown]> = [];
+    const query = {
+      eq(column: string, value: unknown) {
+        calls.push([column, value]);
+        return this;
+      },
+      or() { return this; },
+      limit() { return this; },
+      order() { return this; },
+    };
+
+    applyLinkedFilters(query, [
+      {
+        fk: "pet_identifier_type_id",
+        table: "pet_identifier_type",
+        filter: { is_public: true, status: "active" },
+      },
+      {
+        fk: "audit_id",
+        table: "audit_log",
+        filter: { redacted: false },
+      },
+    ]);
+
+    expect(calls).toEqual([
+      ["pet_identifier_type.is_public", true],
+      ["pet_identifier_type.status", "active"],
+      ["audit_log.redacted", false],
+    ]);
+  });
+
+  it("applies linkedFilters as `<table>.<column>` eq predicates between partition and order", () => {
+    const calls: Array<[string, ...unknown[]]> = [];
+    const query = {
+      eq(column: string, value: unknown) {
+        calls.push(["eq", column, value]);
+        return this;
+      },
+      or(filter: string) {
+        calls.push(["or", filter]);
+        return this;
+      },
+      limit(value: number) {
+        calls.push(["limit", value]);
+        return this;
+      },
+      order(column: string, options: { ascending: boolean; nullsFirst: boolean }) {
+        calls.push(["order", column, options]);
+        return this;
+      },
+    };
+
+    applyChildListQueryOptions(query, {
+      parentField: "pet_id",
+      parentId: "pet-1",
+      limit: 30,
+      orderBy: "value",
+      orderDirection: "asc",
+      linkedFilters: [
+        {
+          fk: "pet_identifier_type_id",
+          table: "pet_identifier_type",
+          filter: { is_public: true },
+        },
+      ],
+    });
+
+    expect(calls).toEqual([
+      ["eq", "pet_id", "pet-1"],
+      ["or", "deleted.is.null,deleted.eq.false"],
+      ["limit", 30],
+      ["eq", "pet_identifier_type.is_public", true],
+      ["order", "value", { ascending: true, nullsFirst: false }],
     ]);
   });
 

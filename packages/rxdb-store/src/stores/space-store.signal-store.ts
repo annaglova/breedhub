@@ -73,6 +73,7 @@ import {
 } from './space-local-query.helpers';
 import {
   applyChildListQueryOptions,
+  applyLinkedFilters,
   buildBatchedSelector,
   buildChildSelectClause,
   createEmptyChildPageResult,
@@ -92,6 +93,7 @@ import {
   type ChildCacheRecord,
   type ChildPageResult,
   type ChildSourceRow,
+  type LinkedFilterSpec,
   type LoadChildViewPageResult,
 } from './space-child.helpers';
 import {
@@ -1739,6 +1741,7 @@ class SpaceStore {
       orderDirection?: 'asc' | 'desc';
       parentField?: string;
       select?: string[];
+      linkedFilters?: ReadonlyArray<LinkedFilterSpec>;
     } = {}
   ): Promise<ChildCacheRecord[]> {
     if (!parentId || !tableType) {
@@ -1783,6 +1786,7 @@ class SpaceStore {
       parentField: parentIdField,
       partitionField: partitionConfig?.childFilterField,
       orderingFields: options.orderBy ? [options.orderBy] : undefined,
+      linkedFilters: options.linkedFilters,
     });
 
     if (existingRecords.length > 0) {
@@ -1822,6 +1826,7 @@ class SpaceStore {
             orderDirection,
             partitionField: partitionConfig?.childFilterField,
             partitionValue,
+            linkedFilters: options.linkedFilters,
           },
         );
 
@@ -2815,6 +2820,7 @@ class SpaceStore {
       cursor?: string | null;
       orderBy?: OrderBy;
       select?: string[];
+      linkedFilters?: ReadonlyArray<LinkedFilterSpec>;
     } = {}
   ): Promise<ChildPageResult<ChildCacheRecord>> {
     const limit = options.limit || 30;
@@ -2867,7 +2873,8 @@ class SpaceStore {
         cursor,
         orderBy,
         partitionConfig?.childFilterField,
-        partitionValue
+        partitionValue,
+        options.linkedFilters,
       );
 
       if (!idsData || idsData.length === 0) {
@@ -2935,9 +2942,16 @@ class SpaceStore {
     cursor: string | null,
     orderBy: OrderBy,
     partitionField?: string,
-    partitionValue?: string
+    partitionValue?: string,
+    linkedFilters?: ReadonlyArray<LinkedFilterSpec>,
   ): Promise<HydratableEntityRecord[]> {
-    const selectFields = getSelectFieldsForOrderBy(orderBy);
+    const baseSelect = getSelectFieldsForOrderBy(orderBy);
+    const linkedExpansion = (linkedFilters ?? [])
+      .map((lf) => `${lf.table}!inner(id)`)
+      .join(', ');
+    const selectFields = linkedExpansion
+      ? `${baseSelect}, ${linkedExpansion}`
+      : baseSelect;
 
     let query = supabase
       .from(tableType)
@@ -2950,6 +2964,10 @@ class SpaceStore {
     if (partitionField && partitionValue) {
       query = query.eq(partitionField, partitionValue);
     }
+
+    // Cross-table FK predicates via PostgREST embed (`.eq('table.col', val)`).
+    // The matching `<table>!inner(...)` is already in the select clause above.
+    query = applyLinkedFilters(query, linkedFilters);
 
     // Apply additional filters (for future use)
     for (const [fieldKey, value] of Object.entries(filters)) {

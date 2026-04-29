@@ -110,6 +110,10 @@ export interface BuildChildSelectClauseOptions {
   parentField: string;
   partitionField?: string;
   orderingFields?: string[];
+  /** Append `!inner(id)` resource embeds for each linked-filter target.
+   *  PostgREST needs the embed for cross-table predicates to compile to
+   *  an INNER JOIN. */
+  linkedFilters?: ReadonlyArray<{ table: string }>;
 }
 
 export interface LocalChildQueryResult<
@@ -265,6 +269,7 @@ export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQu
     orderDirection?: "asc" | "desc";
     partitionField?: string;
     partitionValue?: string;
+    linkedFilters?: ReadonlyArray<LinkedFilterSpec>;
   },
 ): TQuery {
   let nextQuery = query
@@ -280,6 +285,8 @@ export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQu
     nextQuery = nextQuery.eq(options.partitionField, options.partitionValue);
   }
 
+  nextQuery = applyLinkedFilters(nextQuery, options.linkedFilters);
+
   if (options.orderBy) {
     nextQuery = nextQuery.order(options.orderBy, {
       ascending: options.orderDirection === "asc",
@@ -293,8 +300,15 @@ export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQu
 export function buildChildSelectClause(
   options: BuildChildSelectClauseOptions,
 ): string {
+  // PostgREST `!inner` resource embeds compile to INNER JOINs; appending
+  // them with `id` is enough to enable the join — actual columns we need
+  // for filters are referenced by `<table>.<col>` in the .eq() calls.
+  const linkedExpansion = (options.linkedFilters ?? [])
+    .map((lf) => `${lf.table}!inner(id)`)
+    .join(", ");
+
   if (!options.select || options.select.length === 0) {
-    return "*";
+    return linkedExpansion ? `*, ${linkedExpansion}` : "*";
   }
 
   const fields = new Set<string>([
@@ -322,7 +336,36 @@ export function buildChildSelectClause(
     }
   }
 
-  return Array.from(fields).join(", ");
+  const base = Array.from(fields).join(", ");
+  return linkedExpansion ? `${base}, ${linkedExpansion}` : base;
+}
+
+export interface LinkedFilterSpec {
+  fk: string;
+  table: string;
+  filter: Record<string, string | number | boolean>;
+}
+
+/**
+ * Apply linked (cross-table FK) filters to a Supabase/Postgrest query
+ * via `!inner` resource embeds. Caller is responsible for adding the
+ * matching `<table>!inner(id)` to the select clause (see
+ * `buildChildSelectClause`).
+ *
+ * Equality only — that's all the runtime spec supports today.
+ */
+export function applyLinkedFilters<TQuery extends ChildListQueryLike<TQuery>>(
+  query: TQuery,
+  linkedFilters: ReadonlyArray<LinkedFilterSpec> | undefined,
+): TQuery {
+  if (!linkedFilters || linkedFilters.length === 0) return query;
+  let next = query;
+  for (const lf of linkedFilters) {
+    for (const [column, value] of Object.entries(lf.filter)) {
+      next = next.eq(`${lf.table}.${column}`, value);
+    }
+  }
+  return next;
 }
 
 export function normalizeChildTableType(tableType: string): string {

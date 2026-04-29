@@ -213,6 +213,7 @@ class TabDataService {
       orderDirection: config.orderBy?.[0]?.direction,
       parentField: config.parentField,
       select: config.select,
+      linkedFilters: config.linkedFilters,
     });
     return this.asRecords<ChildTabDataRecord>(records);
   }
@@ -306,6 +307,7 @@ class TabDataService {
         cursor,
         select: config.select,
         orderBy,
+        linkedFilters: config.linkedFilters,
       }
     );
     return this.asPaginatedResult<ChildTabDataRecord>(result);
