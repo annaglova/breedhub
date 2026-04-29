@@ -156,6 +156,78 @@ class SyncQueueService {
     return this.processAll();
   }
 
+  // ── Commit fence ───────────────────────────────────────────────────────
+  // Per-recordId "commit settled" signal. Callers that need to read fresh
+  // Supabase data right after a mutation (e.g. matrix's cascade
+  // forceRefresh, or any future post-mutation reload) used to chain
+  // `processNow().then(refresh)`. Two parallel mutations could race that
+  // chain — chain1's processNow drains items present at start, chain2's
+  // .then(refresh) fires before chain1's batch actually reaches Supabase
+  // and pulls stale data that overwrites the local patch.
+  //
+  // `waitForCommit(recordId)` sidesteps the race: the syncQueue notifies
+  // each waiter after the row's queue entry is removed (i.e. Supabase
+  // upsert/delete returned 2xx). New mutations on the same record reset
+  // the wait — there's no caching of "already committed".
+  private commitWaiters = new Map<
+    string,
+    Array<(committed: boolean) => void>
+  >();
+
+  /**
+   * Resolve when `recordId` has no pending queue entry. If the row is
+   * already committed (queue empty for it), resolves immediately with
+   * true. Returns false only on `timeoutMs` (default 30 s).
+   */
+  async waitForCommit(
+    recordId: string,
+    timeoutMs = 30_000,
+  ): Promise<boolean> {
+    if (!this.childQueue) return true;
+    const pending = await this.childQueue
+      .findOne({ selector: { recordId } })
+      .exec();
+    if (!pending) return true;
+    return new Promise<boolean>((resolve) => {
+      const list = this.commitWaiters.get(recordId) ?? [];
+      list.push(resolve);
+      this.commitWaiters.set(recordId, list);
+      const timer = setTimeout(() => {
+        const current = this.commitWaiters.get(recordId);
+        if (!current) return;
+        const idx = current.indexOf(resolve);
+        if (idx >= 0) {
+          current.splice(idx, 1);
+          if (current.length === 0) this.commitWaiters.delete(recordId);
+        }
+        resolve(false);
+      }, timeoutMs);
+      // Wrap the resolver so the timeout is cleared on real notify.
+      const wrapped = (committed: boolean) => {
+        clearTimeout(timer);
+        resolve(committed);
+      };
+      const idx = list.indexOf(resolve);
+      if (idx >= 0) list.splice(idx, 1, wrapped);
+    });
+  }
+
+  private notifyCommit(recordIds: string[], committed: boolean): void {
+    if (recordIds.length === 0) return;
+    for (const recordId of recordIds) {
+      const waiters = this.commitWaiters.get(recordId);
+      if (!waiters) continue;
+      this.commitWaiters.delete(recordId);
+      for (const w of waiters) {
+        try {
+          w(committed);
+        } catch {
+          // Swallow — a misbehaving waiter shouldn't block others.
+        }
+      }
+    }
+  }
+
   private currentProcess: Promise<void> | null = null;
 
   private async processAll(): Promise<void> {
@@ -291,12 +363,15 @@ class SyncQueueService {
 
         if (!error) {
           await this.bulkRemoveItems(this.childQueue, upsertItems.map(i => i.id));
+          this.notifyCommit(upsertItems.map((i) => i.recordId), true);
           this.onSuccess();
           this.firePostPushHooks(tableType, upsertItems);
         } else {
           // Skip schema-cache errors silently (old VIEW records)
           if (error.message.includes('schema cache') || error.message.includes('not found')) {
             await this.bulkRemoveItems(this.childQueue, upsertItems.map(i => i.id));
+            // Don't notify committed — caller will see false and skip refresh.
+            this.notifyCommit(upsertItems.map((i) => i.recordId), false);
           } else {
             this.lastErrorMessage = error.message;
             console.error(`[SyncQueue] Child upsert error (${tableType}):`, error.message);
@@ -316,12 +391,14 @@ class SyncQueueService {
 
           if (!error) {
             await item.remove();
+            this.notifyCommit([item.recordId], true);
             this.onSuccess();
             this.firePostPushHooks(tableType, [item]);
           } else if (error.message.includes('column')) {
             // No 'deleted' column — hard delete
             await supabase.from(tableType).delete().eq('id', item.payload.id);
             await item.remove();
+            this.notifyCommit([item.recordId], true);
             this.onSuccess();
             this.firePostPushHooks(tableType, [item]);
           } else {

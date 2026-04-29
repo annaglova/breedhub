@@ -2163,6 +2163,42 @@ class SpaceStore {
     }
   }
 
+  /**
+   * Fire-and-forget post-mutation refresh with a per-record commit fence.
+   * Replaces the legacy `queueChildMutationRefresh(processNow, refresh, …)`
+   * pattern: instead of `processNow().then(refresh)` (which can race when
+   * multiple parallel mutations queue work mid-batch), we wait for the
+   * specific recordId's queue entry to be ACK'd by Supabase via
+   * `syncQueueService.waitForCommit`. forceRefresh then sees the
+   * just-committed row when it pulls fresh data, so the local patch
+   * never gets reverted by a stale background fetch.
+   *
+   * @param recordId    the child record we just mutated
+   * @param entityType  parent entity (e.g. 'pet')
+   * @param tableType   normalized child table (e.g. 'pet_measurement')
+   * @param parentId    parent row id (the child's `parent_id` field)
+   */
+  private scheduleChildMutationRefreshFenced(
+    recordId: string,
+    entityType: string,
+    tableType: string,
+    parentId: string,
+  ): void {
+    void (async () => {
+      try {
+        // Kick the queue. This is best-effort: even if processNow returns
+        // before our row's batch lands (e.g. another in-flight cycle was
+        // coalesced), waitForCommit blocks until Supabase ACKs our row.
+        void syncQueueService.processNow();
+        const committed = await syncQueueService.waitForCommit(recordId);
+        if (!committed) return;
+        await this.forceRefreshChildRecords(entityType, tableType, parentId);
+      } catch {
+        // Background path — never break the caller.
+      }
+    })();
+  }
+
   /** Force refresh child records from Supabase — use after operations with server-side triggers */
   async forceRefreshChildRecords(
     entityType: string,
@@ -2500,10 +2536,13 @@ class SpaceStore {
       // Local rebuild of denormalized parent fields (mirrors server triggers)
       await this.rebuildParentDenormFields(entityType, normalizedType, parentId, partitionValue);
 
-      // Flush sync queue + refresh to pick up server-side trigger side-effects
-      queueChildMutationRefresh(
-        () => syncQueueService.processNow(),
-        this.forceRefreshChildRecords.bind(this),
+      // Commit fence: process the queue, wait for THIS record's row to be
+      // ACK'd by Supabase, then refresh. Without the per-record fence
+      // parallel mutations could race processNow.then(refresh) and revert
+      // the local patch with stale Supabase data — see W1 in
+      // CACHE_AUDIT_2026_04_28.md.
+      this.scheduleChildMutationRefreshFenced(
+        id,
         entityType,
         normalizedType,
         parentId,
@@ -2556,10 +2595,9 @@ class SpaceStore {
           updatedDoc.partitionId,
         );
 
-        // Flush sync queue + refresh to pick up server-side trigger side-effects
-        queueChildMutationRefresh(
-          () => syncQueueService.processNow(),
-          this.forceRefreshChildRecords.bind(this),
+        // Commit fence: see createChildRecord for rationale.
+        this.scheduleChildMutationRefreshFenced(
+          recordId,
           entityType,
           normalizedType,
           updatedDoc.parentId!,
