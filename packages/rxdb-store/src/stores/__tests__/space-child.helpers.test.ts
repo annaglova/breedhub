@@ -2,14 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 import {
   applyChildListQueryOptions,
   buildChildSelectClause,
+  buildBatchedSelector,
   createEmptyChildPageResult,
   executeLocalChildQuery,
   fetchAndCacheChildRecords,
   filterLocalChildEntities,
   getChildCollectionName,
+  getChildField,
   getExistingChildCollection,
   getDefaultChildOrderBy,
   getChildMutationMetadata,
+  groupParentsByPartition,
   hasStaleChildRecords,
   loadChildViewPage,
   mapAndCacheChildRows,
@@ -38,6 +41,9 @@ function createMockCollection<TRecord extends ChildCacheRecord>(
               if (field.startsWith("additional.")) {
                 return record.additional?.[field.replace("additional.", "")] === value;
               }
+              if (value && typeof value === "object" && "$in" in value) {
+                return (value.$in as unknown[]).includes(record[field]);
+              }
               return record[field] === value;
             });
           })
@@ -64,9 +70,12 @@ function createQueryableChildCollection<TRecord extends ChildCacheRecord>(
       const runExec = async () =>
         records
           .filter((record) =>
-            Object.entries(options.selector).every(
-              ([field, value]) => record[field] === value,
-            ),
+            Object.entries(options.selector).every(([field, value]) => {
+              if (value && typeof value === "object" && "$in" in value) {
+                return (value.$in as unknown[]).includes(record[field]);
+              }
+              return record[field] === value;
+            }),
           )
           .sort((left, right) => {
             if (!sortArg) {
@@ -154,6 +163,92 @@ describe("space-child.helpers", () => {
 
   it("builds the canonical child collection name from entity type", () => {
     expect(getChildCollectionName("pet")).toBe("pet_children");
+  });
+
+  it("gets child fields from top-level values before additional values", () => {
+    expect(
+      getChildField<boolean>(
+        {
+          is_primary: false,
+          additional: {
+            is_primary: true,
+          },
+        },
+        "is_primary",
+      ),
+    ).toBe(false);
+  });
+
+  it("falls back to additional fields when the top-level child field is absent", () => {
+    expect(
+      getChildField<string>(
+        {
+          additional: {
+            contact_id: "contact-1",
+          },
+        },
+        "contact_id",
+      ),
+    ).toBe("contact-1");
+  });
+
+  it("returns undefined when a child field is absent or nullish in both places", () => {
+    expect(
+      getChildField(
+        {
+          contact_id: null,
+          additional: {
+            contact_id: null,
+          },
+        },
+        "contact_id",
+      ),
+    ).toBeUndefined();
+    expect(getChildField(undefined, "contact_id")).toBeUndefined();
+  });
+
+  it("groups parents by partition value, preserving insertion order", () => {
+    expect(
+      groupParentsByPartition(
+        ["a", "b", "c", "d"],
+        new Map<string, string | undefined>([
+          ["a", "p1"],
+          ["b", "p2"],
+          ["c", "p1"],
+          ["d", undefined],
+        ]),
+      ),
+    ).toEqual(
+      new Map<string | undefined, string[]>([
+        ["p1", ["a", "c"]],
+        ["p2", ["b"]],
+        [undefined, ["d"]],
+      ]),
+    );
+  });
+
+  it("collapses parents into one partition bucket when all share a partition", () => {
+    expect(
+      groupParentsByPartition(
+        ["a", "b", "c", "d", "e"],
+        new Map([
+          ["a", "p1"],
+          ["b", "p1"],
+          ["c", "p1"],
+          ["d", "p1"],
+          ["e", "p1"],
+        ]),
+      ),
+    ).toEqual(new Map([["p1", ["a", "b", "c", "d", "e"]]]));
+  });
+
+  it("buildBatchedSelector emits a parentId $in selector", () => {
+    const parentIds = ["pet-1", "pet-2", "pet-3"];
+
+    expect(buildBatchedSelector("pet_measurement", parentIds)).toEqual({
+      parentId: { $in: parentIds },
+      tableType: "pet_measurement",
+    });
   });
 
   it("prefers in-memory child collections over db collections", () => {

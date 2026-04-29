@@ -77,6 +77,16 @@ function flushMicrotasks() {
   return Promise.resolve().then(() => Promise.resolve());
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 function queueOperationResult(
   queueMap: Map<string, any[]>,
   table: string,
@@ -598,6 +608,89 @@ describe("sync-queue.service", () => {
       "title_in_pet",
       { id: "child-2", title_id: "title-2" },
     );
+
+    harness.syncQueueService.destroy();
+  });
+
+  it("waitForCommit resolves only after the child queue item is acknowledged by Supabase", async () => {
+    const harness = await loadSyncQueueHarness({
+      entityDocs: [],
+      childDocs: [
+        {
+          id: "child-upsert-1",
+          entityType: "pet",
+          tableType: "title_in_pet",
+          recordId: "child-1",
+          operation: "upsert",
+          payload: { id: "child-1", title_id: "title-1" },
+          onConflict: "id",
+          retries: 0,
+          createdAt: 1,
+        },
+      ],
+    });
+    const supabaseAck = createDeferred<{ error: null }>();
+    queueOperationResult(mockState.upsertQueues, "title_in_pet", supabaseAck.promise);
+
+    await harness.syncQueueService.initialize(harness.db);
+    const wait = harness.syncQueueService.waitForCommit("child-1");
+    let settled = false;
+    wait.then(() => {
+      settled = true;
+    });
+
+    const processing = harness.syncQueueService.processNow();
+    await flushMicrotasks();
+
+    expect(settled).toBe(false);
+    expect(harness.childQueue!.docs).toHaveLength(1);
+
+    supabaseAck.resolve({ error: null });
+    await processing;
+    await expect(wait).resolves.toBe(true);
+    expect(harness.childQueue!.docs).toHaveLength(0);
+
+    harness.syncQueueService.destroy();
+  });
+
+  it("waitForCommit returns false on timeout and cleans up the waiter", async () => {
+    const harness = await loadSyncQueueHarness({
+      entityDocs: [],
+      childDocs: [
+        {
+          id: "child-upsert-1",
+          entityType: "pet",
+          tableType: "title_in_pet",
+          recordId: "child-1",
+          operation: "upsert",
+          payload: { id: "child-1" },
+          onConflict: "id",
+          retries: 0,
+          createdAt: 1,
+        },
+      ],
+    });
+
+    await harness.syncQueueService.initialize(harness.db);
+    const wait = harness.syncQueueService.waitForCommit("child-1", 50);
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(50);
+
+    await expect(wait).resolves.toBe(false);
+    expect((harness.syncQueueService as any).commitWaiters.has("child-1")).toBe(false);
+
+    harness.syncQueueService.destroy();
+  });
+
+  it("waitForCommit resolves immediately when the record has no pending queue item", async () => {
+    const harness = await loadSyncQueueHarness({
+      entityDocs: [],
+      childDocs: [],
+    });
+
+    await harness.syncQueueService.initialize(harness.db);
+
+    await expect(harness.syncQueueService.waitForCommit("child-1")).resolves.toBe(true);
 
     harness.syncQueueService.destroy();
   });

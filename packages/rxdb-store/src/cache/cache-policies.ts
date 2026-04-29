@@ -74,3 +74,23 @@ export const CHILD_COLLECTION_EVICT_TARGET_RATIO = 0.8;
  * yanking records out from under a tab that's currently rendering them.
  */
 export const CHILD_COLLECTION_EVICT_PROTECT_MS = 30 * 1000;
+
+export const CACHE_POLICY_VALUES = {
+  CHILD_RECORDS_STALE_MS,
+  MAPPING_CACHE_STALE_MS,
+  DICTIONARY_RECORDS_STALE_MS,
+  RPC_CACHE_DEFAULT_TTL_MS,
+  CHILD_COLLECTION_RECORD_LIMIT,
+  CHILD_COLLECTION_EVICT_TARGET_RATIO,
+  CHILD_COLLECTION_EVICT_PROTECT_MS,
+} as const;
+
+export type CachePolicyKey = keyof typeof CACHE_POLICY_VALUES;
+
+export function getCachePolicyValue(key: CachePolicyKey | string): number {
+  const value = (CACHE_POLICY_VALUES as Record<string, number | undefined>)[key];
+  if (value === undefined) {
+    throw new Error(`Unknown cache policy: ${key}`);
+  }
+  return value;
+}

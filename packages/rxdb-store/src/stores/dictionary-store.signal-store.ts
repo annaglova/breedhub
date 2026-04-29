@@ -5,6 +5,7 @@ import { getDatabase } from '../services/database.service';
 import type { AppDatabase } from '../services/database.service';
 import { dictionariesSchema, type DictionaryDocument } from '../collections/dictionaries.schema';
 import { supabase } from '../supabase/client';
+import { buildDictionaryDedupeKey } from './dictionary-store.helpers';
 
 // Helpers
 import {
@@ -385,7 +386,7 @@ class DictionaryStore {
    * @param tableName - Dictionary table name
    * @param options - Query options
    */
-  async getDictionary(
+  getDictionary(
     tableName: string,
     options: {
       idField?: string;    // From config.referencedFieldID (default: 'id')
@@ -404,13 +405,13 @@ class DictionaryStore {
     } = {}
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     if (!this.collection) {
-      throw new Error('[DictionaryStore] Not initialized');
+      return Promise.reject(new Error('[DictionaryStore] Not initialized'));
     }
 
     // In-flight dedupe: two callers asking for the exact same `(table, args)`
     // shape share the underlying network round-trip. Stable key requires a
     // deterministic order over option fields and a sorted ID list.
-    const dedupeKey = this.buildDedupeKey(tableName, options);
+    const dedupeKey = buildDictionaryDedupeKey(tableName, options);
     const inflight = this.inflightDictionary.get(dedupeKey);
     if (inflight) {
       this.cacheStats.getDictionary.dedup += 1;
@@ -423,54 +424,6 @@ class DictionaryStore {
     });
     this.inflightDictionary.set(dedupeKey, promise);
     return promise;
-  }
-
-  private buildDedupeKey(
-    tableName: string,
-    options: Record<string, unknown>,
-  ): string {
-    const o = options as {
-      idField?: string;
-      nameField?: string;
-      search?: string;
-      limit?: number;
-      cursor?: string | null;
-      additionalFields?: string[];
-      filterByIds?: string[];
-      junctionFilter?: {
-        junctionTable: string;
-        junctionFilterField: string;
-        filterValue: string;
-      };
-      defaultFilters?: Record<string, unknown>;
-    };
-    const ids = o.filterByIds ? [...o.filterByIds].sort().join(',') : '';
-    const fields = o.additionalFields ? [...o.additionalFields].sort().join(',') : '';
-    const filters = o.defaultFilters
-      ? JSON.stringify(
-          Object.keys(o.defaultFilters)
-            .sort()
-            .reduce<Record<string, unknown>>((acc, k) => {
-              acc[k] = o.defaultFilters![k];
-              return acc;
-            }, {}),
-        )
-      : '';
-    const junction = o.junctionFilter
-      ? `${o.junctionFilter.junctionTable}|${o.junctionFilter.junctionFilterField}|${o.junctionFilter.filterValue}`
-      : '';
-    return [
-      tableName,
-      o.idField ?? 'id',
-      o.nameField ?? 'name',
-      o.search ?? '',
-      o.limit ?? 30,
-      o.cursor ?? '',
-      fields,
-      ids,
-      junction,
-      filters,
-    ].join('::');
   }
 
   private async runGetDictionary(
@@ -532,7 +485,6 @@ class DictionaryStore {
 
       // Staleness check: compare server updated_at with cached updated_at
       // Fallback to 24h cachedAt-based TTL if updated_at not available
-      const DICT_STALE_MS = DICTIONARY_RECORDS_STALE_MS;
       const now = Date.now();
       const serverUpdatedAtMap = new Map(
         idsData.filter(r => r.updated_at).map(r => [r.id, r.updated_at!])
@@ -574,7 +526,7 @@ class DictionaryStore {
           if (serverUpdatedAt > cachedDoc.additional.updated_at) {
             staleIds.push(id);
           }
-        } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICT_STALE_MS) {
+        } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICTIONARY_RECORDS_STALE_MS) {
           // Fallback: cachedAt-based TTL for tables without updated_at
           staleIds.push(id);
         }

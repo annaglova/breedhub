@@ -68,6 +68,8 @@ export class ChildLruPolicy {
   private readonly targetRatio: number;
   /** in-flight eviction promise per entityType so concurrent calls coalesce */
   private inflight = new Map<string, Promise<EvictionStats>>();
+  /** active read ref-count by group key; active groups are never evicted */
+  private activeReads = new Map<string, number>();
 
   constructor(options: { protectMs?: number; recordLimit?: number; targetRatio?: number } = {}) {
     this.protectMs = options.protectMs ?? CHILD_COLLECTION_EVICT_PROTECT_MS;
@@ -81,6 +83,28 @@ export class ChildLruPolicy {
     this.accessTimes.set(this.keyOf(entityType, parentId, tableType), Date.now());
   }
 
+  /**
+   * Protect a group while a read is in progress. Returns a release function
+   * so callers can pair it with `finally` and avoid leaking protection.
+   */
+  beginRead(entityType: string, parentId: string | undefined, tableType: string): () => void {
+    if (!parentId) return () => {};
+    const key = this.keyOf(entityType, parentId, tableType);
+    this.touch(entityType, parentId, tableType);
+    this.activeReads.set(key, (this.activeReads.get(key) ?? 0) + 1);
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      const count = this.activeReads.get(key) ?? 0;
+      if (count <= 1) {
+        this.activeReads.delete(key);
+      } else {
+        this.activeReads.set(key, count - 1);
+      }
+    };
+  }
+
   /** Manually drop the access record (used after explicit deletes). */
   forget(entityType: string, parentId: string | undefined, tableType: string): void {
     if (!parentId) return;
@@ -90,6 +114,7 @@ export class ChildLruPolicy {
   /** Reset state — primarily for tests. */
   reset(): void {
     this.accessTimes.clear();
+    this.activeReads.clear();
     this.inflight.clear();
   }
 
@@ -161,6 +186,7 @@ export class ChildLruPolicy {
         for (const group of ordered) {
           if (projected <= targetSize) break;
           const lastAccess = this.accessTimes.get(group.key) ?? 0;
+          if (this.activeReads.has(group.key)) continue;
           if (lastAccess > cutoff) continue;
 
           const evictableIds = group.recordIds.filter((id) => !pending.has(id));

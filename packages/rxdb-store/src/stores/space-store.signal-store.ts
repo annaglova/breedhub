@@ -73,6 +73,7 @@ import {
 } from './space-local-query.helpers';
 import {
   applyChildListQueryOptions,
+  buildBatchedSelector,
   buildChildSelectClause,
   createEmptyChildPageResult,
   filterLocalChildEntities,
@@ -82,11 +83,11 @@ import {
   fetchAndCacheChildRecords,
   loadChildViewPage,
   getChildMutationMetadata,
+  groupParentsByPartition,
   hasStaleChildRecords,
   mapAndCacheChildRows,
   normalizeChildTableType,
   queryLocalChildRecords,
-  queueChildMutationRefresh,
   toChildPageResult,
   type ChildCacheRecord,
   type ChildPageResult,
@@ -1751,6 +1752,9 @@ class SpaceStore {
       console.error(`[SpaceStore] Cannot determine entity type from table: ${tableType}`);
       return [];
     }
+    const normalizedType = normalizeChildTableType(tableType);
+    const releaseLruRead = this.childLru.beginRead(entityType, parentId, normalizedType);
+    try {
 
     // Ensure child collection exists
     const collection = await this.ensureChildCollection(entityType);
@@ -1828,6 +1832,9 @@ class SpaceStore {
         };
       },
     });
+    } finally {
+      releaseLruRead();
+    }
   }
 
   /**
@@ -1975,6 +1982,10 @@ class SpaceStore {
     if (!collection) return [];
 
     const normalizedType = normalizeChildTableType(tableType);
+    const releaseLruReads = parentIds.map((parentId) =>
+      this.childLru.beginRead(entityType, parentId, normalizedType),
+    );
+    try {
     const parentIdField = options.parentField || `${entityType}_id`;
     const partitionConfig = this.entitySchemas.get(entityType)?.partition;
     const partitionField = partitionConfig?.childFilterField;
@@ -1999,10 +2010,7 @@ class SpaceStore {
     // Single RxDB query for the whole batch.
     const findResult = await collection
       .find({
-        selector: {
-          parentId: { $in: parentIds },
-          tableType: normalizedType,
-        },
+        selector: buildBatchedSelector(normalizedType, parentIds),
       })
       .exec();
     const cached = findResult.map((doc) => doc.toJSON()) as ChildCacheRecord[];
@@ -2024,13 +2032,10 @@ class SpaceStore {
     // Cache miss → group missing parents by partition value, one Supabase
     // `IN (...)` per partition group.
     if (missingParentIds.length > 0) {
-      const groupsByPartition = new Map<string | undefined, string[]>();
-      for (const parentId of missingParentIds) {
-        const partitionValue = partitionByParent.get(parentId);
-        const group = groupsByPartition.get(partitionValue) ?? [];
-        group.push(parentId);
-        groupsByPartition.set(partitionValue, group);
-      }
+      const groupsByPartition = groupParentsByPartition(
+        missingParentIds,
+        partitionByParent,
+      );
 
       const { limit = 50, orderBy, orderDirection = 'asc' } = options;
       const selectFields = buildChildSelectClause({
@@ -2093,13 +2098,7 @@ class SpaceStore {
     if (cached.length > 0) {
       if (hasStaleChildRecords(cached, CHILD_RECORDS_STALE_MS)) {
         this.cacheStats.childRecordsBatch.staleRevalidate += 1;
-        const staleByPartition = new Map<string | undefined, string[]>();
-        for (const id of parentIds) {
-          const partitionValue = partitionByParent.get(id);
-          const group = staleByPartition.get(partitionValue) ?? [];
-          group.push(id);
-          staleByPartition.set(partitionValue, group);
-        }
+        const staleByPartition = groupParentsByPartition(parentIds, partitionByParent);
         for (const [partitionValue, ids] of staleByPartition) {
           void this.refreshChildRecordsBatchInBackground(
             entityType,
@@ -2115,6 +2114,9 @@ class SpaceStore {
     }
 
     return cached;
+    } finally {
+      for (const release of releaseLruReads) release();
+    }
   }
 
   /** Background refresh for many parents in a single Supabase IN query. */

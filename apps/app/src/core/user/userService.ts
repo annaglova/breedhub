@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@shared/core/auth';
-import { apiService } from '../api';
+import { apiService } from '../api/api.service';
 
 /**
  * Інтерфейс для користувацького контакту
