@@ -4,6 +4,7 @@ import {
   CHILD_RECORDS_STALE_MS,
   MAPPING_CACHE_STALE_MS,
 } from '../cache/cache-policies';
+import { ChildLruPolicy } from './child-lru-policy';
 import { getDatabase, type AppDatabase } from '../services/database.service';
 import { Subscription } from 'rxjs';
 import { RxCollection, RxDocument } from 'rxdb';
@@ -1782,6 +1783,8 @@ class SpaceStore {
 
     if (existingRecords.length > 0) {
       this.cacheStats.childRecords.hit += 1;
+      this.childLru.touch(entityType, parentId, tableType);
+      this.scheduleChildLruEviction(entityType);
       // Staleness check: if oldest record cached > CHILD_RECORDS_STALE_MS, refetch in background.
       if (hasStaleChildRecords(existingRecords, CHILD_RECORDS_STALE_MS)) {
         // Return stale data immediately, refresh in background
@@ -1791,6 +1794,8 @@ class SpaceStore {
       return existingRecords;
     }
     this.cacheStats.childRecords.miss += 1;
+    this.childLru.touch(entityType, parentId, tableType);
+    this.scheduleChildLruEviction(entityType);
 
     return fetchAndCacheChildRecords({
       tableType,
@@ -1866,6 +1871,20 @@ class SpaceStore {
       miss: 0,
       staleRevalidate: 0,
     },
+  };
+
+  /**
+   * LRU policy for universal child collections. Tracks
+   * `(entityType, parentId, tableType)` access timestamps and evicts the
+   * coldest groups when a collection grows past its limit.
+   */
+  private childLru = new ChildLruPolicy();
+
+  /** Counters incremented when LRU evicts a group; visible via cacheStats. */
+  childLruStats = {
+    evictedRecords: 0,
+    evictedGroups: 0,
+    runs: 0,
   };
 
   /** Reset all cache counters (useful for scoped scenario measurements). */
@@ -1995,6 +2014,12 @@ class SpaceStore {
     // semantics (one batch covering N parents → N hits/misses recorded).
     this.cacheStats.childRecordsBatch.hit += parentIds.length - missingParentIds.length;
     this.cacheStats.childRecordsBatch.miss += missingParentIds.length;
+
+    // Touch every parent — the matrix-style batch read warms them all.
+    for (const parentId of parentIds) {
+      this.childLru.touch(entityType, parentId, normalizedType);
+    }
+    this.scheduleChildLruEviction(entityType);
 
     // Cache miss → group missing parents by partition value, one Supabase
     // `IN (...)` per partition group.
@@ -2160,6 +2185,64 @@ class SpaceStore {
       }
     } catch {
       // Silent background refresh.
+    }
+  }
+
+  /**
+   * Per-entityType debounce timer for LRU eviction. Bumped every time a
+   * load touches the LRU; the actual eviction sweep runs at most once
+   * per `LRU_EVICTION_DEBOUNCE_MS` to keep tab-switch and matrix-mount
+   * thrash off the hot path.
+   */
+  private childLruDebounce = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly LRU_EVICTION_DEBOUNCE_MS = 1500;
+
+  private scheduleChildLruEviction(entityType: string): void {
+    if (typeof setTimeout === 'undefined') return;
+    const existing = this.childLruDebounce.get(entityType);
+    if (existing) clearTimeout(existing);
+    const handle = setTimeout(() => {
+      this.childLruDebounce.delete(entityType);
+      void this.runChildLruEviction(entityType);
+    }, this.LRU_EVICTION_DEBOUNCE_MS);
+    this.childLruDebounce.set(entityType, handle);
+  }
+
+  /**
+   * Public entry point — runs LRU eviction once for `entityType`, returns
+   * stats. Useful for tests and for forcing a sweep before dumping cache
+   * snapshots.
+   */
+  async runChildLruEviction(entityType: string): Promise<{
+    evictedRecords: number;
+    evictedGroups: number;
+    beforeSize: number;
+    afterSize: number;
+  } | null> {
+    try {
+      const collection = await this.ensureChildCollection(entityType);
+      if (!collection) return null;
+      const stats = await this.childLru.maybeEvict({
+        entityType,
+        collection: collection as unknown as {
+          find(o: { selector?: Record<string, unknown>; limit?: number }): {
+            exec(): Promise<Array<{ toJSON(): ChildCacheRecord }>>;
+          };
+          bulkRemove(ids: string[]): Promise<unknown>;
+        },
+        pendingQueue: {
+          getPendingChildRecordIds: () =>
+            syncQueueService.getPendingChildRecordIds(),
+        },
+      });
+      if (stats.evictedRecords > 0) {
+        this.childLruStats.evictedRecords += stats.evictedRecords;
+        this.childLruStats.evictedGroups += stats.evictedGroups;
+        this.childLruStats.runs += 1;
+      }
+      return stats;
+    } catch {
+      return null;
     }
   }
 

@@ -51,3 +51,26 @@ export const DICTIONARY_RECORDS_STALE_MS = 24 * 60 * 60 * 1000;
  * judge tree levels) should pass their own TTL.
  */
 export const RPC_CACHE_DEFAULT_TTL_MS = 60 * 1000;
+
+/**
+ * Soft cap on rows per universal child collection (`pet_children`,
+ * `breed_children`, …). When `loadChildRecords` notices we crossed the
+ * limit it evicts the coldest `(parentId, tableType)` group via the LRU
+ * policy. The limit is generous on purpose — eviction is a backstop
+ * against unbounded growth in long sessions, not a tight working set.
+ */
+export const CHILD_COLLECTION_RECORD_LIMIT = 5000;
+
+/**
+ * Eviction stops when the collection is back under
+ * `LIMIT * EVICT_TARGET_RATIO`. Built-in headroom so we don't immediately
+ * re-trigger on the next mutation.
+ */
+export const CHILD_COLLECTION_EVICT_TARGET_RATIO = 0.8;
+
+/**
+ * Any `(parentId, tableType)` group touched within this window is
+ * "active" and shielded from eviction even if it's the oldest. Prevents
+ * yanking records out from under a tab that's currently rendering them.
+ */
+export const CHILD_COLLECTION_EVICT_PROTECT_MS = 30 * 1000;

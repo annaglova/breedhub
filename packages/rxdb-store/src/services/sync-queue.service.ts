@@ -156,6 +156,27 @@ class SyncQueueService {
     return this.processAll();
   }
 
+  /**
+   * Set of recordIds that still have a pending entry in the child sync
+   * queue. Used by the LRU policy to shield un-synced rows from
+   * eviction — dropping them would silently lose user data that hasn't
+   * reached Supabase yet.
+   */
+  async getPendingChildRecordIds(): Promise<Set<string>> {
+    if (!this.childQueue) return new Set();
+    try {
+      const docs = await this.childQueue.find({ selector: {} }).exec();
+      const ids = new Set<string>();
+      for (const doc of docs) {
+        const recordId = (doc.toJSON?.() ?? (doc as unknown as { recordId?: string })).recordId;
+        if (typeof recordId === 'string') ids.add(recordId);
+      }
+      return ids;
+    } catch {
+      return new Set();
+    }
+  }
+
   // ── Commit fence ───────────────────────────────────────────────────────
   // Per-recordId "commit settled" signal. Callers that need to read fresh
   // Supabase data right after a mutation (e.g. matrix's cascade
