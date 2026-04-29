@@ -26,10 +26,8 @@ import { Lock, MoreVertical, Pencil, SquarePen, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditChildRecordDialog } from "../EditChildRecordDialog";
 import {
-  buildEnrichmentSignature,
   extractFieldName,
   getForeignKeyFields,
-  rememberEnrichment,
 } from "./edit-child-table.helpers";
 
 /**
@@ -51,6 +49,7 @@ function useMultiTabData(
 
   const {
     data: primaryData,
+    rawData: primaryRaw,
     isLoading: primaryLoading,
     error: primaryError,
     refetch: primaryRefetch,
@@ -63,6 +62,7 @@ function useMultiTabData(
 
   const {
     data: secondaryData,
+    rawData: secondaryRaw,
     isLoading: secondaryLoading,
     error: secondaryError,
     refetch: secondaryRefetch,
@@ -73,7 +73,8 @@ function useMultiTabData(
     enrich,
   });
 
-  // Merge and deduplicate by ID
+  // Merge enriched + raw separately so callers can map row.id back to the
+  // original UUID record (needed for edit dialog form inputs).
   const records = useMemo(() => {
     if (!hasMultiple) return primaryData;
     if (!primaryData?.length && !secondaryData?.length) return [];
@@ -89,6 +90,21 @@ function useMultiTabData(
     return merged;
   }, [primaryData, secondaryData, hasMultiple]);
 
+  const rawRecords = useMemo(() => {
+    if (!hasMultiple) return primaryRaw;
+    if (!primaryRaw?.length && !secondaryRaw?.length) return [];
+
+    const seen = new Set<string>();
+    const merged: any[] = [];
+    for (const record of [...(primaryRaw || []), ...(secondaryRaw || [])]) {
+      if (record.id && !seen.has(record.id)) {
+        seen.add(record.id);
+        merged.push(record);
+      }
+    }
+    return merged;
+  }, [primaryRaw, secondaryRaw, hasMultiple]);
+
   const isLoading = primaryLoading || (hasMultiple && secondaryLoading);
   const error = primaryError || secondaryError;
 
@@ -97,7 +113,7 @@ function useMultiTabData(
     if (hasMultiple) await secondaryRefetch();
   }, [primaryRefetch, secondaryRefetch, hasMultiple]);
 
-  return { records, isLoading, error, refetch };
+  return { records, rawRecords, isLoading, error, refetch };
 }
 
 type FieldConfig = EditFieldConfig;
@@ -223,126 +239,6 @@ async function enrichRecords(
 }
 
 /**
- * Module-level enrichment cache (signature → enriched records). Survives
- * tab unmount/remount, which is exactly the case we need to optimise — every
- * tab switch tore down the per-component `useRef` cache and re-issued the
- * whole `dictionaryStore.getDictionary` fan-out. The cache is keyed by FK
- * config + per-record FK values; any mutation invalidates the signature and
- * forces a fresh fetch.
- *
- * Bounded to keep memory predictable on long sessions. LRU-ish: drop the
- * oldest entry on overflow.
- */
-const enrichmentCache = new Map<string, any[]>();
-
-/** Resolve FK UUIDs to display names using DictionaryStore */
-function useEnrichedRecords(
-  records: any[] | undefined,
-  fields: Record<string, FieldConfig> | undefined,
-) {
-  const [enriched, setEnriched] = useState<any[]>([]);
-  const [isEnriching, setIsEnriching] = useState(false);
-
-  // Extract FK field metadata from config
-  const fkFields = useMemo(() => {
-    return getForeignKeyFields(fields);
-  }, [fields]);
-
-  useEffect(() => {
-    if (!records || records.length === 0) {
-      setEnriched(records || []);
-      return;
-    }
-    if (fkFields.length === 0) {
-      setEnriched(records);
-      return;
-    }
-
-    const signature = buildEnrichmentSignature(records, fkFields);
-
-    const cached = enrichmentCache.get(signature);
-    if (cached) {
-      // Refresh recency on read so frequently-touched tabs stay warm.
-      rememberEnrichment(enrichmentCache, signature, cached);
-      setEnriched(cached);
-      setIsEnriching(false);
-      return;
-    }
-
-    let cancelled = false;
-    setIsEnriching(true);
-
-    async function resolve() {
-      // Collect unique IDs per FK field and resolve in parallel
-      const lookups = new Map<string, Map<string, string>>();
-
-      await Promise.all(
-        fkFields.map(async (fk) => {
-          const ids = new Set<string>();
-          for (const r of records!) {
-            const val = getChildField<string>(r, fk.fieldName);
-            if (val) ids.add(val);
-          }
-
-          const resolved = new Map<string, string>();
-          if (ids.size === 0) {
-            lookups.set(fk.fieldName, resolved);
-            return;
-          }
-          // Batch fetch — avoids 53200 "out of shared memory" on large N.
-          const { records: fetched } = await dictionaryStore.getDictionary(
-            fk.referencedTable,
-            {
-              nameField: fk.referencedFieldName,
-              filterByIds: [...ids],
-              limit: ids.size,
-            },
-          );
-          for (const rec of fetched) {
-            const label =
-              (rec as unknown as Record<string, unknown>)[fk.referencedFieldName] ??
-              rec.name ??
-              "";
-            resolved.set(rec.id, String(label));
-          }
-          lookups.set(fk.fieldName, resolved);
-        }),
-      );
-
-      if (cancelled) return;
-
-      // Build enriched records with names instead of UUIDs
-      const result = records!.map((record) => {
-        const enrichedRecord = { ...record };
-        if (record.additional) {
-          enrichedRecord.additional = { ...record.additional };
-        }
-        for (const fk of fkFields) {
-          const resolved = lookups.get(fk.fieldName);
-          if (!resolved) continue;
-
-          if (enrichedRecord[fk.fieldName] && resolved.has(enrichedRecord[fk.fieldName])) {
-            enrichedRecord[fk.fieldName] = resolved.get(enrichedRecord[fk.fieldName]);
-          } else if (enrichedRecord.additional?.[fk.fieldName] && resolved.has(enrichedRecord.additional[fk.fieldName])) {
-            enrichedRecord.additional[fk.fieldName] = resolved.get(enrichedRecord.additional[fk.fieldName]);
-          }
-        }
-        return enrichedRecord;
-      });
-
-      rememberEnrichment(enrichmentCache, signature, result);
-      setEnriched(result);
-      setIsEnriching(false);
-    }
-
-    resolve();
-    return () => { cancelled = true; };
-  }, [records, fkFields]);
-
-  return { enriched, isEnriching };
-}
-
-/**
  * EditChildTableTab - Child entity table for edit page
  *
  * Displays child records (identifiers, titles, health, etc.) using DataTable.
@@ -399,28 +295,32 @@ export function EditChildTableTab({
     return { ...dataSource[0], readFrom };
   }, [readFrom, dataSource]);
 
-  // Atomic enrich callback — FK resolution happens INSIDE useTabData, before setData
-  // One state transition: loading → enriched data. No intermediate raw-data frame.
+  // Atomic enrich callback — FK resolution happens INSIDE useTabData, before
+  // setData. One state transition: loading → { data: enriched, rawData: raw }.
+  // No intermediate frame where the enriched array would be stale relative to
+  // the raw array (which would otherwise show as a skeleton flash on refetch).
   const enrichFn = useCallback(async (recs: any[]) => {
     if (!fields) return recs;
     return enrichRecords(recs, fields);
   }, [fields]);
 
-  // Both paths: raw data from useTabData, enrichment via useEnrichedRecords
-  // This keeps raw records (UUIDs) available for edit dialog
   const singleResult = useTabData({
     parentId: entityId,
     dataSource: effectiveDataSource!,
     enabled: !!readFrom && !!effectiveDataSource && !!entityId,
+    enrich: enrichFn,
   });
-  const legacyResult = useMultiTabData(entityId, readFrom ? undefined : dataSource);
+  const legacyResult = useMultiTabData(
+    entityId,
+    readFrom ? undefined : dataSource,
+    enrichFn,
+  );
 
-  const records = readFrom ? singleResult.data : legacyResult.records;
+  const enrichedRecords = readFrom ? singleResult.data : legacyResult.records;
+  const rawRecords = readFrom ? singleResult.rawData : legacyResult.rawRecords;
   const isLoading = readFrom ? singleResult.isLoading : legacyResult.isLoading;
   const error = readFrom ? singleResult.error : legacyResult.error;
   const refetch = readFrom ? singleResult.refetch : legacyResult.refetch;
-
-  const { enriched: enrichedRecords, isEnriching } = useEnrichedRecords(records, fields);
 
   // Dialog state
   const [editingRecord, setEditingRecord] = useState<Record<string, any> | null>(null);
@@ -450,20 +350,21 @@ export function EditChildTableTab({
   const hasRowNavigate = rowActions?.includes('navigate');
 
   const handleEdit = useCallback((row: Record<string, any>) => {
-    // Find the raw (non-enriched) record by ID for the dialog form
-    // Enriched records have FK UUIDs replaced with display names, which breaks form inputs
-    const rawRecord = records?.find((r: any) => r.id === row.id) || row;
+    // Find the raw (UUIDs intact) record by ID for the dialog form — enriched
+    // records have FK UUIDs replaced with display names, which breaks form
+    // inputs that bind to UUIDs.
+    const rawRecord = rawRecords?.find((r: any) => r.id === row.id) || row;
     setEditingRecord(rawRecord);
     setIsDialogOpen(true);
-  }, [records]);
+  }, [rawRecords]);
 
   const handleNavigate = useCallback((row: any) => {
-    const rawRecord = records?.find((r: any) => r.id === row.id) || row;
+    const rawRecord = rawRecords?.find((r: any) => r.id === row.id) || row;
     const slug = rawRecord.slug || row.slug;
     if (slug) {
       window.location.href = `/${slug}/edit`;
     }
-  }, [records]);
+  }, [rawRecords]);
 
   const handleRowClick = useCallback((row: any) => {
     if (hasRowEdit) {
@@ -514,7 +415,9 @@ export function EditChildTableTab({
       header: () => null,
       cell: ({ row }) => {
         // Check if record is protected (e.g., is_primary=true, service_type_id=X)
-        const rawRecord = records?.find((r: any) => r.id === row.original.id);
+        // — read from rawRecords so the protected check sees UUIDs, not the
+        // enriched display names.
+        const rawRecord = rawRecords?.find((r: any) => r.id === row.original.id);
         const rawData = rawRecord?.additional || rawRecord || row.original.additional || row.original;
         const isProtected = protectedWhen && rawData[protectedWhen.field] === protectedWhen.value;
 
@@ -569,14 +472,14 @@ export function EditChildTableTab({
     };
 
     return [...dataColumns, actionsColumn];
-  }, [fields, handleEdit, handleNavigate, hasRowEdit, hasRowDelete, hasRowNavigate]);
+  }, [fields, handleEdit, handleNavigate, hasRowEdit, hasRowDelete, hasRowNavigate, rawRecords, protectedWhen]);
 
   // Report count
   useEffect(() => {
     if (!isLoading && onLoadedCount) {
-      onLoadedCount(records?.length ?? 0);
+      onLoadedCount(enrichedRecords?.length ?? 0);
     }
-  }, [isLoading, onLoadedCount, records?.length]);
+  }, [isLoading, onLoadedCount, enrichedRecords?.length]);
 
   // No dataSource configured
   if (!dataSource?.[0]) {
@@ -589,9 +492,10 @@ export function EditChildTableTab({
     );
   }
 
-  // readFrom: isLoading only (enrichment is atomic inside useTabData)
-  // legacy: also wait for useEnrichedRecords
-  const showSkeleton = isLoading || isEnriching;
+  // Enrichment runs inside useTabData/useMultiTabData as part of loadData,
+  // so isLoading already covers cold-start. Silent refetches arrive as one
+  // atomic state transition (raw + enriched together) → no skeleton flash.
+  const showSkeleton = isLoading;
 
   // Error state
   if (error) {
@@ -613,7 +517,7 @@ export function EditChildTableTab({
         columns={columns}
         data={enrichedRecords}
         isLoading={showSkeleton}
-        skeletonRows={records?.length || 5}
+        skeletonRows={enrichedRecords?.length || 5}
         globalFilter={searchFilter}
         paginated={false}
         emptyMessage={`No ${label || "records"} found`}

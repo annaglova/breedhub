@@ -25,6 +25,7 @@ export function useTabData<T = any>({
   enrich,
 }: UseTabDataOptions & { enrich?: (records: any[]) => Promise<any[]> }): TabDataResult<T> {
   const [data, setData] = useState<T[]>([]);
+  const [rawData, setRawData] = useState<T[]>([]);
   const [loadPhase, setLoadPhase] = useState<'idle' | 'loading' | 'done'>('idle');
   const [error, setError] = useState<Error | null>(null);
   const loadingRef = useRef(false);
@@ -37,6 +38,7 @@ export function useTabData<T = any>({
     // Skip if disabled or missing required params
     if (!enabled || !parentId || !dataSource) {
       setData([]);
+      setRawData([]);
       setLoadPhase('done');
       return;
     }
@@ -53,16 +55,16 @@ export function useTabData<T = any>({
     try {
       await waitForSpaceStoreReady();
 
-      // Load data via TabDataService
-      let records = await tabDataService.loadTabData(parentId, dataSource);
-
-      // Enrich inline (FK resolution) — atomic: one setData with final enriched result
-      if (enrich && records.length > 0) {
-        records = await enrich(records);
-      }
+      // Load raw records via TabDataService
+      const raw = await tabDataService.loadTabData(parentId, dataSource);
+      // Enrich inline (FK resolution) — keep raw + enriched in sync. One
+      // commit batches both setStates so silent refetch never shows an
+      // intermediate frame with stale enriched but new raw (or vice versa).
+      const enriched = enrich && raw.length > 0 ? await enrich(raw) : raw;
 
       if (mountedRef.current) {
-        setData(records as T[]);
+        setRawData(raw as T[]);
+        setData(enriched as T[]);
         setLoadPhase('done');
       }
     } catch (err) {
@@ -112,6 +114,7 @@ export function useTabData<T = any>({
 
   return {
     data,
+    rawData,
     isLoading,
     error,
     refetch,

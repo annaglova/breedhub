@@ -200,8 +200,15 @@ export interface DataSourceConfig {
  * Result from useTabData hook
  */
 export interface TabDataResult<T = any> {
-  /** Loaded data array */
+  /** Loaded data array (enriched, if `enrich` was provided to the hook) */
   data: T[];
+  /**
+   * Raw records straight from TabDataService — UUIDs not resolved to names.
+   * Always populated, even when no `enrich` is passed (then `data === rawData`).
+   * Used by callers that need the original FK values, e.g. an edit dialog
+   * binding form inputs to UUIDs.
+   */
+  rawData: T[];
   /** Loading state */
   isLoading: boolean;
   /** Error if any */

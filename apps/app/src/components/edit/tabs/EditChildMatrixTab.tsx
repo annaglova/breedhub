@@ -287,7 +287,15 @@ export function EditChildMatrixTab({
       setCellRecords([]);
       return;
     }
-    setCellsLoading(true);
+    // Cold start vs silent refresh:
+    //  - cold (firstLoaded=false): show skeleton; we have no rows to display.
+    //  - silent (refreshTick++ after a create/update/delete): skip the
+    //    skeleton frame and let React swap the cellRecords array in place.
+    //    Without this, every input blur briefly replaced the entire matrix
+    //    with `animate-pulse` rows even though RxDB already has the data
+    //    cached.
+    const isColdStart = !firstLoaded;
+    if (isColdStart) setCellsLoading(true);
 
     // Single batched load — one RxDB selector with `parentId IN (...)` and
     // (if needed) one Supabase fallback per partition. Replaces the
@@ -319,21 +327,35 @@ export function EditChildMatrixTab({
       })
       .finally(() => {
         if (cancelled) return;
-        setCellsLoading(false);
-        // Defer firstLoaded → next animation frame so the skeleton actually
-        // paints once. Without this, RxDB cache hits resolve in microtasks
-        // fast enough that React batches mount → loaded into a single commit
-        // and the user sees no skeleton — asymmetric vs other edit tabs that
-        // go through useTabData's waitForSpaceStoreReady + tabDataService
-        // pipeline.
-        requestAnimationFrame(() => {
-          if (!cancelled) setFirstLoaded(true);
-        });
+        if (isColdStart) {
+          setCellsLoading(false);
+          // Defer firstLoaded → next animation frame so the skeleton actually
+          // paints once. Without this, RxDB cache hits resolve in microtasks
+          // fast enough that React batches mount → loaded into a single commit
+          // and the user sees no skeleton — asymmetric vs other edit tabs that
+          // go through useTabData's waitForSpaceStoreReady + tabDataService
+          // pipeline.
+          requestAnimationFrame(() => {
+            if (!cancelled) setFirstLoaded(true);
+          });
+        }
       });
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- firstLoaded is read
+  // intentionally without being a dep: include it and the effect re-runs every
+  // time we toggle it true, kicking a redundant silent refresh on cold-start.
+  // It's reset through the cleanup effect below when context (parent/table) changes.
   }, [columnEntities, cellTable, columnEntityTable, constantsKey, refreshTick]);
+
+  // Reset cold-start flag + cached rows whenever the matrix is re-pointed at
+  // a different parent or table. Without this, switching litters would skip
+  // the cold-start skeleton and briefly show the previous litter's rows.
+  useEffect(() => {
+    setFirstLoaded(false);
+    setCellRecords([]);
+  }, [parentId, cellTable, columnEntityTable]);
 
   // Subscribe to childRefreshSignal — when sync completes for any pet's
   // measurement, bump refreshTick so we re-read RxDB. Same mechanism that

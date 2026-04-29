@@ -84,18 +84,91 @@ describe('useTabData', () => {
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.data).toEqual([]);
+    expect(result.current.rawData).toEqual([]);
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.data).toEqual([
         { id: 'child-1', name: 'Champion', label: 'CHAMPION' },
       ]);
+      // rawData stays unenriched — UUIDs/raw fields available for callers
+      // such as edit dialog that bind form inputs to the original values.
+      expect(result.current.rawData).toEqual([{ id: 'child-1', name: 'Champion' }]);
     });
 
     expect(mockState.waitForSpaceStoreReadyMock).toHaveBeenCalledTimes(1);
     expect(mockState.loadTabDataMock).toHaveBeenCalledWith('pet-1', dataSource);
     expect(enrich).toHaveBeenCalledWith([{ id: 'child-1', name: 'Champion' }]);
     expect(result.current.error).toBeNull();
+  });
+
+  it('mirrors data into rawData when no enrich function is provided', async () => {
+    mockState.loadTabDataMock.mockResolvedValue([{ id: 'r-1', value: 1 }]);
+
+    const { result } = renderHook(() =>
+      useTabData({
+        parentId: 'pet-1',
+        dataSource,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data).toEqual([{ id: 'r-1', value: 1 }]);
+    expect(result.current.rawData).toEqual([{ id: 'r-1', value: 1 }]);
+  });
+
+  it('updates data and rawData together on silent refetch — no intermediate frame where they diverge', async () => {
+    const enrich = vi.fn(async (records: Array<{ id: string; type_id: string }>) =>
+      records.map((record) => ({
+        ...record,
+        type_id: `LABEL:${record.type_id}`,
+      })),
+    );
+
+    mockState.loadTabDataMock
+      .mockResolvedValueOnce([{ id: 'r-1', type_id: 'uuid-old' }])
+      .mockResolvedValueOnce([
+        { id: 'r-1', type_id: 'uuid-old' },
+        { id: 'r-2', type_id: 'uuid-new' },
+      ]);
+
+    const { result } = renderHook(() =>
+      useTabData({
+        parentId: 'pet-1',
+        dataSource,
+        enrich,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.data).toEqual([
+        { id: 'r-1', type_id: 'LABEL:uuid-old' },
+      ]);
+      expect(result.current.rawData).toEqual([
+        { id: 'r-1', type_id: 'uuid-old' },
+      ]);
+    });
+
+    // Silent refetch — no isLoading flicker; once the fresh payload arrives,
+    // data and rawData advance together (atomic commit), no intermediate state
+    // where data is stale but rawData fresh (or vice versa).
+    await act(async () => {
+      await result.current.refetch();
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.data).toEqual([
+      { id: 'r-1', type_id: 'LABEL:uuid-old' },
+      { id: 'r-2', type_id: 'LABEL:uuid-new' },
+    ]);
+    expect(result.current.rawData).toEqual([
+      { id: 'r-1', type_id: 'uuid-old' },
+      { id: 'r-2', type_id: 'uuid-new' },
+    ]);
   });
 
   it('returns the done empty state without calling the service when disabled or parentId is missing', async () => {

@@ -1,4 +1,3 @@
-import { getChildField } from "@breedhub/rxdb-store";
 import type { EditFieldConfig } from "@/types/field-config";
 
 export type EditChildTableFieldConfig = EditFieldConfig;
@@ -26,43 +25,4 @@ export function getForeignKeyFields(
       referencedTable: config.referencedTable as string,
       referencedFieldName: (config.referencedFieldName || "name") as string,
     }));
-}
-
-export function buildEnrichmentSignature(
-  records: Array<Record<string, unknown>>,
-  fkFields: ForeignKeyField[],
-): string {
-  const signatureFkFields = fkFields
-    .map(
-      (field) =>
-        `${field.fieldName}:${field.referencedTable}:${field.referencedFieldName}`,
-    )
-    .join("|");
-  const signatureValues = records
-    .map((record) => {
-      const id = record.id ?? "";
-      const fkVals = fkFields
-        .map((field) => String(getChildField(record, field.fieldName) ?? ""))
-        .join(",");
-      return `${id}=${fkVals}`;
-    })
-    .join("|");
-  return `${signatureFkFields}::${signatureValues}`;
-}
-
-export const ENRICHMENT_CACHE_LIMIT = 32;
-
-export function rememberEnrichment<TValue>(
-  cache: Map<string, TValue>,
-  key: string,
-  result: TValue,
-  limit = ENRICHMENT_CACHE_LIMIT,
-): void {
-  if (cache.has(key)) cache.delete(key);
-  cache.set(key, result);
-  while (cache.size > limit) {
-    const oldest = cache.keys().next().value;
-    if (oldest === undefined) break;
-    cache.delete(oldest);
-  }
 }
