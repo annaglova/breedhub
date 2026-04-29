@@ -26,7 +26,7 @@ function matchesSelector(
 }
 
 function createChildCollection(initialRecords: ChildCacheRecord[]) {
-  const records = [...initialRecords];
+  let records = [...initialRecords];
   const calls = {
     find: [] as Array<{ selector?: ChildSelector; limit?: number }>,
     bulkUpsert: [] as ChildCacheRecord[][],
@@ -34,6 +34,10 @@ function createChildCollection(initialRecords: ChildCacheRecord[]) {
 
   return {
     calls,
+    removeByIds(ids: string[]) {
+      const remove = new Set(ids);
+      records = records.filter((record) => !remove.has(record.id));
+    },
     collection: {
       find(options: { selector?: ChildSelector; limit?: number } = {}) {
         calls.find.push(options);
@@ -352,5 +356,47 @@ describe("spaceStore.loadChildRecordsForParents", () => {
       miss: 0,
       dedup: 0,
     });
+  });
+
+  it("treats an evicted parent as a normal Supabase miss on the next batch load", async () => {
+    const harness = await loadHarness({
+      cachedRecords: [
+        {
+          id: "cached-a",
+          parentId: "pet-a",
+          tableType: "pet_measurement",
+          cachedAt: Date.now(),
+        },
+      ],
+      resolveRows: (call) =>
+        (call.inIds ?? []).map((parentId) => ({
+          id: `fresh-${parentId}`,
+          pet_id: parentId,
+          value: 42,
+        })),
+    });
+    harness.collection.removeByIds(["cached-a"]);
+
+    const result = await harness.store.loadChildRecordsForParents(
+      "pet",
+      "pet_measurement",
+      ["pet-a"],
+    );
+
+    expect(harness.supabase.calls).toHaveLength(1);
+    expect(harness.supabase.calls[0].inIds).toEqual(["pet-a"]);
+    expect(harness.collection.calls.bulkUpsert[0]).toEqual([
+      expect.objectContaining({
+        id: "fresh-pet-a",
+        parentId: "pet-a",
+        tableType: "pet_measurement",
+      }),
+    ]);
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: "fresh-pet-a",
+        parentId: "pet-a",
+      }),
+    ]);
   });
 });
