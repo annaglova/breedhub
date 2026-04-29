@@ -125,7 +125,10 @@ async function loadHarness(options: {
     supabase: supabaseMock.supabase,
   }));
 
-  const { spaceStore } = await import("../space-store.signal-store");
+  const [{ spaceStore }, { dictionaryStore }] = await Promise.all([
+    import("../space-store.signal-store"),
+    import("../dictionary-store.signal-store"),
+  ]);
   const store = spaceStore as any;
   store.ensureChildCollection = vi.fn(async () => collection.collection);
   store.scheduleChildLruEviction = vi.fn();
@@ -158,6 +161,7 @@ async function loadHarness(options: {
 
   return {
     store,
+    dictionaryStore,
     collection,
     supabase: supabaseMock,
   };
@@ -309,5 +313,44 @@ describe("spaceStore.loadChildRecordsForParents", () => {
     expect(result).toEqual([]);
     expect(harness.store.ensureChildCollection).not.toHaveBeenCalled();
     expect(harness.supabase.calls).toHaveLength(0);
+  });
+
+  it("increments batch hit/miss/stale telemetry without touching dictionary counters", async () => {
+    const now = Date.now();
+    const harness = await loadHarness({
+      cachedRecords: [
+        {
+          id: "cached-a",
+          parentId: "pet-a",
+          tableType: "pet_measurement",
+          cachedAt: now - CHILD_RECORDS_STALE_MS - 1,
+        },
+      ],
+      resolveRows: (call) =>
+        (call.inIds ?? []).map((parentId) => ({
+          id: `fresh-${parentId}`,
+          pet_id: parentId,
+          value: 42,
+        })),
+    });
+    vi.spyOn(harness.store as any, "refreshChildRecordsBatchInBackground")
+      .mockResolvedValue(undefined);
+    harness.dictionaryStore.resetCacheStats();
+
+    await harness.store.loadChildRecordsForParents("pet", "pet_measurement", [
+      "pet-a",
+      "pet-b",
+    ]);
+
+    expect(harness.store.cacheStats.childRecordsBatch).toEqual({
+      hit: 1,
+      miss: 1,
+      staleRevalidate: 1,
+    });
+    expect(harness.dictionaryStore.cacheStats.getDictionary).toEqual({
+      hit: 0,
+      miss: 0,
+      dedup: 0,
+    });
   });
 });
