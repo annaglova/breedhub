@@ -49,7 +49,22 @@ export default tseslint.config(
           message:
             "Don't read `.additional?.X` directly — use getChildField(record, 'X') from @breedhub/rxdb-store instead. See CACHE_AUDIT_2026_04_28.md (W9 / P10).",
         },
+        {
+          // Catch any `import { apiService } from '...'` regardless of the
+          // import path (relative or aliased).
+          selector:
+            "ImportDeclaration > ImportSpecifier[imported.name='apiService']",
+          message:
+            "apiService bypasses the local-first cache. Use spaceStore / dictionaryStore / spaceStore.callRpc instead. See CACHE_AUDIT_2026_04_28.md (W8 / P6).",
+        },
       ],
+      // CACHE_AUDIT P6 / W8 — apiService bypass is enforced by the
+      // ImportSpecifier selector in no-restricted-syntax above (catches
+      // both alias and relative imports). The legacy CRUD wrapper at
+      // apps/app/src/core/api/api.service.ts only survives inside the
+      // auth flow (userService) which already has React Query caching;
+      // new callers must route through entity stores, dictionaryStore,
+      // or spaceStore.callRpc.
     },
   },
 )

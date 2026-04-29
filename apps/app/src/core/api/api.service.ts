@@ -57,8 +57,25 @@ export interface QueryParams {
 }
 
 /**
- * API Service для роботи з Supabase
- * Замінює Angular ApiService
+ * @deprecated DO NOT add new callers.
+ *
+ * This wrapper goes straight to Supabase, bypassing the local-first
+ * cache layers (`spaceStore`, entity stores, dictionaryStore, child
+ * collections). It survives only because it sits inside the auth /
+ * user-profile flow (`userService`) which already has React Query
+ * caching, runs at most once per session, and would carry significant
+ * regression risk if rewritten.
+ *
+ * For ANY new feature:
+ *   - reading entity rows  → use the matching entity store
+ *     (`spaceStore.entityStores.get('breed').getById(id)` etc.)
+ *   - reading child rows   → `spaceStore.loadChildRecords` /
+ *                            `spaceStore.loadChildRecordsForParents`
+ *   - reading lookups      → `dictionaryStore.getDictionary`
+ *   - calling an RPC       → `spaceStore.callRpc(name, args, { cacheTtlMs })`
+ *
+ * See `breedhub-docs/frontend/app/data/CACHE_AUDIT_2026_04_28.md` (P6 +
+ * W8) and `breedhub-docs/general/wrong-paths.md` for context.
  */
 export class ApiService {
   private static instance: ApiService;
