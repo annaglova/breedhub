@@ -30,6 +30,22 @@ interface GroupCellRecordsIntoRowsOptions {
   orderBy?: OrderConfig[];
 }
 
+export type AddPosition = "top" | "bottom";
+
+/** Combine persisted rows with client-only draft rows, honouring the
+ *  configured insert position. Default `"bottom"` keeps drafts at the end of
+ *  the table; `"top"` is used together with `orderBy: desc` so a freshly added
+ *  row appears next to other recent entries. */
+export function mergeRowsWithDrafts(
+  persisted: MatrixRow[],
+  drafts: MatrixRow[],
+  addPosition: AddPosition = "bottom",
+): MatrixRow[] {
+  return addPosition === "top"
+    ? [...drafts, ...persisted]
+    : [...persisted, ...drafts];
+}
+
 export function groupCellRecordsIntoRows(
   cellRecords: Array<Record<string, any>>,
   { headerCol, colCol, orderBy }: GroupCellRecordsIntoRowsOptions,

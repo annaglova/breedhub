@@ -3,6 +3,8 @@ import { spaceStore, syncQueueService, toast } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import {
   groupCellRecordsIntoRows,
+  mergeRowsWithDrafts,
+  type AddPosition,
   type MatrixRow,
 } from "./edit-child-matrix.helpers";
 import { withCrudToast } from "@/utils/crudToast";
@@ -163,6 +165,10 @@ interface EditChildMatrixTabProps {
   label?: string;
   actionTypes?: string[];
   rowActions?: string[];
+  /** Where new draft rows are inserted relative to persisted rows.
+   *  Default `"bottom"`. Use `"top"` when orderBy is desc so a fresh draft
+   *  appears next to the most recent entries. */
+  addPosition?: AddPosition;
   /** Add-button signal from PageMenu (set true to add row, then closed via callback) */
   addDialogOpen?: boolean;
   onAddDialogClose?: () => void;
@@ -178,6 +184,7 @@ export function EditChildMatrixTab({
   label,
   actionTypes,
   rowActions,
+  addPosition = "bottom",
   addDialogOpen,
   onAddDialogClose,
 }: EditChildMatrixTabProps) {
@@ -360,8 +367,8 @@ export function EditChildMatrixTab({
   const [draftRows, setDraftRows] = useState<MatrixRow[]>([]);
 
   const allRows = useMemo<MatrixRow[]>(
-    () => [...persistedRows, ...draftRows],
-    [persistedRows, draftRows],
+    () => mergeRowsWithDrafts(persistedRows, draftRows, addPosition),
+    [persistedRows, draftRows, addPosition],
   );
 
   // Drop drafts whose header collides with a now-persisted row
@@ -400,11 +407,17 @@ export function EditChildMatrixTab({
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
         : `draft-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    setDraftRows((prev) => [
-      ...prev,
-      { key, header: autoFill, isDraft: true, cellRecords: {}, allRecords: [] },
-    ]);
-  }, [parsed.rowHeader, persistedRows, draftRows]);
+    const draft: MatrixRow = {
+      key,
+      header: autoFill,
+      isDraft: true,
+      cellRecords: {},
+      allRecords: [],
+    };
+    setDraftRows((prev) =>
+      addPosition === "top" ? [draft, ...prev] : [...prev, draft],
+    );
+  }, [parsed.rowHeader, persistedRows, draftRows, addPosition]);
 
   // PageMenu's "+ Add" button signals through addDialogOpen — add a draft row
   // and immediately close the signal (no dialog flow for matrix).

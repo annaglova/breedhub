@@ -5,7 +5,11 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { groupCellRecordsIntoRows } from "@/components/edit/tabs/edit-child-matrix.helpers";
+import {
+  groupCellRecordsIntoRows,
+  mergeRowsWithDrafts,
+  type MatrixRow,
+} from "@/components/edit/tabs/edit-child-matrix.helpers";
 
 function record(parentId: string, date: string, weight: number, id?: string) {
   return {
@@ -159,5 +163,46 @@ describe("groupCellRecordsIntoRows", () => {
       orderBy: [{ field: "date", direction: "desc" }],
     });
     expect(rows).toEqual([]);
+  });
+});
+
+describe("mergeRowsWithDrafts", () => {
+  const persisted: MatrixRow[] = [
+    { key: "p1", header: "p1", isDraft: false, cellRecords: {}, allRecords: [] },
+    { key: "p2", header: "p2", isDraft: false, cellRecords: {}, allRecords: [] },
+  ];
+  const drafts: MatrixRow[] = [
+    { key: "d1", header: null, isDraft: true, cellRecords: {}, allRecords: [] },
+    { key: "d2", header: null, isDraft: true, cellRecords: {}, allRecords: [] },
+  ];
+
+  it("appends drafts after persisted rows when addPosition is 'bottom'", () => {
+    const result = mergeRowsWithDrafts(persisted, drafts, "bottom");
+    expect(result.map((r) => r.key)).toEqual(["p1", "p2", "d1", "d2"]);
+  });
+
+  it("prepends drafts before persisted rows when addPosition is 'top'", () => {
+    const result = mergeRowsWithDrafts(persisted, drafts, "top");
+    expect(result.map((r) => r.key)).toEqual(["d1", "d2", "p1", "p2"]);
+  });
+
+  it("defaults to 'bottom' when addPosition is omitted", () => {
+    const result = mergeRowsWithDrafts(persisted, drafts);
+    expect(result.map((r) => r.key)).toEqual(["p1", "p2", "d1", "d2"]);
+  });
+
+  it("preserves draft order within the merged list", () => {
+    const result = mergeRowsWithDrafts(persisted, drafts, "top");
+    expect(result.slice(0, 2).map((r) => r.key)).toEqual(["d1", "d2"]);
+  });
+
+  it("returns just persisted rows when there are no drafts", () => {
+    expect(mergeRowsWithDrafts(persisted, [], "top")).toEqual(persisted);
+    expect(mergeRowsWithDrafts(persisted, [], "bottom")).toEqual(persisted);
+  });
+
+  it("returns just drafts when there are no persisted rows", () => {
+    expect(mergeRowsWithDrafts([], drafts, "top")).toEqual(drafts);
+    expect(mergeRowsWithDrafts([], drafts, "bottom")).toEqual(drafts);
   });
 });

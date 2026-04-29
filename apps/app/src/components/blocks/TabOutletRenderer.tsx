@@ -81,6 +81,7 @@ function convertTabConfigToTabs(tabsConfig: Record<string, TabConfig>): Tab[] {
     if (config.protectedWhen) tabProps.protectedWhen = config.protectedWhen;
     if (config.readFrom) tabProps.readFrom = config.readFrom;
     if ((config as any).rowActions) tabProps.rowActions = (config as any).rowActions;
+    if ((config as any).addPosition) tabProps.addPosition = (config as any).addPosition;
 
     // Build searchPlaceholder from searchable fields
     if (config.actionTypes?.includes("search") && config.fields) {

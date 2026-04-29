@@ -114,6 +114,14 @@ interface EditChildTableTabProps {
   protectedWhen?: { field: string; value: any };
   readFrom?: ReadFromConfig;
   rowActions?: string[]; // "edit", "delete", "navigate" — default: ["edit", "delete"]
+  /** Insert position for newly created records.
+   *
+   *  Today this tab persists straight from EditChildRecordDialog and the
+   *  resulting list is re-fetched and re-sorted by `dataSource.childTable.orderBy`,
+   *  so the prop has no observable effect. Accepted as part of the shared tab
+   *  config so EditChildMatrixTab and EditChildTableTab take the same shape;
+   *  wire it in once a draft-row pattern is added here. */
+  addPosition?: "top" | "bottom";
 }
 
 function formatCellValue(value: unknown, fieldType?: string): string {
@@ -354,6 +362,7 @@ export function EditChildTableTab({
   protectedWhen,
   readFrom,
   rowActions,
+  addPosition: _addPosition,
 }: EditChildTableTabProps) {
   useSignals();
 
