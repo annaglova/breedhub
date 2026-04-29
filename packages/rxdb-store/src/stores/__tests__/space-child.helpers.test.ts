@@ -8,6 +8,7 @@ import {
   fetchAndCacheChildRecords,
   filterLocalChildEntities,
   getChildCollectionName,
+  getChildField,
   getExistingChildCollection,
   getDefaultChildOrderBy,
   getChildMutationMetadata,
@@ -162,6 +163,48 @@ describe("space-child.helpers", () => {
 
   it("builds the canonical child collection name from entity type", () => {
     expect(getChildCollectionName("pet")).toBe("pet_children");
+  });
+
+  it("gets child fields from top-level values before additional values", () => {
+    expect(
+      getChildField<boolean>(
+        {
+          is_primary: false,
+          additional: {
+            is_primary: true,
+          },
+        },
+        "is_primary",
+      ),
+    ).toBe(false);
+  });
+
+  it("falls back to additional fields when the top-level child field is absent", () => {
+    expect(
+      getChildField<string>(
+        {
+          additional: {
+            contact_id: "contact-1",
+          },
+        },
+        "contact_id",
+      ),
+    ).toBe("contact-1");
+  });
+
+  it("returns undefined when a child field is absent or nullish in both places", () => {
+    expect(
+      getChildField(
+        {
+          contact_id: null,
+          additional: {
+            contact_id: null,
+          },
+        },
+        "contact_id",
+      ),
+    ).toBeUndefined();
+    expect(getChildField(undefined, "contact_id")).toBeUndefined();
   });
 
   it("groups parents by partition value, preserving insertion order", () => {

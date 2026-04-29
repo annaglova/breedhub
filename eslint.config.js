@@ -45,7 +45,7 @@ export default tseslint.config(
         'warn',
         {
           selector:
-            "MemberExpression[property.name='additional'][parent.type='ChainExpression'], MemberExpression[property.name='additional'][optional=true]",
+            "ChainExpression MemberExpression[property.name='additional']",
           message:
             "Don't read `.additional?.X` directly — use getChildField(record, 'X') from @breedhub/rxdb-store instead. See CACHE_AUDIT_2026_04_28.md (W9 / P10).",
         },
