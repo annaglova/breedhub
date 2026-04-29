@@ -112,7 +112,8 @@ export {
   hasFieldPrefix,
   extractFieldName,
   normalizeToDbField,
-  normalizeToConfigField
+  normalizeToConfigField,
+  sortRecords
 } from './utils';
 
 // Cache policies - centralised TTLs for SWR / hard-TTL caches.

@@ -10,3 +10,5 @@ export {
   normalizeToDbField,
   normalizeToConfigField
 } from './field-normalization';
+
+export { sortRecords } from './sort-records';

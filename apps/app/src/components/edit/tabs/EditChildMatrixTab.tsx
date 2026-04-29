@@ -1,6 +1,10 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, syncQueueService, toast } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import {
+  groupCellRecordsIntoRows,
+  type MatrixRow,
+} from "./edit-child-matrix.helpers";
 import { withCrudToast } from "@/utils/crudToast";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
@@ -147,22 +151,6 @@ function parseHeaderInput(value: string, fieldType?: string): string | null {
  */
 function clientNowMinuteIso(): string {
   return toLocalIsoMinute(new Date());
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// Row shape
-// ────────────────────────────────────────────────────────────────────────────
-
-interface MatrixRow {
-  key: string;
-  header: unknown;
-  isDraft: boolean;
-  /** columnId -> cell record (RxDB child doc with .additional). Map dedupes
-   *  by column, so use `allRecords` for any cascade that must hit every
-   *  record regardless of column collision. */
-  cellRecords: Record<string, Record<string, any>>;
-  /** Every record that grouped into this row (no column dedupe). */
-  allRecords: Record<string, any>[];
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -355,36 +343,18 @@ export function EditChildMatrixTab({
   }, [refreshSignal, cellTable, columnEntities]);
 
   // ── Group cells into rows by rowHeader field ────────────────────────────
+  // orderBy from config drives row ordering — sorted before grouping so the
+  // Map's insertion order matches the sort. Without this rows arrive in
+  // RxDB `find()` order, which is not deterministic across cache hits.
+  const orderBy = ds?.childTable?.orderBy;
   const persistedRows = useMemo<MatrixRow[]>(() => {
     if (!parsed.rowHeader || !parsed.columnHeader) return [];
-    const headerCol = parsed.rowHeader.column;
-    const colCol = parsed.columnHeader.column;
-    const byKey = new Map<string, MatrixRow>();
-
-    for (const record of cellRecords) {
-      const data = (record.additional as Record<string, any>) || {};
-      const headerValue = data[headerCol];
-      // Universal child cache strips parentField (pet_id) from `additional`
-      // and stores it at `record.parentId`. Fall back to that for the column ID.
-      const columnId = data[colCol] ?? record.parentId;
-      if (headerValue == null || !columnId) continue;
-
-      const key = String(headerValue);
-      if (!byKey.has(key)) {
-        byKey.set(key, {
-          key,
-          header: headerValue,
-          isDraft: false,
-          cellRecords: {},
-          allRecords: [],
-        });
-      }
-      const bucket = byKey.get(key)!;
-      bucket.cellRecords[columnId] = record;
-      bucket.allRecords.push(record);
-    }
-    return Array.from(byKey.values());
-  }, [cellRecords, parsed.rowHeader, parsed.columnHeader]);
+    return groupCellRecordsIntoRows(cellRecords, {
+      headerCol: parsed.rowHeader.column,
+      colCol: parsed.columnHeader.column,
+      orderBy,
+    });
+  }, [cellRecords, parsed.rowHeader, parsed.columnHeader, orderBy]);
 
   // ── Draft rows (client-only until user enters first cell) ───────────────
   const [draftRows, setDraftRows] = useState<MatrixRow[]>([]);

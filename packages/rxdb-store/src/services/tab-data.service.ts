@@ -10,11 +10,11 @@
 import { spaceStore, type OrderBy } from '../stores/space-store.signal-store';
 import { dictionaryStore } from '../stores/dictionary-store.signal-store';
 import { supabase } from '../supabase/client';
+import { sortRecords } from '../utils/sort-records';
 import type {
   ChildTabDataRecord,
   DataSourceConfig,
   DictionaryTabDataRecord,
-  OrderConfig,
   TabDataRecord,
   MergedDictionaryItem,
   EnrichedChildItem,
@@ -416,7 +416,7 @@ class TabDataService {
 
     // 4. Sort dictionary by orderBy
     if (dictConfig.orderBy && dictConfig.orderBy.length > 0) {
-      filteredDict = this.sortRecords(filteredDict, dictConfig.orderBy);
+      filteredDict = sortRecords(filteredDict, dictConfig.orderBy);
     }
 
     // 5. Merge or enrich based on showAll flag
@@ -631,43 +631,6 @@ class TabDataService {
         }
       }
       return true;
-    });
-  }
-
-  /**
-   * Sort records by orderBy config
-   *
-   * Handles both flat records and DictionaryStore format (with `additional` field)
-   * Uses NULLS LAST behavior: null/undefined values are pushed to the end
-   */
-  private sortRecords<TRecord extends TabDataRecord & { additional?: Record<string, unknown> }>(
-    records: TRecord[],
-    orderBy: OrderConfig[]
-  ): TRecord[] {
-    return [...records].sort((a, b) => {
-      for (const order of orderBy) {
-        // Check in `additional` field first (DictionaryStore format)
-        const aVal = a.additional?.[order.field] ?? a[order.field];
-        const bVal = b.additional?.[order.field] ?? b[order.field];
-
-        // NULLS LAST: push null/undefined to the end
-        const aIsNull = aVal === null || aVal === undefined;
-        const bIsNull = bVal === null || bVal === undefined;
-
-        if (aIsNull && bIsNull) continue; // Both null, check next field
-        if (aIsNull) return 1;  // a is null, push to end
-        if (bIsNull) return -1; // b is null, push to end
-
-        if (aVal !== bVal) {
-          const comparison =
-            (aVal as string | number | boolean | Date) <
-            (bVal as string | number | boolean | Date)
-              ? -1
-              : 1;
-          return order.direction === 'asc' ? comparison : -comparison;
-        }
-      }
-      return 0;
     });
   }
 
