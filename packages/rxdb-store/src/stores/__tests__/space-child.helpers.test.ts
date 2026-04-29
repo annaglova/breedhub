@@ -325,11 +325,15 @@ describe("space-child.helpers", () => {
     expect(hasStaleChildRecords([], 600, 1_500)).toBe(false);
   });
 
-  it("applies child list query options in parent-partition-order sequence", () => {
+  it("applies child list query options in parent-soft-delete-partition-order sequence", () => {
     const calls: Array<[string, ...unknown[]]> = [];
     const query = {
       eq(column: string, value: unknown) {
         calls.push(["eq", column, value]);
+        return this;
+      },
+      or(filter: string) {
+        calls.push(["or", filter]);
         return this;
       },
       limit(value: number) {
@@ -355,9 +359,44 @@ describe("space-child.helpers", () => {
     expect(result).toBe(query);
     expect(calls).toEqual([
       ["eq", "breed_id", "breed-1"],
+      ["or", "deleted.is.null,deleted.eq.false"],
       ["limit", 25],
       ["eq", "pet_breed_id", "breed-2"],
       ["order", "placement", { ascending: false, nullsFirst: false }],
+    ]);
+  });
+
+  it("emits the soft-delete OR filter even without partition or ordering options", () => {
+    const calls: Array<[string, ...unknown[]]> = [];
+    const query = {
+      eq(column: string, value: unknown) {
+        calls.push(["eq", column, value]);
+        return this;
+      },
+      or(filter: string) {
+        calls.push(["or", filter]);
+        return this;
+      },
+      limit(value: number) {
+        calls.push(["limit", value]);
+        return this;
+      },
+      order(column: string, options: { ascending: boolean; nullsFirst: boolean }) {
+        calls.push(["order", column, options]);
+        return this;
+      },
+    };
+
+    applyChildListQueryOptions(query, {
+      parentField: "breed_id",
+      parentId: "breed-1",
+      limit: 25,
+    });
+
+    expect(calls).toEqual([
+      ["eq", "breed_id", "breed-1"],
+      ["or", "deleted.is.null,deleted.eq.false"],
+      ["limit", 25],
     ]);
   });
 

@@ -2942,7 +2942,9 @@ class SpaceStore {
     let query = supabase
       .from(tableType)
       .select(selectFields)
-      .eq(parentIdField, parentId);
+      .eq(parentIdField, parentId)
+      // Soft-deleted rows must never reach child tabs (see applyChildListQueryOptions).
+      .or('deleted.is.null,deleted.eq.false');
 
     // Apply partition filter if configured (for partition pruning)
     if (partitionField && partitionValue) {
@@ -3132,9 +3134,21 @@ class SpaceStore {
           query = query.limit(limit);
 
           const response = await query;
-          return response as unknown as {
-            data: Array<Record<string, unknown> & { id: string }> | null;
-            error: unknown;
+          // Defensive client-side soft-delete filter: VIEWs are expected to
+          // include `WHERE deleted = false` in their definition, but if a VIEW
+          // (a) forgot the filter AND (b) exposes `deleted` in SELECT, this
+          // strips soft-deleted rows before they reach the cache. When the
+          // VIEW omits the column entirely, `row.deleted` is undefined and
+          // every row passes — i.e. we don't break VIEWs without the column.
+          const rawData = response.data as
+            | Array<Record<string, unknown> & { id: string }>
+            | null;
+          const filtered = rawData
+            ? rawData.filter((row) => (row as { deleted?: unknown }).deleted !== true)
+            : null;
+          return {
+            data: filtered,
+            error: response.error,
           };
         },
       });

@@ -94,6 +94,7 @@ export interface ChildMutationEntitySchema {
 
 export interface ChildListQueryLike<TQuery> {
   eq(column: string, value: unknown): TQuery;
+  or(filter: string): TQuery;
   limit(limit: number): TQuery;
   order(
     column: string,
@@ -268,6 +269,11 @@ export function applyChildListQueryOptions<TQuery extends ChildListQueryLike<TQu
 ): TQuery {
   let nextQuery = query
     .eq(options.parentField, options.parentId)
+    // Soft-deleted rows must never reach child tabs. Mirrors the canonical
+    // filter we apply on entity reads (entity-replication, space-filter) —
+    // adding it here so any future child loader gets the same guard for free,
+    // even if the source view forgot `WHERE deleted = false`.
+    .or("deleted.is.null,deleted.eq.false")
     .limit(options.limit);
 
   if (options.partitionField && options.partitionValue) {
