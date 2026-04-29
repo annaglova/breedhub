@@ -2164,6 +2164,79 @@ class SpaceStore {
   }
 
   /**
+   * Fetch a single child row in full from Supabase, bypassing the cache's
+   * compact projection. Tabs that opt into "compact mode" by passing
+   * `select` to `loadChildRecords` only have a subset of columns in
+   * `additional`; an edit dialog opening such a row needs every column,
+   * including ones the list view never reads. This helper does the
+   * targeted fetch and (optionally) writes the full record back into RxDB
+   * so subsequent reads benefit too.
+   *
+   * Returns the row as it sits in Supabase (pre-cache transform). If you
+   * need the cached `ChildCacheRecord` shape, fetch then call
+   * `loadChildRecords` again — the upsert below will populate it.
+   *
+   * @param entityType  parent entity (e.g. 'pet')
+   * @param tableType   child table (will be normalized via
+   *                    `normalizeChildTableType`)
+   * @param recordId    the row id
+   * @param options.upsertCache  default true; set false to skip the cache
+   *                              write (e.g. when reading a soft-deleted
+   *                              row for restore previewing).
+   */
+  async loadFullChildRecord<TRow extends ChildSourceRow = ChildSourceRow>(
+    entityType: string,
+    tableType: string,
+    recordId: string,
+    options: { upsertCache?: boolean } = {},
+  ): Promise<TRow | null> {
+    if (!entityType || !tableType || !recordId) return null;
+    const normalizedType = normalizeChildTableType(tableType);
+    try {
+      const { data, error } = await supabase
+        .from(normalizedType)
+        .select('*')
+        .eq('id', recordId)
+        .maybeSingle();
+      if (error || !data) return null;
+
+      if (options.upsertCache !== false) {
+        const collection = await this.ensureChildCollection(entityType);
+        if (collection) {
+          // Resolve partition info from the row itself so we don't depend on
+          // the parent being present in cache.
+          const partitionConfig = this.entitySchemas.get(entityType)?.partition;
+          const parentIdField = `${entityType}_id`;
+          const parentId = (data as Record<string, unknown>)[parentIdField] as
+            | string
+            | undefined;
+          const partitionField = partitionConfig?.childFilterField;
+          const partitionValue = partitionField
+            ? ((data as Record<string, unknown>)[partitionField] as
+                | string
+                | undefined)
+            : undefined;
+          if (parentId) {
+            await mapAndCacheChildRows([data as ChildSourceRow], {
+              tableType: normalizedType,
+              parentId,
+              parentField: parentIdField,
+              partitionField,
+              partitionValue,
+              collection,
+            });
+          }
+        }
+      }
+
+      return data as unknown as TRow;
+    } catch (err) {
+      console.error('[SpaceStore] loadFullChildRecord error:', err);
+      return null;
+    }
+  }
+
+  /**
    * Fire-and-forget post-mutation refresh with a per-record commit fence.
    * Replaces the legacy `queueChildMutationRefresh(processNow, refresh, …)`
    * pattern: instead of `processNow().then(refresh)` (which can race when
