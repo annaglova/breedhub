@@ -10,6 +10,7 @@ import type {
 
 const BATCH_SIZE = 10;
 const MAX_RETRIES = 10;
+const MAX_PROCESS_PASSES = 10;
 const MAX_CONSECUTIVE_FAILURES = 5;
 const CIRCUIT_BREAKER_RESET_MS = 60_000;
 
@@ -210,26 +211,37 @@ class SyncQueueService {
       .exec();
     if (!pending) return true;
     return new Promise<boolean>((resolve) => {
+      let settled = false;
+      let timer: ReturnType<typeof setTimeout>;
       const list = this.commitWaiters.get(recordId) ?? [];
-      list.push(resolve);
-      this.commitWaiters.set(recordId, list);
-      const timer = setTimeout(() => {
+      const wrapped = (committed: boolean) => {
+        settle(committed);
+      };
+      const settle = (committed: boolean) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
         const current = this.commitWaiters.get(recordId);
-        if (!current) return;
-        const idx = current.indexOf(resolve);
-        if (idx >= 0) {
-          current.splice(idx, 1);
+        if (current) {
+          const idx = current.indexOf(wrapped);
+          if (idx >= 0) current.splice(idx, 1);
           if (current.length === 0) this.commitWaiters.delete(recordId);
         }
-        resolve(false);
-      }, timeoutMs);
-      // Wrap the resolver so the timeout is cleared on real notify.
-      const wrapped = (committed: boolean) => {
-        clearTimeout(timer);
         resolve(committed);
       };
-      const idx = list.indexOf(resolve);
-      if (idx >= 0) list.splice(idx, 1, wrapped);
+      list.push(wrapped);
+      this.commitWaiters.set(recordId, list);
+      timer = setTimeout(() => {
+        settle(false);
+      }, timeoutMs);
+      void this.childQueue!.findOne({ selector: { recordId } })
+        .exec()
+        .then((stillPending) => {
+          if (!stillPending) settle(true);
+        })
+        .catch(() => {
+          settle(false);
+        });
     });
   }
 
@@ -267,9 +279,15 @@ class SyncQueueService {
     this.processing = true;
     this.currentProcess = (async () => {
       try {
-        await this.processEntityQueue();
-        await this.processChildQueue();
-        this.updateCounts();
+        for (let pass = 0; pass < MAX_PROCESS_PASSES; pass += 1) {
+          const processed =
+            (await this.processEntityQueue()) +
+            (await this.processChildQueue());
+          if (processed === 0 || this.circuitBreakerOpen) break;
+          const pending = await this.getPendingQueueItemCount();
+          if (pending === 0) break;
+        }
+        await this.updateCounts();
       } finally {
         this.processing = false;
         this.currentProcess = null;
@@ -278,8 +296,8 @@ class SyncQueueService {
     return this.currentProcess;
   }
 
-  private async processEntityQueue(): Promise<void> {
-    if (!this.entityQueue) return;
+  private async processEntityQueue(): Promise<number> {
+    if (!this.entityQueue) return 0;
 
     const items = await this.entityQueue
       .find({
@@ -289,7 +307,8 @@ class SyncQueueService {
       })
       .exec();
 
-    if (items.length === 0) return;
+    if (items.length === 0) return 0;
+    let processed = 0;
 
     // Group by entityType for batch upsert
     const groups = new Map<string, typeof items>();
@@ -314,6 +333,7 @@ class SyncQueueService {
 
         if (!error) {
           await this.bulkRemoveItems(this.entityQueue, upsertItems.map(i => i.id));
+          processed += upsertItems.length;
           this.onSuccess();
           // Post-push hooks (fire-and-forget) — entity now exists in Supabase
           for (const item of upsertItems) {
@@ -338,6 +358,7 @@ class SyncQueueService {
 
         if (!error) {
           await this.bulkRemoveItems(this.entityQueue, deleteItems.map(i => i.id));
+          processed += deleteItems.length;
           this.onSuccess();
         } else {
           this.lastErrorMessage = error.message;
@@ -347,10 +368,11 @@ class SyncQueueService {
         }
       }
     }
+    return processed;
   }
 
-  private async processChildQueue(): Promise<void> {
-    if (!this.childQueue) return;
+  private async processChildQueue(): Promise<number> {
+    if (!this.childQueue) return 0;
 
     const items = await this.childQueue
       .find({
@@ -360,7 +382,8 @@ class SyncQueueService {
       })
       .exec();
 
-    if (items.length === 0) return;
+    if (items.length === 0) return 0;
+    let processed = 0;
 
     // Group by tableType
     const groups = new Map<string, typeof items>();
@@ -384,6 +407,7 @@ class SyncQueueService {
 
         if (!error) {
           await this.bulkRemoveItems(this.childQueue, upsertItems.map(i => i.id));
+          processed += upsertItems.length;
           this.notifyCommit(upsertItems.map((i) => i.recordId), true);
           this.onSuccess();
           this.firePostPushHooks(tableType, upsertItems);
@@ -391,6 +415,7 @@ class SyncQueueService {
           // Skip schema-cache errors silently (old VIEW records)
           if (error.message.includes('schema cache') || error.message.includes('not found')) {
             await this.bulkRemoveItems(this.childQueue, upsertItems.map(i => i.id));
+            processed += upsertItems.length;
             // Don't notify committed — caller will see false and skip refresh.
             this.notifyCommit(upsertItems.map((i) => i.recordId), false);
           } else {
@@ -412,16 +437,28 @@ class SyncQueueService {
 
           if (!error) {
             await item.remove();
+            processed += 1;
             this.notifyCommit([item.recordId], true);
             this.onSuccess();
             this.firePostPushHooks(tableType, [item]);
           } else if (error.message.includes('column')) {
             // No 'deleted' column — hard delete
-            await supabase.from(tableType).delete().eq('id', item.payload.id);
-            await item.remove();
-            this.notifyCommit([item.recordId], true);
-            this.onSuccess();
-            this.firePostPushHooks(tableType, [item]);
+            const hardDelete = await supabase
+              .from(tableType)
+              .delete()
+              .eq('id', item.payload.id);
+            if (!hardDelete.error) {
+              await item.remove();
+              processed += 1;
+              this.notifyCommit([item.recordId], true);
+              this.onSuccess();
+              this.firePostPushHooks(tableType, [item]);
+            } else {
+              this.lastErrorMessage = hardDelete.error.message;
+              console.error(`[SyncQueue] Child hard-delete error (${tableType}):`, hardDelete.error.message);
+              await this.incrementRetry(this.childQueue, item);
+              this.onFailure();
+            }
           } else {
             this.lastErrorMessage = error.message;
             console.error(`[SyncQueue] Child delete error (${tableType}):`, error.message);
@@ -434,9 +471,23 @@ class SyncQueueService {
         }
       }
     }
+    return processed;
   }
 
   // --- Helpers ---
+
+  private async getPendingQueueItemCount(): Promise<number> {
+    if (!this.entityQueue || !this.childQueue) return 0;
+    try {
+      const [entityPending, childPending] = await Promise.all([
+        this.entityQueue.count({ selector: { status: { $ne: 'failed' } } }).exec(),
+        this.childQueue.count({ selector: { status: { $ne: 'failed' } } }).exec(),
+      ]);
+      return entityPending + childPending;
+    } catch {
+      return 0;
+    }
+  }
 
   /**
    * Fire-and-forget post-push hooks for child records.

@@ -323,6 +323,30 @@ export function normalizeChildTableType(tableType: string): string {
   return tableType.replace(/_with_\w+$/, "");
 }
 
+export function buildBatchedSelector(
+  normalizedTableType: string,
+  parentIds: readonly string[],
+): ChildSelector {
+  return {
+    parentId: { $in: [...parentIds] },
+    tableType: normalizedTableType,
+  };
+}
+
+export function groupParentsByPartition(
+  parentIds: readonly string[],
+  partitionByParent: ReadonlyMap<string, string | undefined>,
+): Map<string | undefined, string[]> {
+  const groups = new Map<string | undefined, string[]>();
+  for (const parentId of parentIds) {
+    const partitionValue = partitionByParent.get(parentId);
+    const group = groups.get(partitionValue) ?? [];
+    group.push(parentId);
+    groups.set(partitionValue, group);
+  }
+  return groups;
+}
+
 export async function queryLocalChildRecords<
   TRecord extends ChildCacheRecord = ChildCacheRecord,
 >(

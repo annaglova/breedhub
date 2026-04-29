@@ -25,6 +25,12 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Lock, MoreVertical, Pencil, SquarePen, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditChildRecordDialog } from "../EditChildRecordDialog";
+import {
+  buildEnrichmentSignature,
+  extractFieldName,
+  getForeignKeyFields,
+  rememberEnrichment,
+} from "./edit-child-table.helpers";
 
 /**
  * Hook to load entity children via readFrom mapping table.
@@ -129,12 +135,6 @@ function formatCellValue(value: unknown, fieldType?: string): string {
   return String(value);
 }
 
-/** Extract field name from config key: "title_in_pet_field_date" → "date" */
-function extractFieldName(configKey: string): string {
-  const match = configKey.match(/_field_(.+)$/);
-  return match ? match[1] : configKey;
-}
-
 function buildColumns(fields: Record<string, FieldConfig>): ColumnDef<any>[] {
   return Object.entries(fields)
     .filter(([, config]) => config.showInTable)
@@ -158,13 +158,7 @@ async function enrichRecords(
   records: any[],
   fields: Record<string, FieldConfig>,
 ): Promise<any[]> {
-  const fkFields = Object.entries(fields)
-    .filter(([, config]) => config.isForeignKey)
-    .map(([key, config]) => ({
-      fieldName: extractFieldName(key),
-      referencedTable: config.referencedTable as string,
-      referencedFieldName: (config.referencedFieldName || 'name') as string,
-    }));
+  const fkFields = getForeignKeyFields(fields);
 
   if (fkFields.length === 0) return records;
 
@@ -231,19 +225,7 @@ async function enrichRecords(
  * Bounded to keep memory predictable on long sessions. LRU-ish: drop the
  * oldest entry on overflow.
  */
-const ENRICHMENT_CACHE_LIMIT = 32;
 const enrichmentCache = new Map<string, any[]>();
-
-function rememberEnrichment(key: string, result: any[]): void {
-  // Re-insert to refresh recency.
-  if (enrichmentCache.has(key)) enrichmentCache.delete(key);
-  enrichmentCache.set(key, result);
-  while (enrichmentCache.size > ENRICHMENT_CACHE_LIMIT) {
-    const oldest = enrichmentCache.keys().next().value;
-    if (oldest === undefined) break;
-    enrichmentCache.delete(oldest);
-  }
-}
 
 /** Resolve FK UUIDs to display names using DictionaryStore */
 function useEnrichedRecords(
@@ -255,14 +237,7 @@ function useEnrichedRecords(
 
   // Extract FK field metadata from config
   const fkFields = useMemo(() => {
-    if (!fields) return [];
-    return Object.entries(fields)
-      .filter(([, config]) => config.isForeignKey)
-      .map(([key, config]) => ({
-        fieldName: extractFieldName(key),
-        referencedTable: config.referencedTable as string,
-        referencedFieldName: (config.referencedFieldName || "name") as string,
-      }));
+    return getForeignKeyFields(fields);
   }, [fields]);
 
   useEffect(() => {
@@ -275,27 +250,12 @@ function useEnrichedRecords(
       return;
     }
 
-    const signatureFkFields = fkFields
-      .map(
-        (f) =>
-          `${f.fieldName}:${f.referencedTable}:${f.referencedFieldName}`,
-      )
-      .join("|");
-    const signatureValues = records
-      .map((r) => {
-        const id = r.id ?? "";
-        const fkVals = fkFields
-          .map((f) => String(getChildField(r, f.fieldName) ?? ""))
-          .join(",");
-        return `${id}=${fkVals}`;
-      })
-      .join("|");
-    const signature = `${signatureFkFields}::${signatureValues}`;
+    const signature = buildEnrichmentSignature(records, fkFields);
 
     const cached = enrichmentCache.get(signature);
     if (cached) {
       // Refresh recency on read so frequently-touched tabs stay warm.
-      rememberEnrichment(signature, cached);
+      rememberEnrichment(enrichmentCache, signature, cached);
       setEnriched(cached);
       setIsEnriching(false);
       return;
@@ -362,7 +322,7 @@ function useEnrichedRecords(
         return enrichedRecord;
       });
 
-      rememberEnrichment(signature, result);
+      rememberEnrichment(enrichmentCache, signature, result);
       setEnriched(result);
       setIsEnriching(false);
     }
