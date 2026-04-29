@@ -121,7 +121,10 @@ export {
   MAPPING_CACHE_STALE_MS,
   DICTIONARY_RECORDS_STALE_MS,
   RPC_CACHE_DEFAULT_TTL_MS,
+  CACHE_POLICY_VALUES,
+  getCachePolicyValue,
 } from './cache/cache-policies';
+export type { CachePolicyKey } from './cache/cache-policies';
 
 // Child-record field helpers
 export { getChildField } from './stores/space-child.helpers';

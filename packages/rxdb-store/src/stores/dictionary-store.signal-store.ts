@@ -485,7 +485,6 @@ class DictionaryStore {
 
       // Staleness check: compare server updated_at with cached updated_at
       // Fallback to 24h cachedAt-based TTL if updated_at not available
-      const DICT_STALE_MS = DICTIONARY_RECORDS_STALE_MS;
       const now = Date.now();
       const serverUpdatedAtMap = new Map(
         idsData.filter(r => r.updated_at).map(r => [r.id, r.updated_at!])
@@ -527,7 +526,7 @@ class DictionaryStore {
           if (serverUpdatedAt > cachedDoc.additional.updated_at) {
             staleIds.push(id);
           }
-        } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICT_STALE_MS) {
+        } else if (cachedDoc.cachedAt && (now - cachedDoc.cachedAt) > DICTIONARY_RECORDS_STALE_MS) {
           // Fallback: cachedAt-based TTL for tables without updated_at
           staleIds.push(id);
         }
