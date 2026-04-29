@@ -76,6 +76,30 @@ async function loadDictionaryStoreHarness(options?: {
   };
 }
 
+async function loadDictionaryDedupeHarness() {
+  vi.resetModules();
+  vi.doMock("../../helpers", () => ({
+    DEFAULT_TTL: 14 * 24 * 60 * 60 * 1000,
+    cleanupExpiredDocuments: vi.fn(),
+    schedulePeriodicCleanup: vi.fn(),
+    runInitialCleanup: vi.fn(),
+    isNetworkError: vi.fn(() => false),
+    isOffline: vi.fn(() => false),
+  }));
+  vi.doMock("../../supabase/client", () => ({
+    supabase: { from: vi.fn() },
+  }));
+
+  const module = await import("../dictionary-store.signal-store");
+  const store = module.dictionaryStore as any;
+  store.collection = {};
+  store.inflightDictionary = new Map();
+  store.resetCacheStats();
+  store.runGetDictionary = vi.fn();
+
+  return { store };
+}
+
 describe("dictionary-store.signal-store", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -161,5 +185,115 @@ describe("dictionary-store.signal-store", () => {
 
     expect(result).toEqual({ id: "sex-1", name: "Male", code: "M" });
     expect(harness.supabaseCalls.select).toHaveBeenCalledWith("id, name, code");
+  });
+
+  it("shares one in-flight getDictionary promise for identical concurrent calls", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    const result = {
+      records: [{ id: "a", name: "Alpha" }],
+      total: 1,
+      hasMore: false,
+      nextCursor: null,
+    };
+    let resolveShared!: (value: typeof result) => void;
+    const sharedPromise = new Promise<typeof result>((resolve) => {
+      resolveShared = resolve;
+    });
+    store.runGetDictionary.mockReturnValue(sharedPromise);
+
+    const first = store.getDictionary("breed", {
+      filterByIds: ["a", "b"],
+      nameField: "name",
+    });
+    const second = store.getDictionary("breed", {
+      filterByIds: ["b", "a"],
+      nameField: "name",
+    });
+
+    expect(second).toBe(first);
+    expect(store.runGetDictionary).toHaveBeenCalledTimes(1);
+    expect(store.cacheStats.getDictionary.dedup).toBe(1);
+
+    resolveShared(result);
+    await expect(first).resolves.toBe(result);
+    await expect(second).resolves.toBe(result);
+  });
+
+  it("does not share in-flight getDictionary calls for distinct id sets", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetDictionary.mockResolvedValue({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    await Promise.all([
+      store.getDictionary("breed", { filterByIds: ["a", "b"] }),
+      store.getDictionary("breed", { filterByIds: ["b", "c"] }),
+    ]);
+
+    expect(store.runGetDictionary).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not share in-flight getDictionary calls for distinct additional field sets", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetDictionary.mockResolvedValue({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    await Promise.all([
+      store.getDictionary("pet", {
+        filterByIds: ["pet-1"],
+        additionalFields: ["sex_id"],
+      }),
+      store.getDictionary("pet", {
+        filterByIds: ["pet-1"],
+        additionalFields: ["breed_id"],
+      }),
+    ]);
+
+    expect(store.runGetDictionary).toHaveBeenCalledTimes(2);
+  });
+
+  it("drops the in-flight getDictionary promise after resolution", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetDictionary.mockResolvedValue({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+    });
+
+    await store.getDictionary("breed", { filterByIds: ["a"] });
+    await store.getDictionary("breed", { filterByIds: ["a"] });
+
+    expect(store.runGetDictionary).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports a shared getDictionary error to all concurrent awaiters and clears in-flight state", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    const error = new Error("supabase boom");
+    store.runGetDictionary.mockRejectedValueOnce(error);
+
+    const first = store.getDictionary("breed", { filterByIds: ["a"] });
+    const second = store.getDictionary("breed", { filterByIds: ["a"] });
+
+    expect(second).toBe(first);
+    await expect(first).rejects.toThrow("supabase boom");
+    await expect(second).rejects.toThrow("supabase boom");
+
+    store.runGetDictionary.mockResolvedValueOnce({
+      records: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+    });
+    await store.getDictionary("breed", { filterByIds: ["a"] });
+
+    expect(store.runGetDictionary).toHaveBeenCalledTimes(2);
   });
 });
