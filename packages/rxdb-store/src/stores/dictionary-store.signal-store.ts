@@ -386,7 +386,7 @@ class DictionaryStore {
    * @param tableName - Dictionary table name
    * @param options - Query options
    */
-  async getDictionary(
+  getDictionary(
     tableName: string,
     options: {
       idField?: string;    // From config.referencedFieldID (default: 'id')
@@ -405,7 +405,7 @@ class DictionaryStore {
     } = {}
   ): Promise<{ records: DictionaryDocument[]; total: number; hasMore: boolean; nextCursor: string | null }> {
     if (!this.collection) {
-      throw new Error('[DictionaryStore] Not initialized');
+      return Promise.reject(new Error('[DictionaryStore] Not initialized'));
     }
 
     // In-flight dedupe: two callers asking for the exact same `(table, args)`
