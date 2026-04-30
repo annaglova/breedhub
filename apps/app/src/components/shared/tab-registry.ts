@@ -8,6 +8,7 @@
  * and reference "MyNewTab" in the config. No changes to this file needed.
  */
 import React from 'react';
+import { EditFormSkeleton } from '../edit/EditFormSkeleton';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
 type TabModule = {
@@ -16,6 +17,20 @@ type TabModule = {
 };
 
 type TabModuleLoader = () => Promise<TabModule>;
+
+/**
+ * Pick a Suspense fallback element matching the tab's eventual layout.
+ * - EditFormTab uses a field-aware EditFormSkeleton built from the same
+ *   `fields` config the real form will render — keeps cold-load and
+ *   real-form structurally aligned (groups, columns, control count).
+ * - All other tabs fall back to the shared TabBodySkeleton.
+ */
+function buildFallback(componentName: string, props: any): React.ReactElement {
+  if (componentName === 'EditFormTab') {
+    return React.createElement(EditFormSkeleton, { fields: props?.fields });
+  }
+  return React.createElement(TabBodySkeleton);
+}
 
 function createLazyRegisteredTab(
   loader: TabModuleLoader,
@@ -34,14 +49,13 @@ function createLazyRegisteredTab(
     return { default: resolvedComponent };
   });
 
-  // Suspense fallback uses the shared TabBodySkeleton so each tab section
-  // reserves consistent vertical space while its chunk is downloading.
-  // Without this, scroll-mode visibility tracking (useTabNavigation) can
-  // pick the wrong tab as active when chunks land out of order.
+  // Suspense fallback reserves consistent space during chunk download so
+  // visibility tracking and layout don't drift; per tab type the fallback
+  // matches the eventual structure (see buildFallback above).
   function RegisteredLazyTab(props: any) {
     return React.createElement(
       React.Suspense,
-      { fallback: React.createElement(TabBodySkeleton) },
+      { fallback: buildFallback(componentName, props) },
       React.createElement(LazyComponent, props),
     );
   }
