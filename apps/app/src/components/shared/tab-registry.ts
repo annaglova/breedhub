@@ -23,11 +23,18 @@ type TabModuleLoader = () => Promise<TabModule>;
  * - EditFormTab uses a field-aware EditFormSkeleton built from the same
  *   `fields` config the real form will render — keeps cold-load and
  *   real-form structurally aligned (groups, columns, control count).
+ * - EditChildTableTab / EditChildMatrixTab render their own column-aware
+ *   skeleton on data load; using the generic TabBodySkeleton during chunk
+ *   download would add a visually unrelated intermediate stage, so we use
+ *   a null fallback and let the tab's own skeleton handle the wait.
  * - All other tabs fall back to the shared TabBodySkeleton.
  */
-function buildFallback(componentName: string, props: any): React.ReactElement {
+function buildFallback(componentName: string, props: any): React.ReactElement | null {
   if (componentName === 'EditFormTab') {
     return React.createElement(EditFormSkeleton, { fields: props?.fields });
+  }
+  if (componentName === 'EditChildTableTab' || componentName === 'EditChildMatrixTab') {
+    return null;
   }
   return React.createElement(TabBodySkeleton);
 }

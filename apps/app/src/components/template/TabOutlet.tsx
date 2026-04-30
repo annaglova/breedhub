@@ -103,7 +103,7 @@ export function TabOutlet({
           Array.from({ length: tabCount }).map((_, i) => (
             <div key={`section-${i}`} className={i === 0 ? "mt-6" : "mt-12"}>
               {/* TabHeader placeholder — matches real TabHeader sticky bar shape */}
-              <div className="mb-6 h-14 w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+              <div className="mb-6 h-12 w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
               <TabBodySkeleton />
             </div>
           ))}
