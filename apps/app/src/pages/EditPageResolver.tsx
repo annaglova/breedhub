@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { spaceStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 import { RouteResolutionError } from './RouteResolutionError';
+import { ResolverShell } from './ResolverShell';
 import { useResolvedRoute } from './route-resolution';
 
 /**
@@ -30,7 +31,7 @@ export function EditPageResolver() {
   }
 
   if (isResolving || !resolvedRoute) {
-    return null;
+    return <ResolverShell />;
   }
 
   return (

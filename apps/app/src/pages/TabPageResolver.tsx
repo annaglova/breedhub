@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { navigationHistoryStore, spaceStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 import { RouteResolutionError } from './RouteResolutionError';
+import { ResolverShell } from './ResolverShell';
 import { getResolvedEntityName, useResolvedRoute } from './route-resolution';
 
 /**
@@ -74,10 +75,10 @@ export function TabPageResolver() {
     return <RouteResolutionError error={error} />;
   }
 
-  // Loading state while resolving - return null for instant transition
-  // (resolution is fast, spinner would just flash annoyingly)
+  // Loading state while resolving — render a neutral shell instead of blank
+  // (per SKELETON_LOADING_ARCHITECTURE §P5: no `return null` mid-route)
   if (isResolving || !resolvedRoute) {
-    return null;
+    return <ResolverShell />;
   }
 
   // Render SpacePage with tabSlug - SpacePage handles store initialization
