@@ -1,4 +1,5 @@
 import { PetLinkRow } from "@/components/shared/PetLinkRow";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { formatDate } from "@/utils/format";
@@ -184,27 +185,9 @@ export function PetSiblingsTab({
     return null;
   }
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoading) {
-    return (
-      <div className="grid gap-3 lg:grid-cols-2 animate-pulse">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="card card-rounded flex flex-auto flex-col p-6 md:px-10">
-            <div className="border-b border-border px-6 py-3 lg:px-8">
-              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-24" />
-            </div>
-            <div className="space-y-2 py-2">
-              {Array.from({ length: 3 }).map((_, j) => (
-                <div key={j} className="flex items-center gap-3 px-6 py-1.5 lg:px-8">
-                  <div className="size-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
-                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-32" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   // Error state

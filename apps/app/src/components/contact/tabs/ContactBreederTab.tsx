@@ -1,6 +1,7 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import type { SexCode } from "@/components/shared/PetSexMark";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import {
   spaceStore,
@@ -289,11 +290,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
   const isLoading = kennelsLoading || offspringLoading;
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <span className="text-muted-foreground">Loading...</span>
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   if (!kennelGroups.length) {

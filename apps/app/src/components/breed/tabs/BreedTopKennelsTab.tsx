@@ -1,4 +1,5 @@
 import { AvatarCard, type AvatarEntity } from "@/components/shared/AvatarCard";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
@@ -109,11 +110,7 @@ export function BreedTopKennelsTab({ dataSource }: BreedTopKennelsTabProps) {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">Loading kennels...</div>
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   if (kennels.length === 0) {

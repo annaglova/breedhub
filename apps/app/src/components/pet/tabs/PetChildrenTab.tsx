@@ -1,4 +1,5 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import {
@@ -213,25 +214,9 @@ export function PetChildrenTab({
     return null;
   }
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoading) {
-    return (
-      <div className="grid gap-3 lg:grid-cols-2 animate-pulse">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="card card-rounded p-6 space-y-3">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-24" />
-            <div className="space-y-2">
-              {Array.from({ length: 3 }).map((_, j) => (
-                <div key={j} className="flex items-center gap-3">
-                  <div className="size-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
-                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-32" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   // Error state

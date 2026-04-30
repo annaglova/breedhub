@@ -1,4 +1,5 @@
 import { SalePetCard, type SalePet } from "@/components/shared/SalePetCard";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import {
   spaceStore,
@@ -139,11 +140,7 @@ export function KennelServicesTab({
   }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <span className="text-muted-foreground">Loading...</span>
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   if (pets.length === 0) {

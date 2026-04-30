@@ -8,6 +8,7 @@
  * and reference "MyNewTab" in the config. No changes to this file needed.
  */
 import React from 'react';
+import { TabBodySkeleton } from './TabBodySkeleton';
 
 type TabModule = {
   default?: React.ComponentType<any>;
@@ -15,32 +16,6 @@ type TabModule = {
 };
 
 type TabModuleLoader = () => Promise<TabModule>;
-
-function TabContentFallback() {
-  return React.createElement(
-    "div",
-    { className: "space-y-5 animate-pulse" },
-    React.createElement("div", {
-      className: "h-10 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
-    }),
-    React.createElement(
-      "div",
-      { className: "space-y-5 px-5" },
-      React.createElement("div", {
-        className:
-          "mt-6 h-32 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
-      }),
-      React.createElement("div", {
-        className:
-          "mt-6 h-32 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
-      }),
-      React.createElement("div", {
-        className:
-          "mt-6 h-32 w-full rounded-lg bg-slate-200 dark:bg-slate-700",
-      }),
-    ),
-  );
-}
 
 function createLazyRegisteredTab(
   loader: TabModuleLoader,
@@ -59,10 +34,14 @@ function createLazyRegisteredTab(
     return { default: resolvedComponent };
   });
 
+  // Suspense fallback uses the shared TabBodySkeleton so each tab section
+  // reserves consistent vertical space while its chunk is downloading.
+  // Without this, scroll-mode visibility tracking (useTabNavigation) can
+  // pick the wrong tab as active when chunks land out of order.
   function RegisteredLazyTab(props: any) {
     return React.createElement(
       React.Suspense,
-      { fallback: React.createElement(TabContentFallback) },
+      { fallback: React.createElement(TabBodySkeleton) },
       React.createElement(LazyComponent, props),
     );
   }

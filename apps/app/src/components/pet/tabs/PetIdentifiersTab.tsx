@@ -1,3 +1,4 @@
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -78,22 +79,9 @@ export function PetIdentifiersTab({
     return null;
   }
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoading) {
-    return (
-      <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 animate-pulse">
-        <div className="grid grid-cols-2 gap-3 border-b border-border px-6 py-3 lg:px-8">
-          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-20" />
-          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-14" />
-        </div>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="grid grid-cols-2 gap-3 px-6 py-3 lg:px-8">
-            <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-28" />
-            <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-36" />
-          </div>
-        ))}
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   // Error state

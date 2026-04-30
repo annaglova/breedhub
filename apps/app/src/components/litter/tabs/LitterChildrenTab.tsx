@@ -1,5 +1,6 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { normalizeSexCode } from "@/components/shared/pedigree/types";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -152,18 +153,9 @@ export function LitterChildrenTab({
     }
   }, [isLoadingJunction, isEnriching, children.length, onLoadedCount]);
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoadingJunction || isEnriching) {
-    return (
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 animate-pulse">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="card card-rounded p-4 space-y-3">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
-            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
-          </div>
-        ))}
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   // Error state

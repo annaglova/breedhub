@@ -1,4 +1,5 @@
 import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
 import type { TabConfig } from "@/utils/tab-config";
@@ -73,7 +74,12 @@ export function TabOutlet({
   onCreateNameChange,
   children,
 }: TabOutletProps) {
-  // Show skeleton when loading - uses tabs config to show correct number of tab headers
+  // Show skeleton when loading.
+  //   - tabMode "scroll" (view tabs): tab-strip + per-section placeholders
+  //     (TabHeader + TabBodySkeleton for each tab) so visibility tracking and
+  //     vertical layout match what TabsContainer will render after entity loads.
+  //   - tabMode "tabs" (edit fullscreen): tab-strip only — only one active tab
+  //     body is shown, and that body comes through Suspense fallback.
   if (isLoading) {
     const tabCount = tabs ? Object.keys(tabs).length : 4;
     // Deterministic per-index pill widths (no Math.random — re-renders mustn't change widths)
@@ -81,7 +87,7 @@ export function TabOutlet({
 
     return (
       <div className={`${tabMode === "tabs" ? "mt-4" : "mt-9"} ${className}`}>
-        {/* Tab headers skeleton */}
+        {/* Tab headers skeleton (strip) */}
         <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
           {Array.from({ length: tabCount }).map((_, i) => (
             <div
@@ -92,15 +98,15 @@ export function TabOutlet({
           ))}
         </div>
 
-        {/* Tab content skeleton */}
-        <div className="mt-6 space-y-5">
-          <div className="h-10 w-full bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />
-          <div className="space-y-5 px-5">
-            <div className="h-32 w-full bg-slate-200 dark:bg-slate-700 rounded-lg mt-6 animate-pulse" />
-            <div className="h-32 w-full bg-slate-200 dark:bg-slate-700 rounded-lg mt-6 animate-pulse" />
-            <div className="h-32 w-full bg-slate-200 dark:bg-slate-700 rounded-lg mt-6 animate-pulse" />
-          </div>
-        </div>
+        {/* Per-section placeholders — only in scroll mode (view tabs) */}
+        {tabMode !== "tabs" &&
+          Array.from({ length: tabCount }).map((_, i) => (
+            <div key={`section-${i}`} className={i === 0 ? "mt-6" : "mt-12"}>
+              {/* TabHeader placeholder — matches real TabHeader sticky bar shape */}
+              <div className="mb-6 h-14 w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+              <TabBodySkeleton />
+            </div>
+          ))}
       </div>
     );
   }

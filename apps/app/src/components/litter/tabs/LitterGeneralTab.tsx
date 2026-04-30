@@ -1,3 +1,4 @@
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { formatDate } from "@/utils/format";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
@@ -137,26 +138,9 @@ export function LitterGeneralTab({ onLoadedCount }: LitterGeneralTabProps) {
 
   const iconSize = 16;
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoading) {
-    return (
-      <div className="flex flex-col space-y-5 animate-pulse">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="space-y-3 pt-2">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-28" />
-            <div className="space-y-2 px-4">
-              {Array.from({ length: 2 }).map((_, j) => (
-                <div key={j} className="flex items-center gap-3 py-2">
-                  <div className="size-4 bg-slate-200 dark:bg-slate-700 rounded" />
-                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-14" />
-                  <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-32" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   return (

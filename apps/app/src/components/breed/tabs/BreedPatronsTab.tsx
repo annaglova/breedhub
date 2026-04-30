@@ -1,4 +1,5 @@
 import { AvatarCard, AvatarEntity } from "@/components/shared/AvatarCard";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -165,18 +166,9 @@ export function BreedPatronsTab({
     );
   }
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoading) {
-    return (
-      <div className="mt-3 grid grid-cols-2 gap-y-6 sm:grid-cols-3 animate-pulse">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex flex-col items-center space-y-2">
-            <div className="size-16 bg-slate-200 dark:bg-slate-700 rounded-full" />
-            <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-20" />
-          </div>
-        ))}
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   // Error state

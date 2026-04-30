@@ -1,4 +1,5 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, useTabData, dictionaryStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -213,20 +214,9 @@ export function LitterServicesTab({
     }
   }, [isLoading, onLoadedCount, services.length, childrenForSale.length]);
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoading) {
-    return (
-      <div className="mt-3 animate-pulse">
-        <div className="grid gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card card-rounded p-4 space-y-2">
-              <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-1/3" />
-              <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   // Error state

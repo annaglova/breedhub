@@ -1,5 +1,6 @@
 import { InfinitePetGridTab } from "@/components/shared/InfinitePetGridTab";
 import type { Pet } from "@/components/shared/PetCard";
+import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
@@ -167,18 +168,9 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
     );
   }
 
-  // Loading skeleton
+  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
   if (isLoading) {
-    return (
-      <div className="grid gap-3 sm:grid-cols-2 animate-pulse">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="card card-rounded p-4 space-y-3">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full w-3/4" />
-            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2" />
-          </div>
-        ))}
-      </div>
-    );
+    return <TabBodySkeleton />;
   }
 
   // Error state
