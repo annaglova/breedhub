@@ -274,7 +274,7 @@ function TabButton({ tab, isActive, onClick, onResize }: TabButtonProps) {
     <button
       ref={ref}
       onClick={onClick}
-      className="group z-10 flex shrink-0 flex-col"
+      className="group z-10 flex shrink-0 flex-col min-w-[112px] md:min-w-[140px]"
     >
       <div
         className={cn(
