@@ -76,6 +76,8 @@ export function TabOutlet({
   // Show skeleton when loading - uses tabs config to show correct number of tab headers
   if (isLoading) {
     const tabCount = tabs ? Object.keys(tabs).length : 4;
+    // Deterministic per-index pill widths (no Math.random — re-renders mustn't change widths)
+    const PILL_WIDTHS = [72, 96, 80, 64, 88, 76];
 
     return (
       <div className={`${tabMode === "tabs" ? "mt-4" : "mt-9"} ${className}`}>
@@ -85,7 +87,7 @@ export function TabOutlet({
             <div
               key={i}
               className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse"
-              style={{ width: `${60 + Math.random() * 40}px` }}
+              style={{ width: `${PILL_WIDTHS[i % PILL_WIDTHS.length]}px` }}
             />
           ))}
         </div>
