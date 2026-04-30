@@ -32,21 +32,14 @@ describe('AuthGuard', () => {
     mockUseLocation.mockReturnValue({ pathname: '/', search: '' });
   });
 
-  it('renders a loading spinner while auth state is loading', () => {
+  it('renders nothing while auth state is loading (no spinner per W1.5)', () => {
     mockUseAuth.mockReturnValue({ authenticated: false, loading: true });
 
-    const element = expectElement(
-      AuthGuard({
-        children: React.createElement('section'),
-      }),
-    );
+    const result = AuthGuard({
+      children: React.createElement('section'),
+    });
 
-    expect(element.type).toBe('div');
-    expect(element.props.className).toContain('min-h-screen');
-
-    const spinner = expectElement(element.props.children);
-    expect(spinner.type).toBe('div');
-    expect(spinner.props.className).toContain('animate-spin');
+    expect(result).toBeNull();
   });
 
   it('redirects signed-out users to sign-in with the current URL', () => {

@@ -2,14 +2,6 @@ import React from 'react';
 
 type RegisteredPageComponent = React.ComponentType<any>;
 
-function RouteFallback() {
-  return (
-    <div className="flex min-h-[40vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-    </div>
-  );
-}
-
 function lazyRegisteredPage(
   loader: () => Promise<{ default: React.ComponentType<any> }>
 ): RegisteredPageComponent {
@@ -17,7 +9,7 @@ function lazyRegisteredPage(
 
   return function RegisteredLazyPage(props: any) {
     return (
-      <React.Suspense fallback={<RouteFallback />}>
+      <React.Suspense fallback={null}>
         <LazyComponent {...props} />
       </React.Suspense>
     );

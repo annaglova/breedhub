@@ -15,14 +15,6 @@ import { getPage, PageNotFound } from '@/pages/pageRegistry';
 import { appStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 
-function RouteFallback() {
-  return (
-    <div className="flex min-h-[40vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-    </div>
-  );
-}
-
 function lazyRoute(
   loader: () => Promise<{ default: React.ComponentType<any> }>
 ): React.ComponentType<any> {
@@ -30,7 +22,7 @@ function lazyRoute(
 
   return function LazyRouteComponent(props: any) {
     return (
-      <React.Suspense fallback={<RouteFallback />}>
+      <React.Suspense fallback={null}>
         <LazyComponent {...props} />
       </React.Suspense>
     );
