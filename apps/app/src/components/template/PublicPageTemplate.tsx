@@ -70,8 +70,7 @@ function AboveFoldBlocks({
   // Combined loading state: entity must be loaded AND all blocks must be ready
   const isAboveFoldLoading = !isEntityFullyLoaded || !allBlocksReady;
 
-  // Delayed skeleton: only show skeleton if loading takes > 100ms
-  // This prevents skeleton flicker for cached data that loads quickly
+  // Skeleton anti-flash: once shown, stays visible for ≥100ms even if data arrives sooner
   const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
 
   // Blocks should be invisible when no entity data at all OR skeleton is showing

@@ -251,9 +251,10 @@ export function useShouldShowSkeleton(): boolean {
  * Use this to build custom loading logic that respects skeleton delay
  *
  * @param isLoading - your loading state (e.g., !isEntityFullyLoaded || !allBlocksReady)
- * @returns shouldShowSkeleton - true only when loading AND delay has elapsed
+ * @param minDisplayMs - once shown, skeleton stays visible for at least this long (anti-flash). Default 100ms per SKELETON_LOADING_ARCHITECTURE §P9.
+ * @returns shouldShowSkeleton - true while loading; remains true until minDisplayMs elapses after isLoading flips false
  */
-export function useSkeletonWithDelay(isLoading: boolean, minDisplayMs = 300): boolean {
+export function useSkeletonWithDelay(isLoading: boolean, minDisplayMs = 100): boolean {
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
   const startTimeRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
