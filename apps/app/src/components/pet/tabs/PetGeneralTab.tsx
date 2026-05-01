@@ -64,6 +64,11 @@ async function loadLookupById(
 
 interface PetGeneralTabProps {
   onLoadedCount?: (count: number) => void;
+  /** Set by TabOutletRenderer for top-N visible tabs in scroll mode (public).
+   *  Reports data-load state so AboveFoldLoadingContext gates the page-level
+   *  atomic transition (don't flip top blocks to real before the first tab
+   *  body is also ready). */
+  onAboveFoldReady?: (ready: boolean) => void;
 }
 
 /**
@@ -76,7 +81,7 @@ interface PetGeneralTabProps {
  *
  * Based on Angular: pet-general.component.ts
  */
-export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
+export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -166,6 +171,14 @@ export function PetGeneralTab({ onLoadedCount }: PetGeneralTabProps) {
       onLoadedCount(1);
     }
   }, [isLoading, onLoadedCount]);
+
+  // Report above-fold ready state when in top-N slot for scroll mode (public).
+  // The selectedEntity guard prevents an early "ready" flash before the
+  // entity arrives — without it, the tab's initial isLoading=true→false
+  // pre-entity-arrival cycle would briefly unblock the gate.
+  useEffect(() => {
+    onAboveFoldReady?.(!!selectedEntity && !isLoading);
+  }, [selectedEntity, isLoading, onAboveFoldReady]);
 
   const iconSize = 16;
 

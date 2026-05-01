@@ -51,6 +51,10 @@ async function loadLookupById(
 
 interface LitterGeneralTabProps {
   onLoadedCount?: (count: number) => void;
+  /** Set by TabOutletRenderer for top-N visible tabs in scroll mode (public).
+   *  Reports data-load state so AboveFoldLoadingContext gates the page-level
+   *  atomic transition. */
+  onAboveFoldReady?: (ready: boolean) => void;
 }
 
 /**
@@ -63,7 +67,7 @@ interface LitterGeneralTabProps {
  *
  * Uses enrichment pattern via dictionaryStore.getRecordById()
  */
-export function LitterGeneralTab({ onLoadedCount }: LitterGeneralTabProps) {
+export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGeneralTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -135,6 +139,13 @@ export function LitterGeneralTab({ onLoadedCount }: LitterGeneralTabProps) {
       onLoadedCount(1);
     }
   }, [isLoading, onLoadedCount]);
+
+  // Report above-fold ready state when in top-N slot for scroll mode (public).
+  // selectedEntity guard prevents an early "ready" flash before the entity
+  // arrives.
+  useEffect(() => {
+    onAboveFoldReady?.(!!selectedEntity && !isLoading);
+  }, [selectedEntity, isLoading, onAboveFoldReady]);
 
   const iconSize = 16;
 

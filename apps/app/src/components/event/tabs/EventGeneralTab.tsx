@@ -84,6 +84,10 @@ function JudgeLink({ judge }: { judge: Judge }) {
 interface EventGeneralTabProps {
   onLoadedCount?: (count: number) => void;
   dataSource?: DataSourceConfig[];
+  /** Set by TabOutletRenderer for top-N visible tabs in scroll mode (public).
+   *  Reports data-load state so AboveFoldLoadingContext gates the page-level
+   *  atomic transition. */
+  onAboveFoldReady?: (ready: boolean) => void;
 }
 
 /**
@@ -95,7 +99,7 @@ interface EventGeneralTabProps {
  *
  * Based on Angular: event-info.component.ts
  */
-export function EventGeneralTab({ onLoadedCount, dataSource }: EventGeneralTabProps) {
+export function EventGeneralTab({ onLoadedCount, dataSource, onAboveFoldReady }: EventGeneralTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -139,6 +143,13 @@ export function EventGeneralTab({ onLoadedCount, dataSource }: EventGeneralTabPr
       onLoadedCount(1);
     }
   }, [onLoadedCount]);
+
+  // Report above-fold ready state when in top-N slot for scroll mode (public).
+  // Body is dictated by the entity directly; dictionary lookups
+  // (type/status/country) fill in progressively.
+  useEffect(() => {
+    onAboveFoldReady?.(!!selectedEntity);
+  }, [selectedEntity, onAboveFoldReady]);
 
   const iconSize = 16;
 

@@ -41,6 +41,10 @@ function LanguageList({ languages }: { languages?: string[] }) {
 interface ContactGeneralTabProps {
   onLoadedCount?: (count: number) => void;
   dataSource?: DataSourceConfig[];
+  /** Set by TabOutletRenderer for top-N visible tabs in scroll mode (public).
+   *  Reports data-load state so AboveFoldLoadingContext gates the page-level
+   *  atomic transition. */
+  onAboveFoldReady?: (ready: boolean) => void;
 }
 
 /**
@@ -53,7 +57,7 @@ interface ContactGeneralTabProps {
  *
  * Based on Angular: contact-info.component.ts
  */
-export function ContactGeneralTab({ onLoadedCount, dataSource }: ContactGeneralTabProps) {
+export function ContactGeneralTab({ onLoadedCount, dataSource, onAboveFoldReady }: ContactGeneralTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -136,6 +140,13 @@ export function ContactGeneralTab({ onLoadedCount, dataSource }: ContactGeneralT
       onLoadedCount(1);
     }
   }, [onLoadedCount]);
+
+  // Report above-fold ready state when in top-N slot for scroll mode (public).
+  // Body is dictated by the entity directly; lookups (country/city/comms)
+  // fill in progressively after.
+  useEffect(() => {
+    onAboveFoldReady?.(!!selectedEntity);
+  }, [selectedEntity, onAboveFoldReady]);
 
   const iconSize = 16;
   const hasSocial = facebookLinks.length > 0 || instagramLinks.length > 0;

@@ -22,6 +22,10 @@ import { SmartLink } from "@/components/shared/SmartLink";
 interface KennelGeneralTabProps {
   onLoadedCount?: (count: number) => void;
   dataSource?: DataSourceConfig[];
+  /** Set by TabOutletRenderer for top-N visible tabs in scroll mode (public).
+   *  Reports data-load state so AboveFoldLoadingContext gates the page-level
+   *  atomic transition. */
+  onAboveFoldReady?: (ready: boolean) => void;
 }
 
 /**
@@ -35,7 +39,7 @@ interface KennelGeneralTabProps {
  *
  * Based on Angular: kennel-info.component.ts
  */
-export function KennelGeneralTab({ onLoadedCount, dataSource }: KennelGeneralTabProps) {
+export function KennelGeneralTab({ onLoadedCount, dataSource, onAboveFoldReady }: KennelGeneralTabProps) {
   useSignals();
 
   const selectedEntity = useSelectedEntity();
@@ -123,6 +127,14 @@ export function KennelGeneralTab({ onLoadedCount, dataSource }: KennelGeneralTab
       onLoadedCount(1);
     }
   }, [onLoadedCount]);
+
+  // Report above-fold ready state when in top-N slot for scroll mode (public).
+  // Lookups (country/city/owner) load via setState in useEffect; we treat
+  // the tab as ready as soon as the entity arrives — its body is dictated
+  // by the entity directly and lookups fill in additional names progressively.
+  useEffect(() => {
+    onAboveFoldReady?.(!!selectedEntity);
+  }, [selectedEntity, onAboveFoldReady]);
 
   const iconSize = 16;
   const hasSocial = facebookLinks.length > 0 || instagramLinks.length > 0;
