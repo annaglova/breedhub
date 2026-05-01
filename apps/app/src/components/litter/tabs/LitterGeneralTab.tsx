@@ -140,12 +140,15 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
     }
   }, [isLoading, onLoadedCount]);
 
-  // Report above-fold ready state when in top-N slot for scroll mode (public).
-  // selectedEntity guard prevents an early "ready" flash before the entity
-  // arrives.
+  // Report above-fold ready state — use `data`-populated as the signal
+  // rather than `!isLoading` to avoid a transient stale-isLoading flicker
+  // when selectedEntity first arrives (the load effect's setIsLoading(true)
+  // commits one render after the no-entity branch's setIsLoading(false)).
+  // `Object.keys(data).length > 0` only flips true once setData runs at
+  // the end of loadLookups.
   useEffect(() => {
-    onAboveFoldReady?.(!!selectedEntity && !isLoading);
-  }, [selectedEntity, isLoading, onAboveFoldReady]);
+    onAboveFoldReady?.(!!selectedEntity && Object.keys(data).length > 0);
+  }, [selectedEntity, data, onAboveFoldReady]);
 
   const iconSize = 16;
 

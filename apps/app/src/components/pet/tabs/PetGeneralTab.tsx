@@ -173,12 +173,16 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
   }, [isLoading, onLoadedCount]);
 
   // Report above-fold ready state when in top-N slot for scroll mode (public).
-  // The selectedEntity guard prevents an early "ready" flash before the
-  // entity arrives — without it, the tab's initial isLoading=true→false
-  // pre-entity-arrival cycle would briefly unblock the gate.
+  // Use `data`-populated as the ready signal rather than `!isLoading` —
+  // when selectedEntity first arrives there's a transient frame where
+  // isLoading is still false (from the no-entity branch's setIsLoading(false)
+  // on mount) before the load effect's setIsLoading(true) commits. That
+  // would briefly report ready=true and trigger an unnecessary anti-flash
+  // skeleton extension. `Object.keys(data).length > 0` only flips true
+  // once setData runs at the end of loadLookups, after the actual fetch.
   useEffect(() => {
-    onAboveFoldReady?.(!!selectedEntity && !isLoading);
-  }, [selectedEntity, isLoading, onAboveFoldReady]);
+    onAboveFoldReady?.(!!selectedEntity && Object.keys(data).length > 0);
+  }, [selectedEntity, data, onAboveFoldReady]);
 
   const iconSize = 16;
 
