@@ -9,7 +9,6 @@
  */
 import React from 'react';
 import { EditFormSkeleton } from '../edit/EditFormSkeleton';
-import { EditChildTableTabSkeleton } from '../edit/tabs/EditChildTableTabSkeleton';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
 type TabModule = {
@@ -24,27 +23,17 @@ type TabModuleLoader = () => Promise<TabModule>;
  * - EditFormTab uses a field-aware EditFormSkeleton built from the same
  *   `fields` config the real form will render — keeps cold-load and
  *   real-form structurally aligned (groups, columns, control count).
- * - EditChildTableTab uses a column-aware EditChildTableTabSkeleton built
- *   from the same `fields` config — DataTable's own skeleton mode handles
- *   the data-load stage too, so the same skeleton structurally covers
- *   chunk-download → data-load → swap to rows in one continuous frame.
- * - EditChildMatrixTab renders its own column-aware skeleton inline; the
- *   columnEntities resolve async so we can't build a structurally exact
- *   fallback here yet (W2.2 follow-up). null fallback keeps cold-load
- *   blank until the chunk lands and the matrix's own skeleton takes over.
+ * - EditChildTableTab / EditChildMatrixTab render their own column-aware
+ *   skeleton on data load; using the generic TabBodySkeleton during chunk
+ *   download would add a visually unrelated intermediate stage, so we use
+ *   a null fallback and let the tab's own skeleton handle the wait.
  * - All other tabs fall back to the shared TabBodySkeleton.
  */
 function buildFallback(componentName: string, props: any): React.ReactElement | null {
   if (componentName === 'EditFormTab') {
     return React.createElement(EditFormSkeleton, { fields: props?.fields });
   }
-  if (componentName === 'EditChildTableTab') {
-    return React.createElement(EditChildTableTabSkeleton, {
-      fields: props?.fields,
-      rowActions: props?.rowActions,
-    });
-  }
-  if (componentName === 'EditChildMatrixTab') {
+  if (componentName === 'EditChildTableTab' || componentName === 'EditChildMatrixTab') {
     return null;
   }
   return React.createElement(TabBodySkeleton);
