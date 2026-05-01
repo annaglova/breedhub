@@ -158,15 +158,24 @@ export function TabOutlet({
   }
 
   // Skeleton element — same shape as before, used in both edit-mode loading
-  // and scroll-mode loading (overlaid on the hidden TabOutletRenderer).
+  // and scroll-mode loading.
+  //
+  // Pill row uses the full tab count so the menu skeleton matches the eventual
+  // PageMenu width. In scroll mode we cap section skeletons at 2: the renderer
+  // sits with display:none during loading so it doesn't drive page height,
+  // and 2 above-the-fold sections are enough to cover the viewport before the
+  // real per-tab skeletons mount and take over.
+  const SCROLL_MODE_SECTION_CAP = 2;
   const renderSkeleton = () => {
-    const tabCount = tabs ? Object.keys(tabs).length : 4;
+    const allTabCount = tabs ? Object.keys(tabs).length : 4;
+    const visibleSectionCount = Object.keys(visibleTabs).length || allTabCount;
+    const sectionCount = Math.min(visibleSectionCount, SCROLL_MODE_SECTION_CAP);
     const PILL_WIDTHS = [72, 96, 80, 64, 88, 76];
 
     return (
       <div className={`${tabMode === "tabs" ? "mt-4" : "mt-9"} ${className}`}>
         <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
-          {Array.from({ length: tabCount }).map((_, i) => (
+          {Array.from({ length: allTabCount }).map((_, i) => (
             <div
               key={i}
               className="h-4 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse"
@@ -175,7 +184,7 @@ export function TabOutlet({
           ))}
         </div>
         {tabMode !== "tabs" &&
-          Array.from({ length: tabCount }).map((_, i) => (
+          Array.from({ length: sectionCount }).map((_, i) => (
             <div key={`section-${i}`} className={i === 0 ? "mt-6" : "mt-12"}>
               <div className="mb-6 h-12 w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
               <TabBodySkeleton />
@@ -192,25 +201,25 @@ export function TabOutlet({
   }
 
   // Scroll mode: render skeleton + TabOutletRenderer in the same parent
-  // grid so the renderer stays mounted across the loading→loaded flip
-  // (no unmount/remount that would lose tab fetch state and re-fire
-  // chunk downloads). Skeleton shown when isLoading; renderer takes
-  // over visually once isLoading flips false.
+  // so the renderer stays mounted across the loading→loaded flip (no
+  // unmount/remount that would lose tab fetch state and re-fire chunk
+  // downloads). Skeleton shown when isLoading; renderer takes over
+  // visually once isLoading flips false.
+  //
+  // We use display:none (not visibility:hidden + grid overlay) on the
+  // renderer while loading so its full vertical extent (~5000px for a
+  // pet with 8 tabs) doesn't push the page height during cold-load —
+  // skeleton alone defines the loading-state height. display:none keeps
+  // the React subtree mounted, so tab data fetches and chunk downloads
+  // already in flight survive the flip.
 
   const showSkeletonOverlay = isScrollMode && isLoading;
-  const wrapperClass = showSkeletonOverlay ? `grid ${className}` : className;
 
   return (
-    <div className={wrapperClass}>
-      {showSkeletonOverlay && (
-        <div style={{ gridArea: "1 / 1" }}>{renderSkeleton()}</div>
-      )}
+    <div className={className}>
+      {showSkeletonOverlay && renderSkeleton()}
       <div
-        style={
-          showSkeletonOverlay
-            ? { gridArea: "1 / 1", visibility: "hidden" }
-            : undefined
-        }
+        style={showSkeletonOverlay ? { display: "none" } : undefined}
         aria-hidden={showSkeletonOverlay || undefined}
       >
         <TabOutletRenderer
