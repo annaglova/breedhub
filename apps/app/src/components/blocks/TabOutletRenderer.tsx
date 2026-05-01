@@ -44,6 +44,12 @@ interface TabOutletRendererProps {
   isCreateMode?: boolean;
   onCreateNameChange?: (name: string) => void;
   isLoading?: boolean;
+  /** Set by parent TabOutlet to wire above-fold slot ready reporting in
+   *  scroll mode. Slots [0, 1] correspond to the top 2 visible tabs;
+   *  callbacks update slot ready state owned by TabOutlet so registration
+   *  with AboveFoldLoadingContext stays stable across loading/loaded
+   *  branches and doesn't oscillate. */
+  aboveFoldReadyCallbacks?: [(ready: boolean) => void, (ready: boolean) => void];
 }
 
 // Extended tab with internal ordering fields
@@ -142,25 +148,44 @@ export function TabOutletRenderer({
   onDefaultTabChange,
   isCreateMode,
   onCreateNameChange,
+  aboveFoldReadyCallbacks,
 }: TabOutletRendererProps) {
   const pageMenuRef = useRef<HTMLDivElement>(null);
   const [pageMenuHeight, setPageMenuHeight] = useState(0);
 
-  // Convert config to tabs array, merging edit-specific props into tabProps
+  // Convert config to tabs array, merging edit-specific + above-fold props
+  // into tabProps. In scroll mode, top 2 visible tabs receive
+  // `isAboveFoldFirst: true`, `aboveFoldIndex`, and an `onAboveFoldReady`
+  // callback (provided by parent TabOutlet, which owns slot registration
+  // — see TabOutlet for why registration lives there, not here).
+  const isScrollMode = tabMode === "scroll";
   const tabs = useMemo(() => {
     const baseTabs = convertTabConfigToTabs(tabsConfig);
-    if (!onSaveReady && !entityType && !onDirtyChange && !isCreateMode) return baseTabs;
     const extraProps: Record<string, any> = {};
     if (onSaveReady) extraProps.onSaveReady = onSaveReady;
     if (entityType) extraProps.entityType = entityType;
     if (onDirtyChange) extraProps.onDirtyChange = onDirtyChange;
     if (isCreateMode) extraProps.isCreateMode = isCreateMode;
     if (onCreateNameChange) extraProps.onCreateNameChange = onCreateNameChange;
-    return baseTabs.map(tab => ({
-      ...tab,
-      tabProps: { ...tab.tabProps, ...extraProps },
-    }));
-  }, [tabsConfig, onSaveReady, entityType, onDirtyChange, isCreateMode, onCreateNameChange]);
+    const hasExtra = Object.keys(extraProps).length > 0;
+
+    if (!isScrollMode && !hasExtra) return baseTabs;
+
+    return baseTabs.map((tab, index) => {
+      const aboveFoldProps =
+        isScrollMode && index < 2 && aboveFoldReadyCallbacks
+          ? {
+              isAboveFoldFirst: true as const,
+              aboveFoldIndex: index,
+              onAboveFoldReady: aboveFoldReadyCallbacks[index],
+            }
+          : {};
+      const merged = hasExtra || isScrollMode
+        ? { ...tab.tabProps, ...extraProps, ...aboveFoldProps }
+        : tab.tabProps;
+      return merged ? { ...tab, tabProps: merged } : tab;
+    });
+  }, [tabsConfig, isScrollMode, aboveFoldReadyCallbacks, onSaveReady, entityType, onDirtyChange, isCreateMode, onCreateNameChange]);
 
   // Track PageMenu height for TabHeader positioning
   useEffect(() => {

@@ -50,11 +50,17 @@ function formatCurrency(value: number): string {
 interface BreedAchievementsTabProps {
   dataSource?: DataSourceConfig[];
   onLoadedCount?: (count: number) => void; // Report loaded count for conditional fullscreen
+  /** Set by TabOutletRenderer for top-N visible tabs in scroll mode (public).
+   *  When provided, the tab reports its data-load state so AboveFoldLoadingContext
+   *  can gate the page-level atomic transition (don't flip top blocks to real
+   *  before the first tab body is also ready). */
+  onAboveFoldReady?: (ready: boolean) => void;
 }
 
 export function BreedAchievementsTab({
   dataSource,
   onLoadedCount,
+  onAboveFoldReady,
 }: BreedAchievementsTabProps) {
   useSignals();
 
@@ -80,6 +86,17 @@ export function BreedAchievementsTab({
       onLoadedCount(data.length);
     }
   }, [data, isLoading, onLoadedCount]);
+
+  // Report above-fold ready state — only called when this tab is in the
+  // top-N slot for AboveFoldLoadingContext gating (set by TabOutletRenderer
+  // in scroll mode). Reports true when entity is available AND data has
+  // finished loading — without the breedId guard, the tab would flip ready
+  // immediately on mount (useTabData with enabled=false → isLoading=false)
+  // and the page would briefly flash to real before tab data actually
+  // arrives.
+  useEffect(() => {
+    onAboveFoldReady?.(!!breedId && !isLoading);
+  }, [breedId, isLoading, onAboveFoldReady]);
 
   // Transform merged data to timeline format
   const achievements = useMemo<TimelineAchievement[]>(() => {

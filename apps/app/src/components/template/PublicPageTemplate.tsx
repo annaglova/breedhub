@@ -267,9 +267,13 @@ export function PublicPageTemplate({
               </div>
             )}
 
-            {/* Render blocks with coordinated loading via AboveFoldLoadingProvider */}
+            {/* Render blocks with coordinated loading via AboveFoldLoadingProvider.
+                minLoadingTime=80 closes the race where first render commits with
+                allBlocksReady=true (0 registered) before TabOutlet's slot
+                registration useEffect fires — gives the slot time to register
+                false so top blocks don't briefly flip to real and back. */}
             {pageConfig && pageConfig.blocks && (
-              <AboveFoldLoadingProvider>
+              <AboveFoldLoadingProvider minLoadingTime={80}>
                 <AboveFoldBlocks
                   pageConfig={pageConfig}
                   defaultTabFragment={defaultTabFragment}

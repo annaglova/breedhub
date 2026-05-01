@@ -224,6 +224,35 @@ export function useAboveFoldBlock(blockId: string, isReady: boolean): void {
 }
 
 /**
+ * Conditional variant of useAboveFoldBlock — only registers when `enabled`
+ * is true. Used by tabs that may or may not be in the above-fold gating
+ * set: in `tabMode === "scroll"` (public page), the top N visible tabs
+ * receive `enabled=true` via tabProps and gate the atomic transition;
+ * the rest pass `enabled=false` and never register, so they don't block
+ * the page-level skeleton flip.
+ *
+ * Hooks rules: this hook is always called (consistent call order per
+ * render); only the *effect body* short-circuits when not enabled.
+ */
+export function useAboveFoldBlockIf(
+  blockId: string,
+  isReady: boolean,
+  enabled: boolean,
+): void {
+  const context = useContext(AboveFoldLoadingContext);
+
+  useEffect(() => {
+    if (!context || !enabled) return;
+
+    context.registerBlock(blockId, isReady);
+
+    return () => {
+      context.unregisterBlock(blockId);
+    };
+  }, [context, blockId, isReady, enabled]);
+}
+
+/**
  * Hook to check if all above-fold blocks are ready
  * Returns true if no context (for standalone usage)
  */
