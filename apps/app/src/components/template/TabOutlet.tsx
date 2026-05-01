@@ -198,26 +198,17 @@ export function TabOutlet({
   // over visually once isLoading flips false.
 
   const showSkeletonOverlay = isScrollMode && isLoading;
+  const wrapperClass = showSkeletonOverlay ? `grid ${className}` : className;
 
-  // During loading we render the skeleton in normal flow AND mount the
-  // TabOutletRenderer off-flow (position: absolute + visibility: hidden)
-  // so tabs can fetch their data and report ready, but their layout
-  // height doesn't influence the wrapper's size. When the page-level
-  // skeleton flips off, the renderer goes back into normal flow and the
-  // page transitions in place — no vertical jump from skeleton's taller
-  // multi-tab layout collapsing onto the shorter loaded content.
   return (
-    <div className={`${showSkeletonOverlay ? "relative" : ""} ${className}`}>
-      {showSkeletonOverlay && renderSkeleton()}
+    <div className={wrapperClass}>
+      {showSkeletonOverlay && (
+        <div style={{ gridArea: "1 / 1" }}>{renderSkeleton()}</div>
+      )}
       <div
         style={
           showSkeletonOverlay
-            ? {
-                position: "absolute",
-                inset: 0,
-                visibility: "hidden",
-                pointerEvents: "none",
-              }
+            ? { gridArea: "1 / 1", visibility: "hidden" }
             : undefined
         }
         aria-hidden={showSkeletonOverlay || undefined}
