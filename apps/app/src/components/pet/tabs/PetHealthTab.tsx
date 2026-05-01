@@ -1,4 +1,3 @@
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { formatDate } from "@/utils/format";
@@ -131,11 +130,6 @@ export function PetHealthTab({
     return null;
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
-  }
-
   // Error state
   if (error) {
     return (
@@ -148,23 +142,62 @@ export function PetHealthTab({
     );
   }
 
+  // Same grid template for header / rows / skeleton — keeps cold-load and
+  // real table column-aligned (no jump from generic placeholder to grid).
+  const gridCols = isFullscreen
+    ? "grid-cols-[132px_184px_auto] lg:grid-cols-[132px_284px_auto]"
+    : "grid-cols-[132px_auto] sm:grid-cols-[184px_auto] md:grid-cols-[86px_184px_auto]";
+  const dateCellVisibility = isFullscreen ? "block" : "hidden md:block";
+  const skeletonRowCount = isFullscreen ? 12 : 5;
+
   return (
     <>
       <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">
-        {results.length > 0 ? (
+        {isLoading ? (
+          <div className="grid" aria-busy="true" aria-live="polite">
+            <div
+              className={cn(
+                "grid gap-3 border-b border-border px-6 py-3 font-bold text-secondary lg:px-8",
+                gridCols
+              )}
+            >
+              <div className={dateCellVisibility}>Date</div>
+              <div>Object</div>
+              <div>Result</div>
+            </div>
+            {Array.from({ length: skeletonRowCount }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className={cn(
+                  "grid items-center gap-3 px-6 py-2 lg:px-8",
+                  gridCols,
+                  index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
+                )}
+              >
+                {/* h-[21px] flex wrappers keep skeleton row total = real row
+                    total (text-base content height = 21px on this row). */}
+                <div className={cn("h-[21px] flex items-center", dateCellVisibility)}>
+                  <div className="h-3.5 w-20 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                </div>
+                <div className="h-[21px] flex items-center">
+                  <div className="h-3.5 w-28 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                </div>
+                <div className="h-[21px] flex items-center">
+                  <div className="h-3.5 w-40 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : results.length > 0 ? (
           <div className="grid">
             {/* Header */}
             <div
               className={cn(
                 "grid gap-3 border-b border-border px-6 py-3 font-bold text-secondary lg:px-8",
-                isFullscreen
-                  ? "grid-cols-[132px_184px_auto] lg:grid-cols-[132px_284px_auto]"
-                  : "grid-cols-[132px_auto] sm:grid-cols-[184px_auto] md:grid-cols-[86px_184px_auto]"
+                gridCols
               )}
             >
-              <div className={cn("hidden", isFullscreen ? "block" : "md:block")}>
-                Date
-              </div>
+              <div className={dateCellVisibility}>Date</div>
               <div>Object</div>
               <div>Result</div>
             </div>
@@ -175,16 +208,12 @@ export function PetHealthTab({
                 key={healthExam.id}
                 className={cn(
                   "grid items-center gap-3 px-6 py-2 lg:px-8",
-                  isFullscreen
-                    ? "grid-cols-[132px_184px_auto] lg:grid-cols-[132px_284px_auto]"
-                    : "grid-cols-[132px_auto] sm:grid-cols-[184px_auto] md:grid-cols-[86px_184px_auto]",
+                  gridCols,
                   index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
                 )}
               >
                 {/* Date */}
-                <div
-                  className={cn("hidden", isFullscreen ? "block" : "md:block")}
-                >
+                <div className={dateCellVisibility}>
                   {formatDate(healthExam.date, "short")}
                 </div>
 

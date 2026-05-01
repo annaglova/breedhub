@@ -33,7 +33,11 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
   if (componentName === 'EditFormTab') {
     return React.createElement(EditFormSkeleton, { fields: props?.fields });
   }
-  if (componentName === 'EditChildTableTab' || componentName === 'EditChildMatrixTab') {
+  if (
+    componentName === 'EditChildTableTab' ||
+    componentName === 'EditChildMatrixTab' ||
+    componentName === 'PetHealthTab'
+  ) {
     return null;
   }
   return React.createElement(TabBodySkeleton);
