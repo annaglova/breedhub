@@ -124,28 +124,32 @@ export function NameOutlet({
         onTop ? "border-b border-surface-border" : ""
       } ${className}`}
     >
-      {/* Skeleton overlay - shown when loading */}
+      {/* Skeleton placeholder - mirrors BreedName/PetName layout pixel-for-pixel
+          (24 + 8 + 30 + 4 + 21 + 12 = 99px). In DOM flow so it owns the block
+          height; real children render absolute behind it during cold-load to
+          avoid jump when entity arrives. */}
       {isLoading && (
-        <div className="absolute inset-0 z-50 bg-card-ground">
-          <div className="flex flex-col space-y-4 pb-5 pt-1">
-            {/* Additional info skeleton */}
+        <div className="pb-3 bg-card-ground" aria-hidden="true">
+          {/* Row 1: achievement / breed link (24px tall, mb-2 = 8px gap) */}
+          <div className="h-6 mb-2 flex items-center">
             <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-
-            {/* Name skeleton */}
-            <div className="space-y-2">
-              <div className="h-6 w-96 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse my-0.5" />
-              <div className="flex items-center space-x-2">
-                <div className="size-5 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-                <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-              </div>
-            </div>
+          </div>
+          {/* Row 2: name (30px tall to match h1 text-3xl line-height, mb-1 = 4px gap) */}
+          <div className="h-[30px] mb-1 flex items-center">
+            <div className="h-6 w-72 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          </div>
+          {/* Row 3: statistics (21px tall, size-4 dot + bar) */}
+          <div className="h-[21px] flex items-center space-x-2">
+            <div className="size-4 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+            <div className="h-4 w-64 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
           </div>
         </div>
       )}
 
       {/* Name content slot - entity-specific component via children */}
-      {/* Always rendered to trigger data loading, invisible when loading */}
-      <div className={isLoading ? "invisible" : ""}>
+      {/* Always rendered to trigger data loading; absolute+invisible while loading
+          so its (varying) height doesn't drive layout. */}
+      <div className={isLoading ? "invisible absolute inset-0" : ""}>
         {children}
       </div>
 
