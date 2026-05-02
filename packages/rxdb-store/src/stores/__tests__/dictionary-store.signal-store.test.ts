@@ -94,8 +94,11 @@ async function loadDictionaryDedupeHarness() {
   const store = module.dictionaryStore as any;
   store.collection = {};
   store.inflightDictionary = new Map();
+  store.inflightRecord = new Map();
   store.resetCacheStats();
   store.runGetDictionary = vi.fn();
+  store.runGetRecordById = vi.fn();
+  store.initialized.value = true;
 
   return { store };
 }
@@ -295,5 +298,64 @@ describe("dictionary-store.signal-store", () => {
     await store.getDictionary("breed", { filterByIds: ["a"] });
 
     expect(store.runGetDictionary).toHaveBeenCalledTimes(2);
+  });
+
+  it("shares one in-flight getRecordById promise for identical concurrent calls", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    let resolveShared!: (value: Record<string, unknown>) => void;
+    const sharedPromise = new Promise<Record<string, unknown>>((resolve) => {
+      resolveShared = resolve;
+    });
+    store.runGetRecordById.mockReturnValue(sharedPromise);
+
+    const id = "71513fb2-19bb-4812-86d4-2e6986297e4b";
+    const first = store.getRecordById("sex", id);
+    const second = store.getRecordById("sex", id);
+    const third = store.getRecordById("sex", id);
+
+    expect(second).toBe(first);
+    expect(third).toBe(first);
+    expect(store.runGetRecordById).toHaveBeenCalledTimes(1);
+
+    const result = { id, name: "Male" };
+    resolveShared(result);
+    await expect(first).resolves.toBe(result);
+    await expect(second).resolves.toBe(result);
+    await expect(third).resolves.toBe(result);
+  });
+
+  it("does not share in-flight getRecordById calls for different ids", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetRecordById.mockResolvedValue(null);
+
+    await Promise.all([
+      store.getRecordById("sex", "id-1"),
+      store.getRecordById("sex", "id-2"),
+    ]);
+
+    expect(store.runGetRecordById).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not share in-flight getRecordById calls for different additionalFields projections", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetRecordById.mockResolvedValue(null);
+
+    await Promise.all([
+      store.getRecordById("pet", "pet-1", { additionalFields: ["sex_id"] }),
+      store.getRecordById("pet", "pet-1", { additionalFields: ["breed_id"] }),
+      store.getRecordById("pet", "pet-1"),
+    ]);
+
+    expect(store.runGetRecordById).toHaveBeenCalledTimes(3);
+  });
+
+  it("drops the in-flight getRecordById promise after resolution so future calls re-run", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetRecordById.mockResolvedValue(null);
+
+    await store.getRecordById("sex", "id-1");
+    await store.getRecordById("sex", "id-1");
+
+    expect(store.runGetRecordById).toHaveBeenCalledTimes(2);
   });
 });

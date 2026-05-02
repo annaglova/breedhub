@@ -72,6 +72,16 @@ class DictionaryStore {
     }>
   >();
 
+  // In-flight cache for getRecordById. Without it, list cards in a space
+  // each call getRecordById(table, sameId) in the same render tick — observed
+  // 20× duplicate `sex?id=eq.X` and 12× `pet_status?id=eq.Y` round-trips on a
+  // pet-space cold load. The cache key includes additionalFields so a narrow
+  // projection caller doesn't share a promise with a full-record caller.
+  private inflightRecord = new Map<
+    string,
+    Promise<Record<string, unknown> | null>
+  >();
+
   /**
    * Cache hit/miss telemetry. Counters mirror the structure used by
    * spaceStore — `dedup` increments when a concurrent identical request
@@ -873,7 +883,7 @@ class DictionaryStore {
    * Used for pre-loading selected values in LookupInput and dictionary lookups
    * Fetches ALL fields by default, or a narrow projection when additionalFields is provided
    */
-  async getRecordById(
+  getRecordById(
     tableName: string,
     id: string,
     options: {
@@ -882,12 +892,41 @@ class DictionaryStore {
       additionalFields?: string[];
     } = {}
   ): Promise<Record<string, unknown> | null> {
-    const {
-      idField = 'id',
-      nameField = 'name',
-      additionalFields,
-    } = options;
+    const idField = options.idField ?? 'id';
+    const nameField = options.nameField ?? 'name';
+    const additionalFields = options.additionalFields;
 
+    // In-flight dedupe: synchronous identity contract (matches getDictionary).
+    // Callers in the same render tick get the same Promise instance back.
+    const dedupeKey = `${tableName}::${idField}::${id}::${
+      additionalFields?.length
+        ? [...additionalFields].sort().join(',')
+        : '*'
+    }`;
+    const inflight = this.inflightRecord.get(dedupeKey);
+    if (inflight) {
+      return inflight;
+    }
+    const promise = this.runGetRecordById(
+      tableName,
+      id,
+      idField,
+      nameField,
+      additionalFields,
+    ).finally(() => {
+      this.inflightRecord.delete(dedupeKey);
+    });
+    this.inflightRecord.set(dedupeKey, promise);
+    return promise;
+  }
+
+  private async runGetRecordById(
+    tableName: string,
+    id: string,
+    idField: string,
+    nameField: string,
+    additionalFields: string[] | undefined,
+  ): Promise<Record<string, unknown> | null> {
     // Wait for initialization if not ready yet (max 10s)
     if (!this.initialized.value) {
       await this.waitForInitialization();
