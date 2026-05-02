@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { spaceStore, tabDataService } from "@breedhub/rxdb-store";
 import type { Tab } from "@/components/tabs/TabsContainer";
 import { TAB_COMPONENT_REGISTRY } from "@/components/shared/tab-registry";
@@ -77,6 +78,7 @@ export function useFullscreenTabs({
   tabSlug,
   tabsConfig,
 }: UseFullscreenTabsOptions) {
+  const navigate = useNavigate();
   const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
   const [countsLoading, setCountsLoading] = useState(true);
   const [activeTabSlug, setActiveTabSlug] = useState(tabSlug);
@@ -137,10 +139,15 @@ export function useFullscreenTabs({
 
   const handleTabChange = useCallback(
     (fragment: string) => {
+      // Use react-router navigate so useParams updates and TabPageResolver
+      // re-resolves the new tabSlug. Plain history.replaceState mutated the
+      // URL but left useParams.tabSlug stale, so the sync useEffect below
+      // would flip activeTabSlug back to the old value and the rendered
+      // tab never changed.
+      navigate(`/${entitySlug}/${fragment}`, { replace: true });
       setActiveTabSlug(fragment);
-      window.history.replaceState(null, "", `/${entitySlug}/${fragment}`);
     },
-    [entitySlug],
+    [entitySlug, navigate],
   );
 
   return {
