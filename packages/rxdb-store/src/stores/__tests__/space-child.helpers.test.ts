@@ -530,7 +530,7 @@ describe("space-child.helpers", () => {
     ]);
   });
 
-  it("derives child mutation metadata from normalized table type and entity partition config", () => {
+  it("derives child mutation metadata for the table type (identity — view and base cache separately)", () => {
     const entitySchemas = new Map([
       [
         "pet",
@@ -544,7 +544,7 @@ describe("space-child.helpers", () => {
     ]);
 
     expect(getChildMutationMetadata(entitySchemas, "pet", "title_in_pet_with_pet")).toEqual({
-      normalizedType: "title_in_pet",
+      normalizedType: "title_in_pet_with_pet",
       partitionConfig: {
         keyField: "breed_id",
         childFilterField: "pet_breed_id",
@@ -609,7 +609,7 @@ describe("space-child.helpers", () => {
     expect(records).toEqual([
       {
         id: "row-1",
-        tableType: "top_pet_in_breed",
+        tableType: "top_pet_in_breed_with_pet",
         parentId: "breed-1",
         partitionId: "partition-1",
         created_at: "2024-01-01",
@@ -689,7 +689,7 @@ describe("space-child.helpers", () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
       id: "pet-1",
-      tableType: "top_pet_in_breed",
+      tableType: "top_pet_in_breed_with_pet",
       parentId: "breed-1",
       partitionId: "breed-9",
       additional: {
@@ -1076,7 +1076,7 @@ describe("space-child.helpers", () => {
     const result = await queryLocalChildRecords({
       collection,
       parentId: "breed-1",
-      tableType: "title_in_pet_with_pet",
+      tableType: "title_in_pet",
       limit: 1,
       orderBy: "cachedAt",
       orderDirection: "asc",
@@ -1122,7 +1122,7 @@ describe("space-child.helpers", () => {
     const result = await queryLocalChildRecords({
       collection,
       parentId: "breed-1",
-      tableType: "top_pet_in_breed_with_pet",
+      tableType: "top_pet_in_breed",
       limit: 2,
       orderBy: "placement",
       orderDirection: "asc",
@@ -1394,7 +1394,7 @@ describe("space-child.helpers", () => {
     const result = await executeLocalChildQuery({
       collection,
       parentId: "breed-1",
-      tableType: "top_pet_in_breed_with_pet",
+      tableType: "top_pet_in_breed",
       filters: {},
       limit: 2,
       cursor: JSON.stringify({
@@ -1442,7 +1442,7 @@ describe("space-child.helpers", () => {
     const result = await executeLocalChildQuery({
       collection,
       parentId: "breed-1",
-      tableType: "top_pet_in_breed_with_pet",
+      tableType: "top_pet_in_breed",
       filters: {},
       limit: 2,
       cursor: null,
@@ -1493,7 +1493,7 @@ describe("space-child.helpers", () => {
     const result = await executeLocalChildQuery({
       collection,
       parentId: "breed-1",
-      tableType: "top_pet_in_breed_with_pet",
+      tableType: "top_pet_in_breed",
       filters: {},
       limit: 2,
       cursor: JSON.stringify({

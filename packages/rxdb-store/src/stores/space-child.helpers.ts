@@ -369,7 +369,12 @@ export function applyLinkedFilters<TQuery extends ChildListQueryLike<TQuery>>(
 }
 
 export function normalizeChildTableType(tableType: string): string {
-  return tableType.replace(/_with_\w+$/, "");
+  // Identity — VIEW (`*_with_*`) and base table cache under their own
+  // names because they expose different columns (e.g. `health_exam_object_id`
+  // vs `object_name`). Sharing the cache key causes a config that reads
+  // base FK ids to find view-shaped rows lacking those columns and fail
+  // FK enrichment. Reason: 2026-05-02 health-tab regression.
+  return tableType;
 }
 
 export function buildBatchedSelector(
