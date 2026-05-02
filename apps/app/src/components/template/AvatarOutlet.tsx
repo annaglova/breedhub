@@ -148,13 +148,21 @@ export function AvatarOutlet({
     <div
       className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-0 sm:pb-3 top-0 ${isLoading ? "z-[55]" : "z-30"} pointer-events-none px-4 sm:px-0 ${className}`}
     >
-      {/* Avatar skeleton — gray fill + white ring, identical size to the real
-          avatar. z-[60] lifts it above the cover-skeleton overlay (z-50) so
-          the upper half isn't sliced off. */}
+      {/* Avatar skeleton — structurally identical to EntityAvatar (white
+          `p-1` frame on the outside, inner shadowed circle for the image
+          area). The previous version used a `ring-4` outline that sat
+          OUTSIDE the size box, so the skeleton rendered ~8px wider than the
+          real avatar and the inner gray disc didn't line up with the image.
+          Mirroring the live structure removes that drift. z-[60] still
+          lifts it above the cover-skeleton overlay (z-50). */}
       {isLoading && hasAvatar && (
         <div
-          className={`absolute z-[60] ${avatarConfig.skeletonLeft} rounded-full bg-slate-200 dark:bg-slate-700 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
-        />
+          className={`absolute z-[60] ${avatarConfig.skeletonLeft} ${avatarConfig.size} shrink-0`}
+        >
+          <div className="size-full rounded-full bg-white p-1 overflow-hidden">
+            <div className="flex size-full items-center justify-center overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse shadow-[0_0_0_1px_rgba(17,17,26,0.04),0_-1px_2px_rgba(17,17,26,0.04),0_2px_4px_rgba(17,17,26,0.1)]" />
+          </div>
+        </div>
       )}
 
       {/* Avatar - entity-specific component via children, or spacer to maintain layout */}
