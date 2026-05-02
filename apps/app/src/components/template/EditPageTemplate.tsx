@@ -1,6 +1,7 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import {
   AboveFoldLoadingProvider,
+  useAboveFoldLoadingContext,
   useAllAboveFoldReady,
   useSkeletonWithDelay,
 } from "@/contexts/AboveFoldLoadingContext";
@@ -24,7 +25,7 @@ import {
 } from "@ui/components/dialog";
 import { cn } from "@ui/lib/utils";
 import { useStickyName } from "@/hooks/useStickyName";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EditNameOutlet } from "./EditNameOutlet";
 import type { BlockConfig, PageConfig } from "@/types/page-config.types";
@@ -60,9 +61,46 @@ function EditBlocks({
   isCreateMode,
 }: EditBlocksProps) {
   const allBlocksReady = useAllAboveFoldReady();
-  const isAboveFoldLoading = !isCreateMode && (!isEntityFullyLoaded || !allBlocksReady);
+  const aboveFoldContext = useAboveFoldLoadingContext();
+  const registeredBlockCount = aboveFoldContext?.registeredCount ?? 0;
+
+  // Cold-load needs to keep the header in skeleton until BOTH the entity
+  // and the active tab body are ready, so they flip together. The page has
+  // a TabOutlet block, so we expect at least one above-fold block to
+  // register from the active tab. Until that block registers we treat the
+  // page as still loading — otherwise the brief window between
+  // "entity loaded" and "tab block registered" would flip the header to
+  // real and then back to skeleton (visible flicker on cold-load).
+  const hasTabOutletBlock = useMemo(
+    () =>
+      Object.values(pageConfig.blocks || {}).some(
+        (block: any) => block?.outlet === "TabOutlet",
+      ),
+    [pageConfig.blocks],
+  );
+  const expectingTabBlock = !isCreateMode && hasTabOutletBlock && registeredBlockCount === 0;
+  const isAboveFoldLoading =
+    !isCreateMode && (!isEntityFullyLoaded || !allBlocksReady || expectingTabBlock);
   const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
-  const isBlocksLoading = isCreateMode ? false : (!selectedEntity || shouldShowSkeleton);
+
+  // Sticky "we've seen real content for this entity" — once the active tab
+  // has registered AND reached ready, keep header in real-content state
+  // across tab swaps so a freshly mounted tab's not-ready block doesn't
+  // reflash the header skeleton. Resets on entity change.
+  const entityId = selectedEntity?.id;
+  const [hasSeenReady, setHasSeenReady] = useState(false);
+  useEffect(() => {
+    setHasSeenReady(false);
+  }, [entityId]);
+  useEffect(() => {
+    if (!isAboveFoldLoading && registeredBlockCount > 0) {
+      setHasSeenReady(true);
+    }
+  }, [isAboveFoldLoading, registeredBlockCount]);
+
+  const isBlocksLoading = isCreateMode
+    ? false
+    : (!selectedEntity || (!hasSeenReady && shouldShowSkeleton));
 
   // Compact mode: hide Cover/Avatar when non-default tab is active
   // On mount: check URL hash to determine initial state (avoids page skeleton flash for non-default tabs)

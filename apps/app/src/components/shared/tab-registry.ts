@@ -9,6 +9,7 @@
  */
 import React from 'react';
 import { EditFormSkeleton } from '../edit/EditFormSkeleton';
+import { EditChildTableSkeleton } from '../edit/tabs/EditChildTableSkeleton';
 import { PetHealthTabSkeleton } from '../pet/tabs/PetHealthTabSkeleton';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
@@ -51,10 +52,10 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
       isFullscreen: props?.mode === 'fullscreen',
     });
   }
-  if (
-    componentName === 'EditChildTableTab' ||
-    componentName === 'EditChildMatrixTab'
-  ) {
+  if (componentName === 'EditChildTableTab') {
+    return React.createElement(EditChildTableSkeleton, { fields: props?.fields });
+  }
+  if (componentName === 'EditChildMatrixTab') {
     return null;
   }
   if (props?.mode === 'fullscreen') {

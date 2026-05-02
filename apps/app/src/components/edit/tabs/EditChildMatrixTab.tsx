@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore, syncQueueService, toast } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import {
@@ -686,6 +687,9 @@ export function EditChildMatrixTab({
 
   const hasRowHeader = !!parsed.rowHeader;
   const isLoading = !firstLoaded || columnsLoading || cellsLoading;
+
+  // Coordinate edit-page cold-load (header + matrix flip atomically).
+  useAboveFoldBlock("edit-tab-body", !!selectedEntity && !isLoading);
   const showEmpty =
     !isLoading && allRows.length === 0 && columnEntities.length === 0;
   const skeletonColumnCount = Math.max(

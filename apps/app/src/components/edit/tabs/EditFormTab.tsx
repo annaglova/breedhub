@@ -1,5 +1,6 @@
 import { DynamicForm } from "@/components/edit/DynamicForm";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import { extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
@@ -33,6 +34,12 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
 
   const selectedEntity = useSelectedEntity();
   const validateRef = useRef<(() => boolean) | undefined>(undefined);
+
+  // Coordinate edit-page cold-load: keep above-fold gate closed until the
+  // entity (and therefore the form) is ready, so EditNameOutlet's header
+  // skeleton flips together with the form fields. No-op outside an
+  // AboveFoldLoadingProvider.
+  useAboveFoldBlock("edit-tab-body", !!selectedEntity || !!isCreateMode);
 
   const handleCreated = useCallback(async (entity: any) => {
     const slug = entity.slug || generateSlug(entity.name || '', entity.id);

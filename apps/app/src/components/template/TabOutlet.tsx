@@ -169,7 +169,12 @@ export function TabOutlet({
   const renderSkeleton = () => {
     const allTabCount = tabs ? Object.keys(tabs).length : 4;
     const visibleSectionCount = Object.keys(visibleTabs).length || allTabCount;
-    const sectionCount = Math.min(visibleSectionCount, SCROLL_MODE_SECTION_CAP);
+    // Scroll mode = above-fold preview (2 sections cover viewport before
+    // real per-tab skeletons mount). Tabs mode = single active tab visible
+    // at a time, so one body section is enough to fill the area until the
+    // tab's own skeleton flips in.
+    const sectionCount =
+      tabMode === "tabs" ? 1 : Math.min(visibleSectionCount, SCROLL_MODE_SECTION_CAP);
     const PILL_WIDTHS = [72, 96, 80, 64, 88, 76];
 
     return (
@@ -194,26 +199,13 @@ export function TabOutlet({
     );
   };
 
-  // In edit mode: only render skeleton when loading (one-tab-at-a-time, no
-  // above-fold coordination; the skeleton fills the area).
-  if (isLoading && tabMode === "tabs") {
-    return renderSkeleton();
-  }
-
-  // Scroll mode: render skeleton + TabOutletRenderer in the same parent
-  // so the renderer stays mounted across the loading→loaded flip (no
-  // unmount/remount that would lose tab fetch state and re-fire chunk
-  // downloads). Skeleton shown when isLoading; renderer takes over
-  // visually once isLoading flips false.
-  //
-  // We use display:none (not visibility:hidden + grid overlay) on the
-  // renderer while loading so its full vertical extent (~5000px for a
-  // pet with 8 tabs) doesn't push the page height during cold-load —
-  // skeleton alone defines the loading-state height. display:none keeps
-  // the React subtree mounted, so tab data fetches and chunk downloads
-  // already in flight survive the flip.
-
-  const showSkeletonOverlay = isScrollMode && isLoading;
+  // Scroll mode keeps the page-level skeleton overlay (above-fold preview
+  // for public detail pages). Tabs mode (edit) mirrors TabPageTemplate's
+  // view pattern: TabOutletRenderer renders directly so the active tab's
+  // Suspense fallback (column-aware) and `useAboveFoldBlock` registration
+  // both work — the renderer swaps PageMenu↔PageMenuSkeleton internally
+  // based on `pageLoading`, matching the per-block atomic flip from view.
+  const showSkeletonOverlay = isLoading && isScrollMode;
 
   return (
     <div className={className}>
@@ -236,6 +228,7 @@ export function TabOutlet({
           onDefaultTabChange={onDefaultTabChange}
           isCreateMode={isCreateMode}
           onCreateNameChange={onCreateNameChange}
+          isLoading={isLoading}
           aboveFoldReadyCallbacks={isScrollMode ? aboveFoldReadyCallbacks : undefined}
         />
       </div>

@@ -3,7 +3,7 @@ import { SearchInput } from "@ui/components/form-inputs/search-input";
 import { Plus } from "lucide-react";
 import { TabsContainer, Tab } from "../tabs/TabsContainer";
 import { TabActionsHeader } from "../tabs/TabActionsHeader";
-import { PageMenu } from "../tabs/PageMenu";
+import { PageMenu, PageMenuSkeleton } from "../tabs/PageMenu";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
 import {
   getDefaultTabFragment,
@@ -266,18 +266,24 @@ export function TabOutletRenderer({
 
   return (
     <>
-      {/* PageMenu - Sticky horizontal tab bar */}
+      {/* PageMenu - Sticky horizontal tab bar (skeleton during cold-load
+          so pills flip atomically with header / tab body — mirrors the
+          PageMenu↔PageMenuSkeleton swap in TabPageTemplate). */}
       <div
         ref={pageMenuRef}
         className="sticky z-30 mb-6 -mt-px"
         style={{ top: `${pageMenuTop}px` }}
       >
-        <PageMenu
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={wrappedHandleTabChange}
-          mode={tabMode}
-        />
+        {pageLoading ? (
+          <PageMenuSkeleton tabCount={tabs.length || 4} />
+        ) : (
+          <PageMenu
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={wrappedHandleTabChange}
+            mode={tabMode}
+          />
+        )}
         {/* TabActionsHeader inside sticky wrapper (like fullscreen mode) */}
         {activeTabData?.actionTypes?.length && (
           <TabActionsHeader

@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import { dictionaryStore, getChildField, spaceStore, useTabData } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import type {
@@ -321,6 +322,11 @@ export function EditChildTableTab({
   const isLoading = readFrom ? singleResult.isLoading : legacyResult.isLoading;
   const error = readFrom ? singleResult.error : legacyResult.error;
   const refetch = readFrom ? singleResult.refetch : legacyResult.refetch;
+
+  // Coordinate edit-page cold-load with header skeleton (atomic flip).
+  // Block stays not-ready until parent entity and child data are loaded.
+  // No-op outside an AboveFoldLoadingProvider.
+  useAboveFoldBlock("edit-tab-body", !!entityId && !isLoading);
 
   // Dialog state
   const [editingRecord, setEditingRecord] = useState<Record<string, any> | null>(null);
