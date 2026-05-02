@@ -104,6 +104,10 @@ export function PetChildrenTab({
   const selectedEntity = useSelectedEntity();
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
+  // Tab fullscreen (TabPageTemplate, /{slug}/{tabSlug}) is the only mode with
+  // infinite scroll. Page fullscreen (/{slug}#tabHash) keeps limits — the
+  // "All N loaded" hint and infinite-scroll trigger are misleading there.
+  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer + page fullscreen: load limited data (config limit applies)
   const drawerResult = useTabData({
@@ -167,8 +171,6 @@ export function PetChildrenTab({
     if (litters.length <= 1) return litters;
     return litters.slice(0, -1); // Hide last potentially incomplete litter
   }, [litters, isFullscreen]);
-
-  const hiddenLittersCount = litters.length - visibleLitters.length;
 
   // Count total children across all litters
   const totalChildren = useMemo(() => {
@@ -250,17 +252,8 @@ export function PetChildrenTab({
         </span>
       )}
 
-      {/* Hidden litters hint (drawer mode only) */}
-      {!isFullscreen && hiddenLittersCount > 0 && (
-        <div className="py-3 flex justify-center">
-          <span className="text-muted-foreground text-sm">
-            more in fullscreen
-          </span>
-        </div>
-      )}
-
-      {/* Infinite scroll trigger & loading indicator */}
-      {isFullscreen && (
+      {/* Infinite scroll trigger & loading indicator — tab fullscreen only */}
+      {isTabFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">

@@ -97,6 +97,10 @@ export function PetSiblingsTab({
   const selectedEntity = useSelectedEntity();
   const petId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value;
+  // Tab fullscreen (TabPageTemplate, /{slug}/{tabSlug}) is the only mode with
+  // infinite scroll. Page fullscreen (/{slug}#tabHash) keeps limits — the
+  // "All N loaded" hint and infinite-scroll trigger are misleading there.
+  const isTabFullscreen = spaceStore.isTabFullscreen.value;
 
   // Drawer mode: load limited data
   const drawerResult = useTabData({
@@ -246,8 +250,8 @@ export function PetSiblingsTab({
         </span>
       )}
 
-      {/* Infinite scroll trigger & loading indicator */}
-      {isFullscreen && (
+      {/* Infinite scroll trigger & loading indicator — tab fullscreen only */}
+      {isTabFullscreen && (
         <div ref={loadMoreRef} className="py-4 flex justify-center">
           {isLoadingMore && (
             <div className="flex items-center gap-2 text-secondary">
