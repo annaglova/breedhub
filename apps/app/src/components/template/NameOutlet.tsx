@@ -24,6 +24,11 @@ import {
 } from "@ui/components/tooltip";
 import { Heart, MoreVertical, Pencil } from "lucide-react";
 import { NavigationButtons } from "./cover/NavigationButtons";
+import { NavigationButtonsSkeleton } from "./cover/NavigationButtonsSkeleton";
+import {
+  ActionButtonsSkeleton,
+  type ActionSkeletonItem,
+} from "./ActionButtonsSkeleton";
 
 interface NameOutletProps {
   entity?: any;
@@ -153,15 +158,46 @@ export function NameOutlet({
         {children}
       </div>
 
-      {/* Navigation buttons - top right (default/gray when sticky or alwaysShowNavigation) */}
+      {/* Navigation buttons - top right (default/gray when sticky or
+          alwaysShowNavigation). Swapped for a same-shape skeleton while
+          loading so the sticky header doesn't show real nav arrows next to
+          a still-skeletoned name. */}
       {(onTop || alwaysShowNavigation) && (
         <div className="absolute right-4 sm:right-0 top-4 sm:top-0">
-          <NavigationButtons mode="default" entityType={entityType} />
+          {isLoading ? (
+            <NavigationButtonsSkeleton mode="default" />
+          ) : (
+            <NavigationButtons mode="default" entityType={entityType} />
+          )}
         </div>
       )}
 
-      {/* Action buttons - bottom right */}
-      {onTop && (
+      {/* Action buttons - bottom right. While loading we render the same
+          row as a config-driven skeleton — Edit (when applicable),
+          Patronate (icon-only outside xl+fullscreen), and the always-on `⋮`
+          dropdown circle. Same flex slot + gap as the real buttons, so the
+          swap doesn't shift anything. */}
+      {onTop && isLoading && (
+        <div className="absolute bottom-2 right-4 sm:right-0 flex gap-1">
+          <ActionButtonsSkeleton
+            items={[
+              ...(showEditButton
+                ? ([
+                    { id: "edit", label: "Edit", extraClassName: "mr-4" },
+                  ] as ActionSkeletonItem[])
+                : []),
+              {
+                id: "support",
+                label: "Patronate",
+                iconOnly: !showFullPatronateButton,
+              },
+            ]}
+            hasDropdown={true}
+          />
+        </div>
+      )}
+
+      {onTop && !isLoading && (
         <div className="absolute bottom-2 right-4 sm:right-0 flex gap-1">
           {/* Edit button - only on md+ screens, with extra spacing from action buttons */}
           {showEditButton && (

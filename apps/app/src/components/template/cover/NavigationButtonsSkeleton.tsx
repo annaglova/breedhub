@@ -1,4 +1,10 @@
 interface NavigationButtonsSkeletonProps {
+  /** Mirrors the real `NavigationButtons` mode prop. `white` for cover
+   *  overlays (the cover background is slate-200, so the pills use
+   *  `bg-slate-300/50` to stay visible). `default` for the white
+   *  card-ground (sticky NameOutlet) — flat `bg-slate-200` matches the
+   *  rest of the card-ground skeletons. */
+  mode?: "white" | "default";
   className?: string;
 }
 
@@ -8,18 +14,20 @@ interface NavigationButtonsSkeletonProps {
  * Two grouped pill halves whose dimensions are inherited from the live
  * button classes (`flex items-center justify-center px-2.5 text-xl`) plus a
  * 20px spacer instead of an icon — so width and height auto-match the real
- * NavigationButtons, eliminating the position jump on hand-off. Fill tint
- * matches the legacy cover-skeleton circles (`bg-slate-300/50`), since the
- * cover background is slate-200 and a flat slate-200 pill would disappear.
+ * NavigationButtons, eliminating the position jump on hand-off.
  */
 export function NavigationButtonsSkeleton({
+  mode = "white",
   className = "",
 }: NavigationButtonsSkeletonProps) {
   // Border on every side except the inner edge — matches the live
   // NavigationButtons' 1px border, keeps both halves the exact same height
   // as the real buttons, and preserves the hairline gap between halves.
-  const baseHalf =
-    "flex items-center justify-center px-2.5 text-xl bg-slate-300/50 dark:bg-slate-600/50 border-slate-300/50 dark:border-slate-600/50";
+  const fillClass =
+    mode === "white"
+      ? "bg-slate-300/50 dark:bg-slate-600/50 border-slate-300/50 dark:border-slate-600/50"
+      : "bg-slate-200 dark:bg-slate-700 border-slate-200 dark:border-slate-700";
+  const baseHalf = `flex items-center justify-center px-2.5 text-xl ${fillClass}`;
 
   return (
     <div

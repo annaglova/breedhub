@@ -184,7 +184,7 @@ export function AvatarOutlet({
         >
           {isLoading ? (
             <ActionButtonsSkeleton
-              buttonItems={buttonItems}
+              items={buttonItems.map(({ id, label }) => ({ id, label }))}
               hasDropdown={hasMenuItems}
             />
           ) : (
