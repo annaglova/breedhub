@@ -154,10 +154,10 @@ export function TabPageTemplate({
     return null;
   }
 
-  // Entity not loaded or wrong entity selected - return null for instant transition
-  if (!selectedEntity || selectedEntity.id !== entityId) {
-    return null;
-  }
+  // Entity may still be loading (cold cache, fresh device, slug→id resolution).
+  // Render the page in skeleton state instead of blanking — matches how
+  // EditPageTemplate behaves so cold-load looks identical between view and edit.
+  const isEntityLoading = !selectedEntity || selectedEntity.id !== entityId;
 
   // Tab not found
   if (!currentTab) {
@@ -244,6 +244,7 @@ export function TabPageTemplate({
                   entity={selectedEntity}
                   pageConfig={pageConfig}
                   spacePermissions={spacePermissions}
+                  isLoading={isEntityLoading}
                 />
               </div>
             )}
@@ -381,6 +382,7 @@ export function TabPageTemplate({
                   pedigreeZoom={pedigreeZoom}
                   stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
                   linkToPedigree={linkToPedigree}
+                  isLoading={isEntityLoading}
                 />
               </TabErrorBoundary>
             </div>
