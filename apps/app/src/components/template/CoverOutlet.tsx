@@ -9,6 +9,7 @@ import { Expand } from "lucide-react";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NavigationButtons } from "./cover/NavigationButtons";
+import { NavigationButtonsSkeleton } from "./cover/NavigationButtonsSkeleton";
 
 /**
  * Calculate cover dimensions based on container width
@@ -169,31 +170,24 @@ export function CoverOutlet({
       className={`relative flex justify-center overflow-hidden sm:rounded-lg px-3 pt-3 sm:px-6 shadow-[0_1px_2px_rgba(17,17,26,0.16),0_2px_6px_rgba(17,17,26,0.14)] sm:pb-3 sm:pt-6 mb-6 ${className}`}
       style={coverStyle}
     >
-      {/* Skeleton overlay - shown when loading */}
+      {/* Background skeleton fill (cover area while loading) */}
       {isLoading && (
         <>
-          {/* Background skeleton */}
           <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse z-50" />
-
-          {/* Top gradient overlay (same as real cover) */}
           <div className="absolute top-0 z-50 h-28 w-full bg-gradient-to-b from-slate-300/40 to-transparent dark:from-slate-600/40" />
-
-          {/* Navigation buttons placeholder */}
-          <div className="absolute top-4 right-6 z-50 flex gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
-            <div className="w-8 h-8 rounded-full bg-slate-300/50 dark:bg-slate-600/50" />
-          </div>
         </>
       )}
 
       {/* Top gradient overlay */}
       <div className="absolute top-0 z-10 h-28 w-full bg-gradient-to-b from-[#200e4c]/40 to-transparent" />
 
-      {/* Cover component wrapper - always rendered to trigger data loading */}
-      <div className={`flex w-full h-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl ${isLoading ? "invisible" : ""}`}>
+      {/* Cover component wrapper - the entity-specific children stay invisible
+          while loading, but the navigation row renders the skeleton in the
+          same flex slot so position never shifts when real buttons take over. */}
+      <div className="flex w-full h-full max-w-3xl flex-col lg:max-w-4xl xxl:max-w-5xl">
         {/* Navigation buttons */}
-        <div className="z-40 flex w-full pb-2">
-          {showExpandButton && (
+        <div className="z-[60] flex w-full pb-2">
+          {showExpandButton && !isLoading && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -206,14 +200,20 @@ export function CoverOutlet({
               <TooltipContent side="bottom">Full screen view</TooltipContent>
             </Tooltip>
           )}
-          <NavigationButtons mode="white" className="sticky top-0 ml-auto" entityType={entityType} />
+          {isLoading ? (
+            <NavigationButtonsSkeleton className="ml-auto" />
+          ) : (
+            <NavigationButtons mode="white" className="sticky top-0 ml-auto" entityType={entityType} />
+          )}
         </div>
 
         {/* Gradient overlay */}
         <div className="absolute inset-0 size-full bg-gradient-to-r from-primary-50/10 to-primary-400/85 z-10" />
 
-        {/* Cover content (entity-specific) */}
-        {children}
+        {/* Cover content (entity-specific) — invisible while loading */}
+        <div className={`flex flex-col flex-1 ${isLoading ? "invisible" : ""}`}>
+          {children}
+        </div>
       </div>
     </div>
   );
