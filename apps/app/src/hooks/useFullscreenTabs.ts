@@ -91,7 +91,13 @@ export function useFullscreenTabs({
       }
 
       const storedCounts = spaceStore.getTabLoadedCounts(entityId);
-      if (Object.keys(storedCounts).length > 0) {
+      const hasNonZero = Object.values(storedCounts).some((n) => n > 0);
+      if (Object.keys(storedCounts).length > 0 && hasNonZero) {
+        // Stored counts only short-circuit if at least one is non-zero. An
+        // all-zero map usually means a previous partial load fired before the
+        // entity / partition was fully resolved (partition_id blank, queries
+        // returned 0 records); without this check the bad cache sticks for
+        // the whole session and pills never appear.
         setLoadedCounts(storedCounts);
         setCountsLoading(false);
         return;
@@ -102,10 +108,18 @@ export function useFullscreenTabs({
       for (const [tabId, config] of Object.entries(
         tabsConfig,
       ) as Array<[string, TabConfig]>) {
-        if (!config.fullscreenButton || !config.dataSource) continue;
+        // dataSource is an array (DataSourceConfig[]) on tab configs; tabs
+        // themselves consume `dataSource[0]`. Mirror that here, otherwise
+        // tabDataService.loadTabData receives an array and short-circuits
+        // with "dataSource with type is required" → every tab gets cached
+        // as count 0 and pills never appear.
+        const ds = Array.isArray(config.dataSource)
+          ? config.dataSource[0]
+          : config.dataSource;
+        if (!config.fullscreenButton || !ds) continue;
 
         try {
-          const records = await tabDataService.loadTabData(entityId, config.dataSource);
+          const records = await tabDataService.loadTabData(entityId, ds);
           counts[tabId] = records.length;
           spaceStore.setTabLoadedCount(entityId, tabId, records.length);
         } catch (error) {
@@ -132,10 +146,44 @@ export function useFullscreenTabs({
     [loadedCounts, tabsConfig],
   );
 
-  const currentTab = useMemo(
-    () => fullscreenTabs.find((tab) => tab.fragment === activeTabSlug),
-    [activeTabSlug, fullscreenTabs],
-  );
+  // Resolve the active tab from `tabsConfig` (config-level, every fullscreen-eligible
+  // tab regardless of loadedCount), not from `fullscreenTabs` (filtered for PageMenu
+  // pills via `loadedCount > 0`). On direct navigation to /{slug}/{tabSlug} with no
+  // stored counts, `loadedCounts` is `{}` while `loadTabCounts` runs — the filter
+  // would drop the requested tab and TabPageTemplate would render a 404, even though
+  // the tab definitely exists. PageMenu still uses `fullscreenTabs` so empty tabs
+  // stay hidden from the menu, but the URL-requested tab always renders.
+  const currentTab = useMemo<FullscreenTab | undefined>(() => {
+    for (const [tabId, config] of Object.entries(tabsConfig)) {
+      if (!config.fullscreenButton) continue;
+      if (getTabFragment(tabId, config) !== activeTabSlug) continue;
+
+      const Component = TAB_COMPONENT_REGISTRY[config.component];
+      if (!Component) {
+        console.warn(
+          `[TabPageTemplate] Component "${config.component}" not found in registry`,
+        );
+        return undefined;
+      }
+
+      return {
+        id: tabId,
+        fragment: getTabFragment(tabId, config),
+        label: getTabLabel(config.component, config.label),
+        icon: config.icon || { name: "Circle", source: "lucide" },
+        component: Component,
+        badge: config.badge,
+        fullscreenButton: config.fullscreenButton,
+        expandAlways: config.expandAlways,
+        dataSource: config.dataSource,
+        actionTypes: config.actionTypes,
+        focusMode: config.focusMode,
+        zoomControl: config.zoomControl,
+        _order: config.order,
+      };
+    }
+    return undefined;
+  }, [activeTabSlug, tabsConfig]);
 
   const handleTabChange = useCallback(
     (fragment: string) => {
