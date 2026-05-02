@@ -155,7 +155,7 @@ export function AvatarOutlet({
               overlay (z-50) so the upper half isn't sliced off. */}
           {hasAvatar ? (
             <div
-              className={`absolute z-[60] ${avatarConfig.skeletonLeft} rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
+              className={`absolute z-[60] ${avatarConfig.skeletonLeft} rounded-full bg-slate-200 dark:bg-slate-700 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
             />
           ) : null}
 
