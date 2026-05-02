@@ -2501,6 +2501,7 @@ class SpaceStore {
       orderBy?: string;
       orderDirection?: 'asc' | 'desc';
       select?: string[];
+      linkedFilters?: ReadonlyArray<LinkedFilterSpec>;
     },
     partitionConfig: PartitionConfig | undefined,
     partitionValue: string | undefined
@@ -2512,6 +2513,7 @@ class SpaceStore {
         parentField: parentIdField,
         partitionField: partitionConfig?.childFilterField,
         orderingFields: orderBy ? [orderBy] : undefined,
+        linkedFilters: options.linkedFilters,
       });
       const query = applyChildListQueryOptions(
         getSupabaseSelectClient<ChildSourceRow>()
@@ -2525,6 +2527,7 @@ class SpaceStore {
           orderDirection,
           partitionField: partitionConfig?.childFilterField,
           partitionValue,
+          linkedFilters: options.linkedFilters,
         },
       );
 
