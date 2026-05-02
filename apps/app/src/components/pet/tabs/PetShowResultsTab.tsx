@@ -1,4 +1,5 @@
 import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { formatDate } from "@/utils/format";
@@ -12,6 +13,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { PetShowResultsTabSkeleton } from "./PetShowResultsTabSkeleton";
 
 /**
  * Show result entry (UI format)
@@ -80,6 +82,11 @@ export function PetShowResultsTab({
     : drawerResult.isLoading;
   const error = isFullscreen ? infiniteResult.error : drawerResult.error;
 
+  // Register with AboveFoldLoadingProvider so the page-level skeleton (header
+  // + tab pills) stays visible until this tab's data is also ready, then
+  // flips atomically. No-op outside an AboveFold provider.
+  useAboveFoldBlock("pet-show-results-body", !!petId && !isLoading);
+
   const displayRaw = useDisplayLimit(resultsRaw, dataSource);
 
   // Transform raw data to UI format
@@ -141,9 +148,15 @@ export function PetShowResultsTab({
     return null;
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
+  // Loading skeleton — column-aware in fullscreen (matches the eventual table
+  // outline so cold-load shows a single continuous skeleton across chunk-load
+  // and data-load), shared TabBodySkeleton in drawer/scroll mode.
   if (isLoading) {
-    return <TabBodySkeleton />;
+    return isFullscreen ? (
+      <PetShowResultsTabSkeleton isFullscreen={isFullscreen} />
+    ) : (
+      <TabBodySkeleton />
+    );
   }
 
   // Error state
