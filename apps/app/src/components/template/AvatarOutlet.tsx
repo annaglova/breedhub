@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@ui/components/tooltip";
 import { MoreVertical } from "lucide-react";
+import { ActionButtonsSkeleton } from "./ActionButtonsSkeleton";
 
 // Avatar sizing per mode:
 // - До sm: size-40, -mt-[88px] (обидва режими)
@@ -147,26 +148,13 @@ export function AvatarOutlet({
     <div
       className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-0 sm:pb-3 top-0 ${isLoading ? "z-[55]" : "z-30"} pointer-events-none px-4 sm:px-0 ${className}`}
     >
-      {/* Skeleton overlay - shown when loading */}
-      {isLoading && (
-        <>
-          {/* Avatar skeleton — gray fill with a white ring, identical size
-              to the real avatar. z-[60] lifts it above the cover-skeleton
-              overlay (z-50) so the upper half isn't sliced off. */}
-          {hasAvatar ? (
-            <div
-              className={`absolute z-[60] ${avatarConfig.skeletonLeft} rounded-full bg-slate-200 dark:bg-slate-700 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
-            />
-          ) : null}
-
-          {/* Action buttons skeleton - only if hasActions */}
-          {hasActions && (
-            <div className="absolute right-0 mb-1 flex gap-2 z-[60]">
-              <div className="w-20 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-              <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-            </div>
-          )}
-        </>
+      {/* Avatar skeleton — gray fill + white ring, identical size to the real
+          avatar. z-[60] lifts it above the cover-skeleton overlay (z-50) so
+          the upper half isn't sliced off. */}
+      {isLoading && hasAvatar && (
+        <div
+          className={`absolute z-[60] ${avatarConfig.skeletonLeft} rounded-full bg-slate-200 dark:bg-slate-700 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
+        />
       )}
 
       {/* Avatar - entity-specific component via children, or spacer to maintain layout */}
@@ -177,10 +165,22 @@ export function AvatarOutlet({
         <div className={avatarConfig.size} />
       )}
 
-      {/* Action buttons - strictly config-driven, no fallbacks */}
-      {/* Hidden when loading to prevent button outlines showing through skeleton */}
-      {hasActions && (hasButtons || hasMenuItems) && !isLoading && (
-        <div className="mb-1 ml-auto flex gap-2 pointer-events-auto">
+      {/* Action buttons row — strictly config-driven. While loading we render
+          the skeleton in the SAME flex slot (one placeholder per
+          `buttonItem` + a circle for the dropdown when present), so the
+          placeholder count and per-button widths match exactly what the
+          real buttons will measure to. No absolute overlay, no swap jump. */}
+      {hasActions && (hasButtons || hasMenuItems) && (
+        <div
+          className={`mb-1 ml-auto flex gap-2 ${isLoading ? "" : "pointer-events-auto"}`}
+        >
+          {isLoading ? (
+            <ActionButtonsSkeleton
+              buttonItems={buttonItems}
+              hasDropdown={hasMenuItems}
+            />
+          ) : (
+            <>
           {/* Buttons from config (duplicateOnDesktop items) - icon only on mobile, with label on sm+ */}
           {buttonItems.map((item) => (
             <Tooltip key={item.id}>
@@ -246,6 +246,8 @@ export function AvatarOutlet({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+            </>
           )}
         </div>
       )}
