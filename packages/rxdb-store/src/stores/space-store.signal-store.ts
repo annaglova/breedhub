@@ -284,12 +284,32 @@ class SpaceStore {
   }
   
   
-  async initialize() {
-    const startTime = performance.now();
+  /**
+   * In-flight init promise. Concurrent callers (React StrictMode double-mount,
+   * subscribe + initial-check pattern in App.tsx) share one execution instead
+   * of racing past the `initialized.value` guard before either run sets it.
+   * Same idempotent-singleton pattern as `dictionaryStore.inflightDictionary`
+   * and `spaceStore.rpcInflight`.
+   */
+  private initInFlight: Promise<void> | null = null;
 
+  async initialize(): Promise<void> {
     if (this.initialized.value) {
       return;
     }
+    if (this.initInFlight) {
+      return this.initInFlight;
+    }
+    this.initInFlight = this.runInitialize();
+    try {
+      await this.initInFlight;
+    } finally {
+      this.initInFlight = null;
+    }
+  }
+
+  private async runInitialize(): Promise<void> {
+    const startTime = performance.now();
 
     try {
       this.loading.value = true;
