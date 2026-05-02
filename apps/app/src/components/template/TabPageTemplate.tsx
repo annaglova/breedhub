@@ -259,16 +259,27 @@ export function TabPageTemplate({
             ref={contentContainerRef}
             className="w-full"
           >
-            {/* Compact name bar - shown when pedigree focus mode is active */}
+            {/* Compact name bar - shown when pedigree focus mode is active.
+                During cold-load the name link is replaced by a single skel
+                pulse so the compact header flips together with PageMenu /
+                tab body (the regular sticky NameOutlet is hidden in this
+                mode, so it can't act as the header skeleton). */}
             {isPedigreeFocusMode && (
               <div className="sticky top-0 z-30 relative bg-card-ground border-b border-surface-border pb-2">
                 <div className="truncate text-2xl sm:text-3xl font-bold pr-24">
-                  <Link
-                    to={`/${entitySlug}`}
-                    className="text-foreground hover:text-primary"
-                  >
-                    {selectedEntity?.name}
-                  </Link>
+                  {isBlocksLoading ? (
+                    <div
+                      className="h-7 sm:h-8 w-64 max-w-full rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <Link
+                      to={`/${entitySlug}`}
+                      className="text-foreground hover:text-primary"
+                    >
+                      {selectedEntity?.name}
+                    </Link>
+                  )}
                 </div>
                 <div className="absolute right-0 top-0">
                   <NavigationButtons mode="default" entityType={entityType} />
