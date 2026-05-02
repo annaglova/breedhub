@@ -95,21 +95,38 @@ export function EditNameOutlet({
         onTop ? "border-b border-surface-border" : ""
       }`}
     >
-      {isLoading ? (
-        /* Mirrors public NameOutlet skeleton row dimensions for consistency:
-            Row 1 — entity-type label (24 + 8 mb), Row 2 — name (30 + 4 mb).
-            Edit page has no third statistics row, so we stop after row 2. */
+      {/* Skeleton placeholder — kept in normal DOM flow so it owns the block
+          height during cold-load. Real children render absolute+invisible
+          behind it to avoid the layout jump that happens when skeleton ↔
+          real swap with mismatched heights. Same pattern as public
+          NameOutlet. Row dimensions mirror Row 1 (entity-type label) and
+          Row 2 (name) of public NameOutlet. Edit has no statistics row. */}
+      {isLoading && (
+        /* Skeleton drops into the same DOM shape as the real header so the
+           text-line-height stack drives row heights instead of bespoke
+           `h-[30px]` numbers. An invisible `&nbsp;` glyph inside each row
+           forces the browser to apply font-size + line-height even though
+           there is no visible text — without it the empty wrapper collapses
+           to the bar height and renders ~2px shorter than the real text,
+           causing a downward jump on hand-off. The pulsing bar is absolutely
+           positioned and vertically centered so changing its height never
+           affects the row outer height. */
         <div aria-hidden="true">
-          <div className="h-6 mb-2 flex items-center">
-            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          <div className="text-md mb-2 min-h-[1.5rem] relative">
+            <span className="invisible">{"\u00A0"}</span>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
           </div>
-          <div className="h-[30px] mb-1 flex items-center">
-            <div className="h-6 w-72 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold relative">
+            <span className="invisible">{"\u00A0"}</span>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-72 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
           </div>
         </div>
-      ) : (
-      /* Entity type label + Name with link to public page */
-      <div>
+      )}
+
+      {/* Entity type label + Name. Always rendered to keep the data path
+          consistent; absolute+invisible during loading so its height
+          doesn't drive layout (the skeleton above does). */}
+      <div className={isLoading ? "invisible absolute inset-0" : ""}>
         <div className="text-md mb-2 min-h-[1.5rem]">
           {entityTypeLabel && (
             <span className="uppercase">{entityTypeLabel}</span>
@@ -137,7 +154,6 @@ export function EditNameOutlet({
           )}
         </div>
       </div>
-      )}
 
       {/* Navigation buttons - top right when sticky. Swapped for a
           same-shape skeleton during cold-load so the sticky header doesn't
