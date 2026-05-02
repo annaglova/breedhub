@@ -11,6 +11,7 @@ import {
 } from "@ui/components/tooltip";
 import { useNavigate } from "react-router-dom";
 import { NavigationButtons } from "./cover/NavigationButtons";
+import { NavigationButtonsSkeleton } from "./cover/NavigationButtonsSkeleton";
 
 interface EditNameOutletProps {
   entity?: any;
@@ -95,10 +96,16 @@ export function EditNameOutlet({
       }`}
     >
       {isLoading ? (
-        /* Skeleton — in normal flow so it contributes to parent height */
-        <div className="flex flex-col space-y-2 pt-1 pb-3">
-          <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-          <div className="h-8 w-72 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+        /* Mirrors public NameOutlet skeleton row dimensions for consistency:
+            Row 1 — entity-type label (24 + 8 mb), Row 2 — name (30 + 4 mb).
+            Edit page has no third statistics row, so we stop after row 2. */
+        <div aria-hidden="true">
+          <div className="h-6 mb-2 flex items-center">
+            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          </div>
+          <div className="h-[30px] mb-1 flex items-center">
+            <div className="h-6 w-72 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+          </div>
         </div>
       ) : (
       /* Entity type label + Name with link to public page */
@@ -132,10 +139,16 @@ export function EditNameOutlet({
       </div>
       )}
 
-      {/* Navigation buttons - top right when sticky */}
+      {/* Navigation buttons - top right when sticky. Swapped for a
+          same-shape skeleton during cold-load so the sticky header doesn't
+          show real arrows next to a still-skeletoned name. */}
       {onTop && (
         <div className="absolute right-4 sm:right-0 top-0">
-          <NavigationButtons mode="default" entityType={entityType} />
+          {isLoading ? (
+            <NavigationButtonsSkeleton mode="default" />
+          ) : (
+            <NavigationButtons mode="default" entityType={entityType} />
+          )}
         </div>
       )}
 

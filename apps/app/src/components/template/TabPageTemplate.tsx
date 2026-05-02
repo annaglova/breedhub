@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Pencil, Minimize2, Maximize2, Minus, Plus } from "lucide-react";
 import { TabErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 import { NavigationButtons } from "@/components/template/cover/NavigationButtons";
+import { NavigationButtonsSkeleton } from "@/components/template/cover/NavigationButtonsSkeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -268,10 +269,15 @@ export function TabPageTemplate({
               <div className="sticky top-0 z-30 relative bg-card-ground border-b border-surface-border pb-2">
                 <div className="truncate text-2xl sm:text-3xl font-bold pr-24">
                   {isBlocksLoading ? (
+                    /* Match the public NameOutlet name-row skeleton:
+                       30px tall outer with `h-6 w-72 max-w-full` inner bar.
+                       Keeps the sticky header height consistent across modes. */
                     <div
-                      className="h-7 sm:h-8 w-64 max-w-full rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse"
+                      className="h-[30px] mb-1 flex items-center"
                       aria-hidden="true"
-                    />
+                    >
+                      <div className="h-6 w-72 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+                    </div>
                   ) : (
                     <Link
                       to={`/${entitySlug}`}
@@ -282,7 +288,11 @@ export function TabPageTemplate({
                   )}
                 </div>
                 <div className="absolute right-0 top-0">
-                  <NavigationButtons mode="default" entityType={entityType} />
+                  {isBlocksLoading ? (
+                    <NavigationButtonsSkeleton mode="default" />
+                  ) : (
+                    <NavigationButtons mode="default" entityType={entityType} />
+                  )}
                 </div>
               </div>
             )}
