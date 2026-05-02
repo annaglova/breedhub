@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Pencil, Minimize2, Maximize2, Minus, Plus } from "lucide-react";
 import { TabErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
@@ -13,6 +13,11 @@ import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { type FullscreenTab, useFullscreenTabs } from "@/hooks/useFullscreenTabs";
 import { usePedigreeFullscreenControls } from "@/hooks/usePedigreeFullscreenControls";
 import { SpaceProvider } from "@/contexts/SpaceContext";
+import {
+  AboveFoldLoadingProvider,
+  useAllAboveFoldReady,
+  useSkeletonWithDelay,
+} from "@/contexts/AboveFoldLoadingContext";
 import { useSpaceTemplateContext } from "@/hooks/useSpaceTemplateContext";
 import { useStickyName } from "@/hooks/useStickyName";
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
@@ -25,6 +30,49 @@ import { TabActionsHeader } from "@/components/tabs/TabActionsHeader";
 import {
   PedigreeGenerationSelector,
 } from "@/components/shared/pedigree";
+
+/**
+ * Renders children with a coordinated `isBlocksLoading` flag derived from
+ * AboveFoldLoadingContext. Lets us read the context without restructuring
+ * TabPageTemplate's existing hook ordering — used as a render-prop wrapper
+ * inside <AboveFoldLoadingProvider>.
+ *
+ * The above-fold gate ONLY applies during the cold-load for a given entity
+ * (first time blocks register and report ready). Once we've seen the gate
+ * flip ready for this entity, further re-registrations from tab swaps
+ * mustn't drag the header back into skeleton — the user has already seen
+ * real content, so we keep `isBlocksLoading` at false until the entity id
+ * actually changes (tracked via `entityId` reset key).
+ */
+function CoordinatedLoadingState({
+  entityId,
+  isEntityLoading,
+  children,
+}: {
+  entityId: string;
+  isEntityLoading: boolean;
+  children: (isBlocksLoading: boolean) => React.ReactNode;
+}) {
+  const allBlocksReady = useAllAboveFoldReady();
+  const isAboveFoldLoading = isEntityLoading || !allBlocksReady;
+  const shouldShowSkeleton = useSkeletonWithDelay(isAboveFoldLoading);
+
+  // Sticky "we've seen real content for this entity" flag. Resets only when
+  // entityId changes so a new entity does its own cold-load coordination,
+  // but tab swaps within the same entity don't re-skeleton the header.
+  const [hasSeenReady, setHasSeenReady] = useState(false);
+  useEffect(() => {
+    setHasSeenReady(false);
+  }, [entityId]);
+  useEffect(() => {
+    if (!isAboveFoldLoading && !isEntityLoading) {
+      setHasSeenReady(true);
+    }
+  }, [isAboveFoldLoading, isEntityLoading]);
+
+  const isBlocksLoading = isEntityLoading || (!hasSeenReady && shouldShowSkeleton);
+  return <>{children(isBlocksLoading)}</>;
+}
 
 interface TabPageTemplateProps {
   entityType: string;
@@ -193,6 +241,9 @@ export function TabPageTemplate({
       spaceConfigSignal={spaceConfigSignal}
       selectedEntitySignal={selectedEntitySignal}
     >
+     <AboveFoldLoadingProvider>
+      <CoordinatedLoadingState entityId={entityId} isEntityLoading={isEntityLoading}>
+       {(isBlocksLoading) => (
       <div
         className={cn(
           "size-full flex flex-col content-padding",
@@ -244,7 +295,7 @@ export function TabPageTemplate({
                   entity={selectedEntity}
                   pageConfig={pageConfig}
                   spacePermissions={spacePermissions}
-                  isLoading={isEntityLoading}
+                  isLoading={isBlocksLoading}
                 />
               </div>
             )}
@@ -256,7 +307,7 @@ export function TabPageTemplate({
             >
               {/* PageMenu - hidden in pedigree focus mode */}
               {!isPedigreeFocusMode && (
-                (countsLoading || isEntityLoading) ? (
+                (countsLoading || isBlocksLoading) ? (
                   <PageMenuSkeleton
                     tabCount={
                       // Match the eventual pill count by filtering tabsConfig
@@ -393,7 +444,7 @@ export function TabPageTemplate({
                   pedigreeZoom={pedigreeZoom}
                   stickyScrollbarTop={isPedigreeFocusMode ? (COMPACT_BAR_HEIGHT + 52) : (PAGE_MENU_TOP + 102)}
                   linkToPedigree={linkToPedigree}
-                  isLoading={isEntityLoading}
+                  isLoading={isBlocksLoading}
                 />
               </TabErrorBoundary>
             </div>
@@ -406,6 +457,9 @@ export function TabPageTemplate({
           contentContainer={contentContainerRef.current}
         />
       </div>
+       )}
+      </CoordinatedLoadingState>
+     </AboveFoldLoadingProvider>
     </SpaceProvider>
   );
 }

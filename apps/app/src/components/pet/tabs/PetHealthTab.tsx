@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { formatDate } from "@/utils/format";
 import {
@@ -11,6 +12,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { PetHealthTabSkeleton } from "./PetHealthTabSkeleton";
 
 /**
  * Health exam entry (UI format)
@@ -72,6 +74,11 @@ export function PetHealthTab({
     ? infiniteResult.isLoading
     : drawerResult.isLoading;
   const error = isFullscreen ? infiniteResult.error : drawerResult.error;
+
+  // Register with AboveFoldLoadingProvider so the page-level skeleton (header
+  // + tab pills) stays visible until this tab's data is also ready, then
+  // flips atomically. No-op outside an AboveFold provider (returns null).
+  useAboveFoldBlock("pet-health-body", !!petId && !isLoading);
 
   const displayRaw = useDisplayLimit(resultsRaw, dataSource);
 
@@ -142,53 +149,21 @@ export function PetHealthTab({
     );
   }
 
-  // Same grid template for header / rows / skeleton — keeps cold-load and
-  // real table column-aligned (no jump from generic placeholder to grid).
+  if (isLoading) {
+    return <PetHealthTabSkeleton isFullscreen={isFullscreen} />;
+  }
+
+  // Same grid template for header / rows — keeps cold-load skeleton and
+  // real table column-aligned (skeleton lives in PetHealthTabSkeleton).
   const gridCols = isFullscreen
     ? "grid-cols-[132px_184px_auto] lg:grid-cols-[132px_284px_auto]"
     : "grid-cols-[132px_auto] sm:grid-cols-[184px_auto] md:grid-cols-[86px_184px_auto]";
   const dateCellVisibility = isFullscreen ? "block" : "hidden md:block";
-  const skeletonRowCount = isFullscreen ? 12 : 5;
 
   return (
     <>
       <div className="card card-rounded flex flex-auto flex-col p-6 lg:px-8 cursor-default">
-        {isLoading ? (
-          <div className="grid" aria-busy="true" aria-live="polite">
-            <div
-              className={cn(
-                "grid gap-3 border-b border-border px-6 py-3 font-bold text-secondary lg:px-8",
-                gridCols
-              )}
-            >
-              <div className={dateCellVisibility}>Date</div>
-              <div>Object</div>
-              <div>Result</div>
-            </div>
-            {Array.from({ length: skeletonRowCount }).map((_, index) => (
-              <div
-                key={`skeleton-${index}`}
-                className={cn(
-                  "grid items-center gap-3 px-6 py-2 lg:px-8",
-                  gridCols,
-                  index % 2 === 0 ? "bg-card-ground" : "bg-even-card-ground"
-                )}
-              >
-                {/* h-[21px] flex wrappers keep skeleton row total = real row
-                    total (text-base content height = 21px on this row). */}
-                <div className={cn("h-[21px] flex items-center", dateCellVisibility)}>
-                  <div className="h-3.5 w-20 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-                </div>
-                <div className="h-[21px] flex items-center">
-                  <div className="h-3.5 w-28 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-                </div>
-                <div className="h-[21px] flex items-center">
-                  <div className="h-3.5 w-40 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : results.length > 0 ? (
+        {results.length > 0 ? (
           <div className="grid">
             {/* Header */}
             <div

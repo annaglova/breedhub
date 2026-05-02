@@ -9,6 +9,7 @@
  */
 import React from 'react';
 import { EditFormSkeleton } from '../edit/EditFormSkeleton';
+import { PetHealthTabSkeleton } from '../pet/tabs/PetHealthTabSkeleton';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
 type TabModule = {
@@ -23,21 +24,40 @@ type TabModuleLoader = () => Promise<TabModule>;
  * - EditFormTab uses a field-aware EditFormSkeleton built from the same
  *   `fields` config the real form will render — keeps cold-load and
  *   real-form structurally aligned (groups, columns, control count).
+ * - PetHealthTab uses its column-aware PetHealthTabSkeleton (extracted
+ *   from the lazy chunk) so the table outline stays visible across the
+ *   chunk-load → data-load gap — without it, cold-load shows a gap of
+ *   "header skeleton + empty body" while the chunk downloads.
  * - EditChildTableTab / EditChildMatrixTab render their own column-aware
  *   skeleton on data load; using the generic TabBodySkeleton during chunk
  *   download would add a visually unrelated intermediate stage, so we use
  *   a null fallback and let the tab's own skeleton handle the wait.
- * - All other tabs fall back to the shared TabBodySkeleton.
+ * - In fullscreen tab mode (single tab visible — TabPageTemplate), we skip
+ *   the generic TabBodySkeleton entirely: a chunk-load gap that flashes a
+ *   3-rect placeholder before each tab's native skeleton is jarring.
+ *   Returning null keeps the area empty during chunk download, then the
+ *   tab's own column-aware skeleton appears — eliminates the
+ *   "default-skeleton → native-skeleton → data" three-stage flicker on
+ *   tab switches.
+ * - All other tabs (drawer/scroll mode) fall back to the shared
+ *   TabBodySkeleton so layout reservation stays consistent.
  */
 function buildFallback(componentName: string, props: any): React.ReactElement | null {
   if (componentName === 'EditFormTab') {
     return React.createElement(EditFormSkeleton, { fields: props?.fields });
   }
+  if (componentName === 'PetHealthTab') {
+    return React.createElement(PetHealthTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
   if (
     componentName === 'EditChildTableTab' ||
-    componentName === 'EditChildMatrixTab' ||
-    componentName === 'PetHealthTab'
+    componentName === 'EditChildMatrixTab'
   ) {
+    return null;
+  }
+  if (props?.mode === 'fullscreen') {
     return null;
   }
   return React.createElement(TabBodySkeleton);
