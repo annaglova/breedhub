@@ -1,5 +1,5 @@
 import { PetSelectorModal } from "@/components/pet/PetSelectorModal";
-import { spaceStore, supabase } from "@breedhub/rxdb-store";
+import { dictionaryStore, spaceStore } from "@breedhub/rxdb-store";
 import { FormField } from "@ui/components/form-field";
 import { cn } from "@ui/lib/utils";
 import { Mars, Venus, X } from "lucide-react";
@@ -72,22 +72,29 @@ export function PetPickerInput({
     return () => { cancelled = true; };
   }, [value]);
 
-  // Fetch allowed breeds from related_breed table
+  // Fetch allowed breeds via the dictionary store junction lookup so the
+  // call is deduped + offline-aware. Direct supabase.from() here used to
+  // bypass both. `related_breed` includes self-reference, so the result is
+  // already complete; fall back to `[breed_id]` only when the junction is
+  // empty (e.g. a brand-new breed with no mating links yet).
   useEffect(() => {
-    if (!selectedEntity?.breed_id) return;
+    const breedId = selectedEntity?.breed_id;
+    if (!breedId) return;
 
-    supabase
-      .from("related_breed")
-      .select("connected_breed_id")
-      .eq("breed_id", selectedEntity.breed_id)
-      .then(({ data }) => {
-        if (data?.length) {
-          // related_breed includes self-reference, no need to add manually
-          setAllowedBreedIds(data.map((r: any) => r.connected_breed_id));
-        } else {
-          setAllowedBreedIds([selectedEntity.breed_id]);
+    let cancelled = false;
+    dictionaryStore
+      .getJunctionIds("related_breed", "connected_breed_id", "breed_id", breedId)
+      .then((ids) => {
+        if (cancelled) return;
+        setAllowedBreedIds(ids.length > 0 ? ids : [breedId]);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("[PetPickerInput] Failed to fetch allowed breeds:", err);
+          setAllowedBreedIds([breedId]);
         }
       });
+    return () => { cancelled = true; };
   }, [selectedEntity?.breed_id]);
 
   const handleSelect = useCallback(

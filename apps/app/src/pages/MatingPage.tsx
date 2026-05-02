@@ -14,7 +14,7 @@ import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenu } from "@/hooks/usePageMenu";
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
 import type { PageConfig } from "@/types/page-config.types";
-import { spaceStore, supabase, toast, usePedigree } from "@breedhub/rxdb-store";
+import { dictionaryStore, spaceStore, toast, usePedigree } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
   DropdownMenu,
@@ -127,7 +127,10 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
     string[] | null
   >(null);
 
-  // Fetch allowed breeds when mother is selected (for father selection)
+  // Fetch allowed breeds via the dictionary store junction lookup. Direct
+  // supabase.from('related_breed') used to bypass the in-flight dedup that
+  // would otherwise share one round-trip when PetPickerInput on the page
+  // already triggered the same lookup.
   useEffect(() => {
     const motherBreedId = mother?.breedId;
     if (!motherBreedId) {
@@ -135,35 +138,28 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
       return;
     }
 
-    const fetchAllowedBreeds = async () => {
-      try {
-        // Get related breeds from related_breed table
-        const { data } = await supabase
-          .from("related_breed")
-          .select("connected_breed_id")
-          .eq("breed_id", motherBreedId);
-
-        if (data && data.length > 0) {
-          // related_breed includes self-reference
-          setAllowedBreedsForFather(
-            data
-              .map((r) => r.connected_breed_id)
-              .filter((id): id is string => typeof id === "string"),
-          );
-        } else {
-          setAllowedBreedsForFather([motherBreedId]);
-        }
-      } catch (error) {
+    let cancelled = false;
+    dictionaryStore
+      .getJunctionIds(
+        "related_breed",
+        "connected_breed_id",
+        "breed_id",
+        motherBreedId,
+      )
+      .then((ids) => {
+        if (cancelled) return;
+        // related_breed includes self-reference, so a non-empty result is
+        // already complete; fall back to same-breed only when empty.
+        setAllowedBreedsForFather(ids.length > 0 ? ids : [motherBreedId]);
+      })
+      .catch((error) => {
+        if (cancelled) return;
         console.error("[MatingPage] Failed to fetch allowed breeds:", error);
-        // On error, allow only same breed
         setAllowedBreedsForFather([motherBreedId]);
-      }
-    };
-
-    fetchAllowedBreeds();
+      });
+    return () => { cancelled = true; };
   }, [mother?.breedId]);
 
-  // Fetch allowed breeds when father is selected (for mother selection)
   useEffect(() => {
     const fatherBreedId = father?.breedId;
     if (!fatherBreedId) {
@@ -171,30 +167,24 @@ export function MatingPage({ pageConfig, workspaceConfig }: MatingPageProps) {
       return;
     }
 
-    const fetchAllowedBreeds = async () => {
-      try {
-        const { data } = await supabase
-          .from("related_breed")
-          .select("connected_breed_id")
-          .eq("breed_id", fatherBreedId);
-
-        if (data && data.length > 0) {
-          // related_breed includes self-reference
-          setAllowedBreedsForMother(
-            data
-              .map((r) => r.connected_breed_id)
-              .filter((id): id is string => typeof id === "string"),
-          );
-        } else {
-          setAllowedBreedsForMother([fatherBreedId]);
-        }
-      } catch (error) {
+    let cancelled = false;
+    dictionaryStore
+      .getJunctionIds(
+        "related_breed",
+        "connected_breed_id",
+        "breed_id",
+        fatherBreedId,
+      )
+      .then((ids) => {
+        if (cancelled) return;
+        setAllowedBreedsForMother(ids.length > 0 ? ids : [fatherBreedId]);
+      })
+      .catch((error) => {
+        if (cancelled) return;
         console.error("[MatingPage] Failed to fetch allowed breeds:", error);
         setAllowedBreedsForMother([fatherBreedId]);
-      }
-    };
-
-    fetchAllowedBreeds();
+      });
+    return () => { cancelled = true; };
   }, [father?.breedId]);
 
   // Resolve slugs from URL to pets on mount

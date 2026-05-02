@@ -95,9 +95,11 @@ async function loadDictionaryDedupeHarness() {
   store.collection = {};
   store.inflightDictionary = new Map();
   store.inflightRecord = new Map();
+  store.inflightJunction = new Map();
   store.resetCacheStats();
   store.runGetDictionary = vi.fn();
   store.runGetRecordById = vi.fn();
+  store.runGetJunctionIds = vi.fn();
   store.initialized.value = true;
 
   return { store };
@@ -357,5 +359,58 @@ describe("dictionary-store.signal-store", () => {
     await store.getRecordById("sex", "id-1");
 
     expect(store.runGetRecordById).toHaveBeenCalledTimes(2);
+  });
+
+  it("shares one in-flight getJunctionIds promise for identical concurrent calls", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    let resolveShared!: (value: string[]) => void;
+    const sharedPromise = new Promise<string[]>((resolve) => {
+      resolveShared = resolve;
+    });
+    store.runGetJunctionIds.mockReturnValue(sharedPromise);
+
+    const breedId = "breed-mama";
+    const first = store.getJunctionIds(
+      "related_breed",
+      "connected_breed_id",
+      "breed_id",
+      breedId,
+    );
+    const second = store.getJunctionIds(
+      "related_breed",
+      "connected_breed_id",
+      "breed_id",
+      breedId,
+    );
+
+    expect(second).toBe(first);
+    expect(store.runGetJunctionIds).toHaveBeenCalledTimes(1);
+
+    const result = ["breed-mama", "breed-papa"];
+    resolveShared(result);
+    await expect(first).resolves.toBe(result);
+    await expect(second).resolves.toBe(result);
+  });
+
+  it("does not share in-flight getJunctionIds calls for different filterValues", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetJunctionIds.mockResolvedValue([]);
+
+    await Promise.all([
+      store.getJunctionIds(
+        "related_breed",
+        "connected_breed_id",
+        "breed_id",
+        "breed-1",
+      ),
+      store.getJunctionIds(
+        "related_breed",
+        "connected_breed_id",
+        "breed_id",
+        "breed-2",
+      ),
+    ]);
+
+    expect(store.runGetJunctionIds).toHaveBeenCalledTimes(2);
   });
 });

@@ -82,6 +82,11 @@ class DictionaryStore {
     Promise<Record<string, unknown> | null>
   >();
 
+  // In-flight cache for getJunctionIds. Multiple components in the same tick
+  // (PetPickerInput + MatingPage) can ask for the same junction lookup —
+  // e.g. allowed breeds for one mother breed_id rendered twice in StrictMode.
+  private inflightJunction = new Map<string, Promise<string[]>>();
+
   /**
    * Cache hit/miss telemetry. Counters mirror the structure used by
    * spaceStore — `dedup` increments when a concurrent identical request
@@ -804,7 +809,36 @@ class DictionaryStore {
    * @param filterValue - Value to match (e.g., breed UUID)
    * @returns Array of unique target IDs
    */
-  async getJunctionIds(
+  getJunctionIds(
+    junctionTable: string,
+    targetField: string,
+    filterField: string,
+    filterValue: string,
+    additionalFilters?: Array<{ field: string; value: string }>
+  ): Promise<string[]> {
+    const filterKey = additionalFilters?.length
+      ? [...additionalFilters]
+          .map((f) => `${f.field}=${f.value}`)
+          .sort()
+          .join("&")
+      : "";
+    const dedupeKey = `${junctionTable}::${targetField}::${filterField}::${filterValue}::${filterKey}`;
+    const inflight = this.inflightJunction.get(dedupeKey);
+    if (inflight) return inflight;
+    const promise = this.runGetJunctionIds(
+      junctionTable,
+      targetField,
+      filterField,
+      filterValue,
+      additionalFilters,
+    ).finally(() => {
+      this.inflightJunction.delete(dedupeKey);
+    });
+    this.inflightJunction.set(dedupeKey, promise);
+    return promise;
+  }
+
+  private async runGetJunctionIds(
     junctionTable: string,
     targetField: string,
     filterField: string,
