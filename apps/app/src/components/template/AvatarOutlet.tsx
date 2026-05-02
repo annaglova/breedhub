@@ -145,21 +145,23 @@ export function AvatarOutlet({
 
   return (
     <div
-      className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-0 sm:pb-3 top-0 z-30 pointer-events-none px-4 sm:px-0 ${className}`}
+      className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-0 sm:pb-3 top-0 ${isLoading ? "z-[55]" : "z-30"} pointer-events-none px-4 sm:px-0 ${className}`}
     >
       {/* Skeleton overlay - shown when loading */}
       {isLoading && (
         <>
-          {/* Avatar skeleton - or spacer to maintain layout */}
+          {/* Avatar skeleton — gray fill with a white ring, identical size
+              to the real avatar. z-[60] lifts it above the cover-skeleton
+              overlay (z-50) so the upper half isn't sliced off. */}
           {hasAvatar ? (
             <div
-              className={`absolute ${avatarConfig.skeletonLeft} rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
+              className={`absolute z-[60] ${avatarConfig.skeletonLeft} rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-slate-900 shrink-0 animate-pulse ${avatarConfig.size}`}
             />
           ) : null}
 
           {/* Action buttons skeleton - only if hasActions */}
           {hasActions && (
-            <div className="absolute right-0 mb-1 flex gap-2">
+            <div className="absolute right-0 mb-1 flex gap-2 z-[60]">
               <div className="w-20 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
               <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
             </div>
