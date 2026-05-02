@@ -256,8 +256,19 @@ export function TabPageTemplate({
             >
               {/* PageMenu - hidden in pedigree focus mode */}
               {!isPedigreeFocusMode && (
-                countsLoading ? (
-                  <PageMenuSkeleton tabCount={3} />
+                (countsLoading || isEntityLoading) ? (
+                  <PageMenuSkeleton
+                    tabCount={
+                      // Match the eventual pill count by filtering tabsConfig
+                      // for fullscreen-enabled tabs. Fall back to fullscreenTabs
+                      // length if it's already populated, then to a sane 3.
+                      fullscreenTabs.length ||
+                      Object.values(tabsConfig).filter(
+                        (t: any) => t?.fullscreenButton,
+                      ).length ||
+                      3
+                    }
+                  />
                 ) : (
                   <PageMenu
                     tabs={fullscreenTabs}
