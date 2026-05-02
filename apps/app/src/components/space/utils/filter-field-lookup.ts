@@ -1,5 +1,5 @@
 import type { RxDatabase } from "rxdb";
-import { supabase } from "@breedhub/rxdb-store";
+import { dictionaryStore } from "@breedhub/rxdb-store";
 import type { FilterFieldConfig } from "../filters/FiltersDialog";
 import { normalizeForUrl } from "./url-formatting";
 
@@ -83,56 +83,6 @@ async function findLookupDocs(collection: any, collectionInfo: CollectionInfo) {
   return collection.find().exec();
 }
 
-async function cacheInRxDB(
-  rxdb: RxDatabase,
-  fieldConfig: FilterFieldConfig,
-  record: any,
-): Promise<void> {
-  try {
-    const tableName = fieldConfig.referencedTable;
-    if (!tableName) {
-      return;
-    }
-
-    const hasDedicatedCollection = !!rxdb.collections[tableName];
-    const collectionName = hasDedicatedCollection ? tableName : "dictionaries";
-
-    if (!rxdb.collections[collectionName]) {
-      return;
-    }
-
-    const collection = rxdb.collections[collectionName];
-    let rxdbRecord: any;
-
-    if (!hasDedicatedCollection) {
-      rxdbRecord = {
-        id: record.id,
-        name: record.name,
-        table_name: tableName,
-        cachedAt: Date.now(),
-        _deleted: false,
-      };
-    } else {
-      const schema = collection.schema.jsonSchema;
-      const allowedProps = new Set(Object.keys(schema.properties || {}));
-
-      rxdbRecord = { _deleted: false };
-      for (const key of Object.keys(record)) {
-        if (allowedProps.has(key)) {
-          rxdbRecord[key] = record[key];
-        }
-      }
-      if (!rxdbRecord.updated_at) {
-        rxdbRecord.updated_at = new Date().toISOString();
-      }
-    }
-
-    await collection.upsert(rxdbRecord);
-  } catch (err) {
-    console.warn("[cacheInRxDB] Failed to cache:", err);
-  }
-}
-
 export async function getLabelForValue(
   fieldConfig: FilterFieldConfig | undefined,
   value: string,
@@ -168,22 +118,22 @@ export async function getLabelForValue(
     }
   }
 
+  // Local-first miss → route through dictionaryStore so the lookup gets the
+  // in-flight Promise dedup and write-through caching every other UI path
+  // already enjoys. Direct supabase.from() here used to bypass both.
   try {
-    const { data, error } = await supabase
-      .from(fieldConfig.referencedTable)
-      .select("*")
-      .eq(idField, value)
-      .single();
-
-    if (error || !data) {
+    const record = await dictionaryStore.getRecordById(
+      fieldConfig.referencedTable,
+      value,
+      { idField, nameField },
+    );
+    if (!record) {
       return value;
     }
-
-    const label = data[nameField];
-    await cacheInRxDB(rxdb, fieldConfig, data);
-    return label || value;
+    const label = (record as Record<string, unknown>)[nameField];
+    return typeof label === "string" && label ? label : value;
   } catch (err) {
-    console.warn("[getLabelForValue] Supabase fallback error:", err);
+    console.warn("[getLabelForValue] dictionaryStore fallback error:", err);
     return value;
   }
 }
@@ -227,28 +177,30 @@ export async function getValueForLabel(
     }
   }
 
+  // Local-first miss → query through dictionaryStore.getDictionary so the
+  // search hits the in-flight dedup + RxDB write-through, instead of bypassing
+  // both with a direct supabase.from() call.
   try {
-    const { data, error } = await supabase
-      .from(fieldConfig.referencedTable)
-      .select("*")
-      .ilike(nameField, label);
-
-    if (error || !data || data.length === 0) {
+    const { records } = await dictionaryStore.getDictionary(
+      fieldConfig.referencedTable,
+      { search: label, nameField, idField, limit: 30 },
+    );
+    if (records.length === 0) {
       return null;
     }
-
-    const match = data.find(
-      (item: any) => normalizeForUrl(item[nameField]) === normalizedSearchLabel,
+    const match = records.find(
+      (item: Record<string, unknown>) =>
+        normalizeForUrl(String(item[nameField] ?? item.name ?? "")) ===
+        normalizedSearchLabel,
     );
-
     if (!match) {
       return null;
     }
-
-    await cacheInRxDB(rxdb, fieldConfig, match);
-    return match[idField];
+    return String(
+      (match as Record<string, unknown>)[idField] ?? (match as { id: string }).id,
+    );
   } catch (err) {
-    console.warn("[getValueForLabel] Supabase fallback error:", err);
+    console.warn("[getValueForLabel] dictionaryStore fallback error:", err);
     return null;
   }
 }
