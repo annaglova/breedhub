@@ -1,6 +1,6 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { PetChildrenTabSkeleton } from "./PetChildrenTabSkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import {
   spaceStore,
@@ -216,9 +216,11 @@ export function PetChildrenTab({
     return null;
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
+  // Native litter-card-shaped skeleton — keeps the litter cards visible
+  // during cold-load on fullscreen `/pet-slug/children` URLs (generic
+  // TabBodySkeleton would render null in fullscreen).
   if (isLoading) {
-    return <TabBodySkeleton />;
+    return <PetChildrenTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   // Error state
