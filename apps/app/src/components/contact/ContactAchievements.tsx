@@ -81,51 +81,63 @@ export function ContactAchievements({
 
   const hasAny = kennels.length > 0 || topPets.length > 0;
 
-  if (!hasAny) {
-    return null;
-  }
+  // Inactive chip — single muted-italic pill that previews what slots will
+  // surface here once the contact has any achievements. Shown only when
+  // ALL slots are empty.
+  const placeholderClass =
+    "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 italic font-normal";
 
   return (
     <div className="flex flex-wrap gap-2 mt-2 min-h-[2rem]">
-      {/* Kennels */}
-      {kennels.map((kennel) => (
-        kennel.slug ? (
-          <Link key={kennel.id} to={`/${kennel.slug}`} className="no-underline">
-            <Chip
-              label={`Kennel - ${kennel.name}`}
-              variant="primary"
-              className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
-            />
-          </Link>
-        ) : (
-          <Chip
-            key={kennel.id}
-            label={`Kennel - ${kennel.name}`}
-            variant="primary"
-            className="max-w-80 sm:max-w-120"
-          />
-        )
-      ))}
+      {hasAny ? (
+        <>
+          {/* Kennels */}
+          {kennels.map((kennel) =>
+            kennel.slug ? (
+              <Link key={kennel.id} to={`/${kennel.slug}`} className="no-underline">
+                <Chip
+                  label={`Kennel - ${kennel.name}`}
+                  variant="primary"
+                  className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
+                />
+              </Link>
+            ) : (
+              <Chip
+                key={kennel.id}
+                label={`Kennel - ${kennel.name}`}
+                variant="primary"
+                className="max-w-80 sm:max-w-120"
+              />
+            ),
+          )}
 
-      {/* Top pets */}
-      {topPets.map((pet) => (
-        pet.slug ? (
-          <Link key={pet.id} to={`/${pet.slug}`} className="no-underline">
-            <Chip
-              label={`Top pet - ${pet.name}`}
-              variant="primary"
-              className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
-            />
-          </Link>
-        ) : (
-          <Chip
-            key={pet.id}
-            label={`Top pet - ${pet.name}`}
-            variant="primary"
-            className="max-w-80 sm:max-w-120"
-          />
-        )
-      ))}
+          {/* Top pets */}
+          {topPets.map((pet) =>
+            pet.slug ? (
+              <Link key={pet.id} to={`/${pet.slug}`} className="no-underline">
+                <Chip
+                  label={`Top pet - ${pet.name}`}
+                  variant="primary"
+                  className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
+                />
+              </Link>
+            ) : (
+              <Chip
+                key={pet.id}
+                label={`Top pet - ${pet.name}`}
+                variant="primary"
+                className="max-w-80 sm:max-w-120"
+              />
+            ),
+          )}
+        </>
+      ) : (
+        <Chip
+          label="Kennels · Top pets"
+          variant="default"
+          className={placeholderClass}
+        />
+      )}
     </div>
   );
 }

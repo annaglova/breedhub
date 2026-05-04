@@ -74,27 +74,39 @@ export function LitterAchievements({ entity }: LitterAchievementsProps) {
     partitionKey: { field: "breed_id", value: entity?.mother_breed_id },
   });
 
-  // Hide if no parents
-  if (!father?.name && !mother?.name) {
-    return null;
-  }
+  const hasAnyParent = !!father?.name || !!mother?.name;
+
+  // Inactive chip — single muted-italic pill that previews what slots will
+  // surface here once at least one parent is set. Shown only when BOTH
+  // parents are missing.
+  const placeholderChip = (
+    <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 italic font-normal">
+      <span>Father · Mother</span>
+    </div>
+  );
 
   return (
     <div className="flex flex-wrap gap-2 mt-3 mb-6 min-h-[2rem]" aria-label="parents">
-      {father?.name && (
-        <ParentChip
-          parent={father}
-          icon={<Mars size={16} />}
-          iconClassName="text-white"
-        />
-      )}
+      {hasAnyParent ? (
+        <>
+          {father?.name && (
+            <ParentChip
+              parent={father}
+              icon={<Mars size={16} />}
+              iconClassName="text-white"
+            />
+          )}
 
-      {mother?.name && (
-        <ParentChip
-          parent={mother}
-          icon={<Venus size={16} />}
-          iconClassName="text-white"
-        />
+          {mother?.name && (
+            <ParentChip
+              parent={mother}
+              icon={<Venus size={16} />}
+              iconClassName="text-white"
+            />
+          )}
+        </>
+      ) : (
+        placeholderChip
       )}
     </div>
   );

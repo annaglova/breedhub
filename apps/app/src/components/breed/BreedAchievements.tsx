@@ -29,44 +29,55 @@ export function BreedAchievements({
   const displayMajorPatron = entity?.achievements?.major_patron || majorPatron;
   const displayTopPet = entity?.achievements?.top_pet || topPet;
 
-  // Check if we have any achievements
   const hasAnyAchievement = displayTopKennel || displayMajorPatron || displayTopPet;
 
-  // Don't render if no achievements
-  if (!hasAnyAchievement) {
-    return null;
-  }
+  // Inactive chip — single muted-italic pill that previews what slots will
+  // surface here once the breed has any achievements. Shown only when ALL
+  // three are empty (so we don't sprinkle three gray TBD pills next to a
+  // single real one).
+  const placeholderClass =
+    "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 italic font-normal";
 
   return (
     <div className="flex flex-wrap gap-2 mt-2 min-h-[2rem]">
-      {displayTopKennel && (
-        <a href={`/${displayTopKennel.url}`} className="no-underline">
-          <Chip
-            label={`Top kennel - ${displayTopKennel.name}`}
-            variant="primary"
-            className="cursor-pointer hover:opacity-90 transition-opacity"
-          />
-        </a>
-      )}
+      {hasAnyAchievement ? (
+        <>
+          {displayTopKennel && (
+            <a href={`/${displayTopKennel.url}`} className="no-underline">
+              <Chip
+                label={`Top kennel - ${displayTopKennel.name}`}
+                variant="primary"
+                className="cursor-pointer hover:opacity-90 transition-opacity"
+              />
+            </a>
+          )}
 
-      {displayMajorPatron && (
-        <a href={`/${displayMajorPatron.url}`} className="no-underline">
-          <Chip
-            label={`Major patron - ${displayMajorPatron.name}`}
-            variant="primary"
-            className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
-          />
-        </a>
-      )}
+          {displayMajorPatron && (
+            <a href={`/${displayMajorPatron.url}`} className="no-underline">
+              <Chip
+                label={`Major patron - ${displayMajorPatron.name}`}
+                variant="primary"
+                className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
+              />
+            </a>
+          )}
 
-      {displayTopPet && (
-        <a href={`/${displayTopPet.url}`} className="no-underline">
-          <Chip
-            label={`Top pet - ${displayTopPet.name}`}
-            variant="primary"
-            className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
-          />
-        </a>
+          {displayTopPet && (
+            <a href={`/${displayTopPet.url}`} className="no-underline">
+              <Chip
+                label={`Top pet - ${displayTopPet.name}`}
+                variant="primary"
+                className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
+              />
+            </a>
+          )}
+        </>
+      ) : (
+        <Chip
+          label="Top kennel · Major patron · Top pet"
+          variant="default"
+          className={placeholderClass}
+        />
       )}
     </div>
   );

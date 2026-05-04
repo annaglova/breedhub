@@ -44,42 +44,54 @@ export function KennelAchievements({
     }
   );
 
-  const hasAnyAchievement = petsCount > 0 || offspringsCount > 0 || topPet;
+  const hasAnyAchievement = petsCount > 0 || offspringsCount > 0 || topPet?.name;
 
-  if (!hasAnyAchievement) {
-    return null;
-  }
+  // Inactive chip — single muted-italic pill that previews what slots will
+  // surface here once the kennel earns any achievements. Shown only when
+  // ALL slots are empty.
+  const placeholderClass =
+    "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 italic font-normal";
 
   return (
     <div className="flex flex-wrap gap-2 mt-2 min-h-[2rem]">
-      {petsCount > 0 && (
-        <Link to="#pets" className="no-underline">
-          <Chip
-            label={`Pets in kennel - ${petsCount}`}
-            variant="primary"
-            className="cursor-pointer hover:opacity-90 transition-opacity"
-          />
-        </Link>
-      )}
+      {hasAnyAchievement ? (
+        <>
+          {petsCount > 0 && (
+            <Link to="#pets" className="no-underline">
+              <Chip
+                label={`Pets in kennel - ${petsCount}`}
+                variant="primary"
+                className="cursor-pointer hover:opacity-90 transition-opacity"
+              />
+            </Link>
+          )}
 
-      {offspringsCount > 0 && (
-        <Link to="#offsprings" className="no-underline">
-          <Chip
-            label={`Offsprings - ${offspringsCount}`}
-            variant="primary"
-            className="cursor-pointer hover:opacity-90 transition-opacity"
-          />
-        </Link>
-      )}
+          {offspringsCount > 0 && (
+            <Link to="#offsprings" className="no-underline">
+              <Chip
+                label={`Offsprings - ${offspringsCount}`}
+                variant="primary"
+                className="cursor-pointer hover:opacity-90 transition-opacity"
+              />
+            </Link>
+          )}
 
-      {topPet?.name && (
-        <Link to={`/${topPet.slug || ''}`} className="no-underline">
-          <Chip
-            label={`Top pet - ${topPet.name}`}
-            variant="primary"
-            className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
-          />
-        </Link>
+          {topPet?.name && (
+            <Link to={`/${topPet.slug || ''}`} className="no-underline">
+              <Chip
+                label={`Top pet - ${topPet.name}`}
+                variant="primary"
+                className="cursor-pointer hover:opacity-90 transition-opacity max-w-80 sm:max-w-120"
+              />
+            </Link>
+          )}
+        </>
+      ) : (
+        <Chip
+          label="Pets in kennel · Offsprings · Top pet"
+          variant="default"
+          className={placeholderClass}
+        />
       )}
     </div>
   );

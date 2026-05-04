@@ -134,15 +134,15 @@ export function PetAchievements({
 
   const buttonLabel = expanded ? "Show main titles" : "Show all titles";
 
-  // Don't render if no titles_display data
-  if (!titlesDisplay?.length) {
-    return null;
-  }
+  // Inactive chip — same pill geometry as the live primary chip but muted
+  // slate with italic text. Reserves the row's width even when no titles
+  // have been earned yet, signalling "to be filled in".
+  const placeholderClass =
+    "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 italic font-normal";
 
-  // Show loading state while resolving country lookups
-  if (isLoading && titles.length === 0) {
-    return null;
-  }
+  // Render an inactive placeholder chip when no titles_display data so the
+  // row keeps its height (and primes the user to add titles).
+  const showPlaceholder = !titlesDisplay?.length || (isLoading && titles.length === 0);
 
   return (
     <div
@@ -153,10 +153,17 @@ export function PetAchievements({
     >
       <div
         aria-label="pet titles"
-        className="flex flex-wrap items-center gap-2 mt-2"
+        className="flex flex-wrap items-center gap-2 mt-2 min-h-[2rem]"
       >
+        {/* Inactive placeholder when no titles yet — single muted-italic
+            pill previewing what will surface here once the pet earns any
+            titles. */}
+        {showPlaceholder && (
+          <Chip label="Titles · Awards" variant="default" className={placeholderClass} />
+        )}
+
         {/* Expand/collapse button - only in component mode with 6+ titles */}
-        {isComponentMode && hasMoreTitles && (
+        {!showPlaceholder && isComponentMode && hasMoreTitles && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
