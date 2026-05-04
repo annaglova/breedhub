@@ -157,10 +157,11 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
 
   const iconSize = 16;
 
-  // Native skeleton on cold start (no entity yet). Drop the `isLoading`
-  // gate so entity-switch within the space matches kennel/contact/event
-  // (no skeleton flash). Stale lookups are cleared in the effect above.
-  if (!selectedEntity) {
+  // Native skeleton on cold start AND while the lookup effect is
+  // fetching — page-level overlay stays put (AboveFold sticky-ready)
+  // but the tab body shows a skeleton during the brief dictionary
+  // refetch window instead of "—" placeholder rows.
+  if (!selectedEntity || isLoading) {
     return <LitterGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 

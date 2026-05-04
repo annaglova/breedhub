@@ -193,13 +193,12 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
 
   const iconSize = 16;
 
-  // Native skeleton on cold start (no entity yet). Drop the `isLoading`
-  // gate to avoid flashing skeleton on entity-switch within the space —
-  // kennel/contact/event don't show a skeleton there, so this keeps
-  // public-page entity-switch behaviour uniform. Stale lookups are
-  // cleared in the effect above; the brief "—" placeholder window is
-  // imperceptible in practice.
-  if (!selectedEntity) {
+  // Native skeleton on cold start (no entity yet) AND while the lookup
+  // effect is fetching — page-level overlay stays put thanks to the
+  // sticky-ready gate in AboveFoldLoadingContext, but at the tab body
+  // we still want a skeleton during the dictionary/collection refetch
+  // window so the user sees structure instead of "—" placeholders.
+  if (!selectedEntity || isLoading) {
     return <PetGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 

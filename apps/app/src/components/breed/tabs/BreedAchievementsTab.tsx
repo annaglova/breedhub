@@ -133,14 +133,12 @@ export function BreedAchievementsTab({
     );
   }
 
-  // Native timeline-shaped skeleton on cold start (no breedId yet) so
-  // the alternating-card outline reserves layout instead of flashing
-  // the empty-state branch. Drop the `isLoading` gate so entity-switch
-  // within the breeds space matches kennel/contact/event behaviour
-  // (no skeleton flash) — useTabData re-fires for the new breedId and
-  // the brief empty-state window before its first response is less
-  // jarring than re-skeletoning the whole tab.
-  if (!breedId) {
+  // Native timeline-shaped skeleton on cold start AND during data
+  // refetch — page-level overlay stays put (AboveFold sticky-ready),
+  // but at the tab body we keep a timeline-shape skeleton so the user
+  // sees structure instead of the empty-state branch flashing while
+  // useTabData fetches for the new breedId.
+  if (!breedId || isLoading) {
     return (
       <div className="sm:pr-5">
         <AlternatingTimelineSkeleton
