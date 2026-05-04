@@ -1,10 +1,10 @@
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { useEffect, useMemo } from "react";
+import { PetIdentifiersTabSkeleton } from "./PetIdentifiersTabSkeleton";
 
 /**
  * Pet identifier (microchip, registration, etc.)
@@ -79,9 +79,12 @@ export function PetIdentifiersTab({
     return null;
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
+  // Native column-aware skeleton — keeps the two-column table outline
+  // visible during cold-load on fullscreen `/pet-slug/ident` URLs (generic
+  // TabBodySkeleton would render null in fullscreen, leaving the area
+  // blank between header skeleton and data arrival).
   if (isLoading) {
-    return <TabBodySkeleton />;
+    return <PetIdentifiersTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   // Error state
