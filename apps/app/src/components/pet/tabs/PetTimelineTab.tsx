@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatDate } from "@/utils/format";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -84,6 +85,12 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
 
   const selectedEntity = useSelectedEntity();
   const isFullscreen = spaceStore.isFullscreen.value;
+  // Match BreedAchievementsTab: only use alternating layout when there's
+  // enough horizontal room (fullscreen AND md+). Drawer / narrow screens
+  // collapse to the single-column "right" layout so cards stay readable
+  // and don't get squashed.
+  const isLargeScreen = useMediaQuery("(min-width: 960px)");
+  const timelineLayout = isFullscreen && isLargeScreen ? "alternating" : "right";
 
   // Get timeline from entity JSONB (sorted DESC - newest first for display)
   const timeline = useMemo(() => {
@@ -169,7 +176,7 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
       <div className="cursor-default sm:pr-5">
         <AlternatingTimelineSkeleton
           itemCount={isFullscreen ? 6 : 5}
-          layout={isFullscreen ? "alternating" : "right"}
+          layout={timelineLayout}
           showCards={true}
         />
       </div>
@@ -181,7 +188,7 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
       {displayItems.length > 0 ? (
         <AlternatingTimeline
           items={displayItems}
-          layout={isFullscreen ? "alternating" : "right"}
+          layout={timelineLayout}
           showCards={true}
           connectorVariant="primary"
         />
