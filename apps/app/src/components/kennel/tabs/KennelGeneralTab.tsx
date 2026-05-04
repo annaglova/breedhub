@@ -1,4 +1,5 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
+import { KennelGeneralTabSkeleton } from "./KennelGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { PhoneList, EmailList, SocialList } from "@/components/shared/CommunicationLists";
 import { classifyCommunication } from "@/utils/format";
@@ -138,6 +139,12 @@ export function KennelGeneralTab({ onLoadedCount, dataSource, onAboveFoldReady }
 
   const iconSize = 16;
   const hasSocial = facebookLinks.length > 0 || instagramLinks.length > 0;
+
+  // Cold-load: entity not yet resolved → render the layout-shape skeleton
+  // so the fieldsets reserve space and don't flash "—" placeholders.
+  if (!selectedEntity) {
+    return <KennelGeneralTabSkeleton isFullscreen={isFullscreen} />;
+  }
 
   return (
     <div className="flex flex-col space-y-5 cursor-default">

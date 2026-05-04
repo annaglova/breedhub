@@ -1,4 +1,4 @@
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { LitterGeneralTabSkeleton } from "./LitterGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { formatDate } from "@/utils/format";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
@@ -152,9 +152,10 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
 
   const iconSize = 16;
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native skeleton mirrors fieldset structure with static labels and
+  // bar placeholders. Treats "no entity yet" as loading too.
+  if (!selectedEntity || isLoading) {
+    return <LitterGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   return (

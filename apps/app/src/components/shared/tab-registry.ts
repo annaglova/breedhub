@@ -16,6 +16,10 @@ import { PetHealthTabSkeleton } from '../pet/tabs/PetHealthTabSkeleton';
 import { PetIdentifiersTabSkeleton } from '../pet/tabs/PetIdentifiersTabSkeleton';
 import { PetShowResultsTabSkeleton } from '../pet/tabs/PetShowResultsTabSkeleton';
 import { PetSiblingsTabSkeleton } from '../pet/tabs/PetSiblingsTabSkeleton';
+import { LitterGeneralTabSkeleton } from '../litter/tabs/LitterGeneralTabSkeleton';
+import { KennelGeneralTabSkeleton } from '../kennel/tabs/KennelGeneralTabSkeleton';
+import { ContactGeneralTabSkeleton } from '../contact/tabs/ContactGeneralTabSkeleton';
+import { EventGeneralTabSkeleton } from '../event/tabs/EventGeneralTabSkeleton';
 import { AlternatingTimelineSkeleton } from '@ui/components/timeline';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
@@ -84,6 +88,26 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
   }
   if (componentName === 'PetGeneralTab') {
     return React.createElement(PetGeneralTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'LitterGeneralTab') {
+    return React.createElement(LitterGeneralTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'KennelGeneralTab') {
+    return React.createElement(KennelGeneralTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'ContactGeneralTab') {
+    return React.createElement(ContactGeneralTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'EventGeneralTab') {
+    return React.createElement(EventGeneralTabSkeleton, {
       isFullscreen: props?.mode === 'fullscreen',
     });
   }

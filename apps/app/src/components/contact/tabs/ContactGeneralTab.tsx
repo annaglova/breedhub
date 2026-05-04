@@ -1,4 +1,5 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
+import { ContactGeneralTabSkeleton } from "./ContactGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { PhoneList, EmailList, SocialList } from "@/components/shared/CommunicationLists";
 import { classifyCommunication } from "@/utils/format";
@@ -150,6 +151,12 @@ export function ContactGeneralTab({ onLoadedCount, dataSource, onAboveFoldReady 
 
   const iconSize = 16;
   const hasSocial = facebookLinks.length > 0 || instagramLinks.length > 0;
+
+  // Cold-load: entity not yet resolved → render skeleton matching the
+  // Info fieldset shape so the layout doesn't flash "—" placeholders.
+  if (!selectedEntity) {
+    return <ContactGeneralTabSkeleton isFullscreen={isFullscreen} />;
+  }
 
   return (
     <div className="flex flex-col space-y-5 cursor-default">

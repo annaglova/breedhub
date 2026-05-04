@@ -1,4 +1,5 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
+import { EventGeneralTabSkeleton } from "./EventGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { formatDate } from "@/utils/format";
@@ -152,6 +153,11 @@ export function EventGeneralTab({ onLoadedCount, dataSource, onAboveFoldReady }:
   }, [selectedEntity, onAboveFoldReady]);
 
   const iconSize = 16;
+
+  // Cold-load: entity not yet resolved → render the layout-shape skeleton.
+  if (!selectedEntity) {
+    return <EventGeneralTabSkeleton isFullscreen={isFullscreen} />;
+  }
 
   return (
     <div className="flex flex-col space-y-5 cursor-default">
