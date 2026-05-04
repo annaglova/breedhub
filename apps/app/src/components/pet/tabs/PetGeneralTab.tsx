@@ -1,5 +1,6 @@
 import { PetGeneralTabSkeleton } from "./PetGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -198,7 +199,10 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
   // sticky-ready gate in AboveFoldLoadingContext, but at the tab body
   // we still want a skeleton during the dictionary/collection refetch
   // window so the user sees structure instead of "—" placeholders.
-  if (!selectedEntity || isLoading) {
+  // `useSkeletonWithDelay` enforces the shared SKELETON_ANTI_FLASH_MS
+  // floor so a fast cache hit doesn't briefly flash skeleton.
+  const showSkeleton = useSkeletonWithDelay(!selectedEntity || isLoading);
+  if (showSkeleton) {
     return <PetGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 

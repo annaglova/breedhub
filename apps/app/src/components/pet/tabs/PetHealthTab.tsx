@@ -1,5 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
+import { useAboveFoldBlock, useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { formatDate } from "@/utils/format";
 import {
@@ -154,7 +154,10 @@ export function PetHealthTab({
     );
   }
 
-  if (isLoading) {
+  // Native column-aware skeleton with shared SKELETON_ANTI_FLASH_MS
+  // anti-flash window so a fast cache hit doesn't briefly flash skeleton.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
     return <PetHealthTabSkeleton isFullscreen={isFullscreen} />;
   }
 

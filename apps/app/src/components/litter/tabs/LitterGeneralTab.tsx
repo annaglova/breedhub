@@ -1,5 +1,6 @@
 import { LitterGeneralTabSkeleton } from "./LitterGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -158,10 +159,10 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
   const iconSize = 16;
 
   // Native skeleton on cold start AND while the lookup effect is
-  // fetching — page-level overlay stays put (AboveFold sticky-ready)
-  // but the tab body shows a skeleton during the brief dictionary
-  // refetch window instead of "—" placeholder rows.
-  if (!selectedEntity || isLoading) {
+  // fetching. `useSkeletonWithDelay` enforces the shared
+  // SKELETON_ANTI_FLASH_MS floor so a fast cache hit doesn't flash.
+  const showSkeleton = useSkeletonWithDelay(!selectedEntity || isLoading);
+  if (showSkeleton) {
     return <LitterGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 

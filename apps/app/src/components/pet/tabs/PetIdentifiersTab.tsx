@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -79,11 +80,10 @@ export function PetIdentifiersTab({
     return null;
   }
 
-  // Native column-aware skeleton — keeps the two-column table outline
-  // visible during cold-load on fullscreen `/pet-slug/ident` URLs (generic
-  // TabBodySkeleton would render null in fullscreen, leaving the area
-  // blank between header skeleton and data arrival).
-  if (isLoading) {
+  // Native column-aware skeleton with shared SKELETON_ANTI_FLASH_MS
+  // anti-flash window so fast cache hits don't briefly flash skeleton.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
     return <PetIdentifiersTabSkeleton isFullscreen={isFullscreen} />;
   }
 

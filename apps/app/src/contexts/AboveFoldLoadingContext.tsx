@@ -8,6 +8,28 @@ import React, {
   useState,
 } from "react";
 
+/**
+ * Single source of truth for skeleton anti-flash timing.
+ *
+ * Used in three semantically distinct places that must stay in lockstep:
+ * 1. `useSkeletonWithDelay`'s `minDisplayMs` — once a skeleton is shown,
+ *    keep it visible for at least this long so a fast resolve doesn't
+ *    flash skeleton → real → maybe-skeleton-again.
+ * 2. `AboveFoldLoadingProvider.skeletonDelay` — wait this long before
+ *    treating "still loading" as "show skeleton". If the page resolves
+ *    within this window, skeleton is never shown.
+ * 3. `AboveFoldLoadingProvider.minLoadingTime` — minimum duration for
+ *    `allBlocksReady` to flip true, even if every block reports ready
+ *    immediately. Closes a race where the first render commits with
+ *    `registeredCount=0 → allReady=true` before async block-registration
+ *    effects fire.
+ *
+ * One constant keeps the perceived loading rhythm consistent across
+ * page templates (public detail / edit / tab fullscreen / playground).
+ * 100ms is well below the 200ms perceptual-instant threshold.
+ */
+export const SKELETON_ANTI_FLASH_MS = 100;
+
 interface AboveFoldLoadingContextValue {
   /**
    * Register a block's loading state
@@ -83,8 +105,8 @@ interface AboveFoldLoadingProviderProps {
  */
 export function AboveFoldLoadingProvider({
   children,
-  minLoadingTime = 0,
-  skeletonDelay = 100,
+  minLoadingTime = SKELETON_ANTI_FLASH_MS,
+  skeletonDelay = SKELETON_ANTI_FLASH_MS,
   onAllReady,
 }: AboveFoldLoadingProviderProps) {
   // Track registered blocks and their ready state
@@ -293,7 +315,7 @@ export function useShouldShowSkeleton(): boolean {
  * @param minDisplayMs - once shown, skeleton stays visible for at least this long (anti-flash). Default 100ms per SKELETON_LOADING_ARCHITECTURE §P9.
  * @returns shouldShowSkeleton - true while loading; remains true until minDisplayMs elapses after isLoading flips false
  */
-export function useSkeletonWithDelay(isLoading: boolean, minDisplayMs = 100): boolean {
+export function useSkeletonWithDelay(isLoading: boolean, minDisplayMs = SKELETON_ANTI_FLASH_MS): boolean {
   const [showSkeleton, setShowSkeleton] = useState(isLoading);
   const startTimeRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);

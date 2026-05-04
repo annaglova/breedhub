@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatDate } from "@/utils/format";
 import { spaceStore } from "@breedhub/rxdb-store";
@@ -171,7 +172,12 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
   // the layout is reserved at the right height and the swap to real data
   // is jump-free. `selectedEntity?.timeline` being undefined also means
   // the JSONB hasn't arrived yet.
-  if (!selectedEntity || (selectedEntity.timeline === undefined)) {
+  // `useSkeletonWithDelay` enforces the shared SKELETON_ANTI_FLASH_MS
+  // floor so a fast cache hit doesn't briefly flash skeleton.
+  const showSkeleton = useSkeletonWithDelay(
+    !selectedEntity || selectedEntity.timeline === undefined,
+  );
+  if (showSkeleton) {
     return (
       <div className="cursor-default sm:pr-5">
         <AlternatingTimelineSkeleton

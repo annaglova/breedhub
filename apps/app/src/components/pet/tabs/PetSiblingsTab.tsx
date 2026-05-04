@@ -2,6 +2,7 @@ import { PetLinkRow } from "@/components/shared/PetLinkRow";
 import { PetSiblingsTabSkeleton } from "./PetSiblingsTabSkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
 import {
   spaceStore,
@@ -189,10 +190,10 @@ export function PetSiblingsTab({
     return null;
   }
 
-  // Native sibling-group skeleton — keeps the card outline visible during
-  // cold-load on fullscreen `/pet-slug/siblings` URLs (generic
-  // TabBodySkeleton would render null in fullscreen).
-  if (isLoading) {
+  // Native sibling-group skeleton with shared SKELETON_ANTI_FLASH_MS
+  // anti-flash window so a fast cache hit doesn't briefly flash skeleton.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
     return <PetSiblingsTabSkeleton isFullscreen={isFullscreen} />;
   }
 

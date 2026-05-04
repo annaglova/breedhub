@@ -1,4 +1,5 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatDate } from "@/utils/format";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
@@ -134,11 +135,10 @@ export function BreedAchievementsTab({
   }
 
   // Native timeline-shaped skeleton on cold start AND during data
-  // refetch — page-level overlay stays put (AboveFold sticky-ready),
-  // but at the tab body we keep a timeline-shape skeleton so the user
-  // sees structure instead of the empty-state branch flashing while
-  // useTabData fetches for the new breedId.
-  if (!breedId || isLoading) {
+  // refetch. `useSkeletonWithDelay` enforces the shared
+  // SKELETON_ANTI_FLASH_MS floor so a fast cache hit doesn't flash.
+  const showSkeleton = useSkeletonWithDelay(!breedId || isLoading);
+  if (showSkeleton) {
     return (
       <div className="sm:pr-5">
         <AlternatingTimelineSkeleton

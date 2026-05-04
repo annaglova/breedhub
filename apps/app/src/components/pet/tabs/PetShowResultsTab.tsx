@@ -1,5 +1,5 @@
 import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
-import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
+import { useAboveFoldBlock, useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { formatDate } from "@/utils/format";
@@ -153,10 +153,11 @@ export function PetShowResultsTab({
     return null;
   }
 
-  // Loading skeleton — column-aware in fullscreen (matches the eventual table
-  // outline so cold-load shows a single continuous skeleton across chunk-load
-  // and data-load), shared TabBodySkeleton in drawer/scroll mode.
-  if (isLoading) {
+  // Loading skeleton — column-aware in fullscreen, shared TabBodySkeleton
+  // in drawer/scroll mode. `useSkeletonWithDelay` enforces the shared
+  // SKELETON_ANTI_FLASH_MS floor so fast cache hits don't briefly flash.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
     return isFullscreen ? (
       <PetShowResultsTabSkeleton isFullscreen={isFullscreen} />
     ) : (

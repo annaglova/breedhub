@@ -1,5 +1,6 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { PetChildrenTabSkeleton } from "./PetChildrenTabSkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import {
@@ -216,10 +217,10 @@ export function PetChildrenTab({
     return null;
   }
 
-  // Native litter-card-shaped skeleton — keeps the litter cards visible
-  // during cold-load on fullscreen `/pet-slug/children` URLs (generic
-  // TabBodySkeleton would render null in fullscreen).
-  if (isLoading) {
+  // Native litter-card-shaped skeleton with shared SKELETON_ANTI_FLASH_MS
+  // anti-flash window so a fast cache hit doesn't briefly flash skeleton.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
     return <PetChildrenTabSkeleton isFullscreen={isFullscreen} />;
   }
 

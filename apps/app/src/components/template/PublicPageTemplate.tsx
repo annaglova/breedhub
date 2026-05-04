@@ -268,12 +268,13 @@ export function PublicPageTemplate({
             )}
 
             {/* Render blocks with coordinated loading via AboveFoldLoadingProvider.
-                minLoadingTime=80 closes the race where first render commits with
-                allBlocksReady=true (0 registered) before TabOutlet's slot
-                registration useEffect fires — gives the slot time to register
-                false so top blocks don't briefly flip to real and back. */}
+                Default `minLoadingTime` = SKELETON_ANTI_FLASH_MS (100) closes
+                the race where the first render commits with allBlocksReady=true
+                (0 registered) before TabOutlet's slot registration useEffect
+                fires — gives the slot time to register false so top blocks
+                don't briefly flip to real and back. */}
             {pageConfig && pageConfig.blocks && (
-              <AboveFoldLoadingProvider minLoadingTime={80}>
+              <AboveFoldLoadingProvider>
                 <AboveFoldBlocks
                   pageConfig={pageConfig}
                   defaultTabFragment={defaultTabFragment}
