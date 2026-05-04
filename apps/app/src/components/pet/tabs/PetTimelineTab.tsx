@@ -2,7 +2,10 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { formatDate } from "@/utils/format";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { AlternatingTimeline } from "@ui/components/timeline";
+import {
+  AlternatingTimeline,
+  AlternatingTimelineSkeleton,
+} from "@ui/components/timeline";
 import { Baby, Cake, HeartOff, Info, MoreVertical, Newspaper, Repeat, Sparkles, Trophy } from "lucide-react";
 import { useMemo } from "react";
 
@@ -155,6 +158,23 @@ export function PetTimelineTab({ onLoadedCount }: PetTimelineTabProps) {
 
   // Use truncated in drawer + page fullscreen, full only in tab fullscreen
   const displayItems = isFullscreen ? timelineItems : truncatedItems;
+
+  // Cold-load: entity not resolved yet (slug → id, fresh device, etc.)
+  // Show the timeline-shaped skeleton instead of the empty-state copy so
+  // the layout is reserved at the right height and the swap to real data
+  // is jump-free. `selectedEntity?.timeline` being undefined also means
+  // the JSONB hasn't arrived yet.
+  if (!selectedEntity || (selectedEntity.timeline === undefined)) {
+    return (
+      <div className="cursor-default sm:pr-5">
+        <AlternatingTimelineSkeleton
+          itemCount={isFullscreen ? 6 : 5}
+          layout={isFullscreen ? "alternating" : "right"}
+          showCards={true}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="cursor-default sm:pr-5">

@@ -515,6 +515,141 @@ const AlternatingTimeline = React.forwardRef<
 );
 AlternatingTimeline.displayName = "AlternatingTimeline";
 
+// AlternatingTimeline cold-load skeleton — mirrors the real DOM (item
+// row, dot, optional card) one-to-one so heights and dot/connector
+// positions don't shift when real items render. Lives in the same
+// module so any consumer of `AlternatingTimeline` can co-render it
+// during their own cold-load without re-implementing the geometry.
+interface AlternatingTimelineSkeletonProps {
+  /** Number of placeholder items to render. */
+  itemCount?: number;
+  /** Match the real `layout` so dot column lands in the same place. */
+  layout?: "alternating" | "left" | "right";
+  /** Match the real `showCards` so card padding contributes to height. */
+  showCards?: boolean;
+  className?: string;
+}
+
+const AlternatingTimelineSkeleton = React.forwardRef<
+  HTMLDivElement,
+  AlternatingTimelineSkeletonProps
+>(({ itemCount = 5, layout = "alternating", showCards = true, className }, ref) => {
+  /**
+   * Render bars aligned to the same edge as real text:
+   * - left card uses `md:text-right` → bars hug the right edge (`md:items-end`)
+   * - right card uses `md:text-left`  → bars hug the left edge (default)
+   * - mobile (no md) leaves bars at default left-align, matching `w-full`.
+   */
+  const renderCardBody = (position: "left" | "right") => (
+    <div
+      className={cn(
+        "flex flex-col gap-1",
+        layout === "alternating" && position === "left" && "md:items-end",
+      )}
+    >
+      {/* Title bar (h-5 ≈ TimelineTitle text-xl line) */}
+      <div className="h-5 w-32 max-w-full rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+      {/* Date bar (h-4 ≈ TimelineTime text-base line) */}
+      <div className="h-4 w-24 max-w-full rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+    </div>
+  );
+
+  const renderCard = (position: "left" | "right") =>
+    showCards ? (
+      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+        {renderCardBody(position)}
+      </div>
+    ) : (
+      renderCardBody(position)
+    );
+
+  return (
+    <div
+      ref={ref}
+      className={cn("relative", className)}
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <div className="relative">
+        {Array.from({ length: itemCount }).map((_, index) => {
+          const isEven = index % 2 === 0;
+          const position =
+            layout === "alternating" ? (isEven ? "left" : "right") : layout;
+          const isLast = index === itemCount - 1;
+
+          return (
+            <div
+              key={index}
+              className={cn(
+                "relative flex items-start",
+                layout === "alternating" && "justify-center",
+                layout === "left" && "justify-start",
+                layout === "right" && "justify-end",
+                !isLast && "pb-4",
+              )}
+            >
+              {/* Left card */}
+              {position === "left" && (
+                <div
+                  className={cn(
+                    "w-full",
+                    layout === "alternating" &&
+                      "md:w-[48%] md:text-right md:pr-8",
+                    layout === "left" && "pl-8",
+                  )}
+                >
+                  {renderCard("left")}
+                </div>
+              )}
+
+              {/* Empty space for right-aligned items */}
+              {position === "right" && layout === "alternating" && (
+                <div className="w-[48%]" />
+              )}
+
+              {/* Dot column with connector line — same positioning as real */}
+              <div
+                className={cn(
+                  "absolute top-0 bottom-0 flex flex-col items-center",
+                  layout === "alternating" &&
+                    "left-6 md:left-1/2 md:-translate-x-1/2",
+                  layout === "left" && "left-6 md:left-0 md:-translate-x-1/2",
+                  layout === "right" && "right-0 translate-x-1/2",
+                )}
+              >
+                <div className="relative z-10 h-8 w-8 rounded-full border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 animate-pulse" />
+                {!isLast && (
+                  <div className="flex-1 w-0.5 bg-primary/30 mt-1 mb-1" />
+                )}
+              </div>
+
+              {/* Empty space for left-aligned items */}
+              {position === "left" && layout === "alternating" && (
+                <div className="w-[48%]" />
+              )}
+
+              {/* Right card */}
+              {position === "right" && (
+                <div
+                  className={cn(
+                    "w-full",
+                    layout === "alternating" &&
+                      "md:w-[48%] md:text-left md:pl-8",
+                    layout === "right" && "pr-8 sm:pr-10",
+                  )}
+                >
+                  {renderCard("right")}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+AlternatingTimelineSkeleton.displayName = "AlternatingTimelineSkeleton";
+
 // Enhanced Timeline Components
 
 // Timeline with grouped items
@@ -692,6 +827,7 @@ PetLifeTimeline.displayName = "PetLifeTimeline";
 
 export {
   AlternatingTimeline,
+  AlternatingTimelineSkeleton,
   GroupedTimeline,
   PetLifeTimeline,
   Timeline,

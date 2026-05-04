@@ -15,6 +15,7 @@ import { PetHealthTabSkeleton } from '../pet/tabs/PetHealthTabSkeleton';
 import { PetIdentifiersTabSkeleton } from '../pet/tabs/PetIdentifiersTabSkeleton';
 import { PetShowResultsTabSkeleton } from '../pet/tabs/PetShowResultsTabSkeleton';
 import { PetSiblingsTabSkeleton } from '../pet/tabs/PetSiblingsTabSkeleton';
+import { AlternatingTimelineSkeleton } from '@ui/components/timeline';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
 type TabModule = {
@@ -75,6 +76,18 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
     return React.createElement(PetSiblingsTabSkeleton, {
       isFullscreen: props?.mode === 'fullscreen',
     });
+  }
+  if (componentName === 'PetTimelineTab') {
+    const isFs = props?.mode === 'fullscreen';
+    return React.createElement(
+      'div',
+      { className: 'cursor-default sm:pr-5' },
+      React.createElement(AlternatingTimelineSkeleton, {
+        itemCount: isFs ? 6 : 5,
+        layout: isFs ? 'alternating' : 'right',
+        showCards: true,
+      }),
+    );
   }
   if (componentName === 'EditChildTableTab') {
     return React.createElement(EditChildTableSkeleton, { fields: props?.fields });
