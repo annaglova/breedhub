@@ -308,8 +308,15 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
           </>
         ) : (
           <>
-            {/* Empty pet placeholder */}
-            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-4 mt-3 shrink-0" />
+            {/* Name placeholder — match the real `<Link className="flex
+                min-h-10 ... line-clamp-2">` envelope (40px in the typical
+                level-1 case) so the avatar row below starts at the same
+                Y in skeleton and real. The previous `h-4 mt-3 shrink-0`
+                rendered at 28px and left the level-1 avatar ~12px higher
+                in skeleton than in real. */}
+            <div className="flex min-h-10 w-full items-center justify-center shrink-0">
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-2/3 h-4" />
+            </div>
             <div className="flex w-full items-center h-full">
               {/* Avatar 104px with fallback */}
               <div className="h-24 w-24 min-w-24 flex items-center justify-center overflow-hidden rounded-xl border border-border relative">
@@ -324,10 +331,15 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
                 <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
               </div>
             </div>
-            {/* Country/year placeholder mirrors `<em className="text-sm mt-auto">`.
-                shrink-0 keeps the bar at full 12px even though the middle row
-                uses h-full and would otherwise flex-squeeze it. */}
-            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-3 mt-3 shrink-0" />
+            {/* Country/year placeholder mirrors `<em className="text-sm mt-auto">`
+                exactly: same `mt-auto` (absorbs free space + pushes to bottom),
+                same effective height (~18px from text-sm line-height). The
+                previous `mt-3 + h-3` envelope = 24px claimed 6px more card
+                height than real → avatar row shrunk 6px → avatar centered
+                ~3px higher in skeleton vs real. */}
+            <div className="mt-auto h-[18px] flex items-center shrink-0">
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-3" />
+            </div>
           </>
         )}
       </div>
