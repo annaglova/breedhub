@@ -143,8 +143,11 @@ export function NameOutlet({
           <div className="h-[30px] mb-1 flex items-center">
             <div className="h-6 w-72 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
           </div>
-          {/* Row 3: statistics (21px tall, size-4 dot + bar) */}
-          <div className="h-[21px] flex items-center space-x-2">
+          {/* Row 3: statistics (24px tall to match real `min-h-[1.5rem]`,
+              size-4 dot + bar). Was previously h-[21px] which left a 3px
+              gap that read as a downward jump on tab fullscreen where the
+              header sits flush against top-0 (no cover above to absorb it). */}
+          <div className="h-6 flex items-center space-x-2">
             <div className="size-4 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
             <div className="h-4 w-64 max-w-full bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
           </div>
