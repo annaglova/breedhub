@@ -59,11 +59,18 @@ export function PetName({
   const dateOfBirth = formatDate(entity?.date_of_birth);
   const coi = entity?.coi;
 
+  // Italic muted placeholder when a slot has no data — keeps the row at
+  // its full height (so swap from skeleton ↔ real never shifts the layout
+  // below) and signals to the pet owner what they could fill in.
+  const placeholderClass = "italic text-slate-400 dark:text-slate-500 font-normal";
+  const hasInfoRow =
+    !!petStatusName || !!dateOfBirth || (coi !== undefined && coi !== null);
+
   return (
     <div className="pb-3 cursor-default">
       {/* Breed link - same position as support level in BreedName */}
       <div className="text-md mb-2 min-h-[1.5rem]">
-        {breedName && (
+        {breedName ? (
           breedSlug ? (
             <Link to={`/${breedSlug}`} className="text-foreground hover:text-primary uppercase">
               {breedName}
@@ -71,6 +78,8 @@ export function PetName({
           ) : (
             <span className="uppercase">{breedName}</span>
           )
+        ) : (
+          <span className={`uppercase ${placeholderClass}`}>Breed</span>
         )}
       </div>
 
@@ -106,32 +115,38 @@ export function PetName({
       </div>
 
       {/* Additional info: sex, status, DOB, COI */}
-      <div className="flex items-center">
+      <div className="flex items-center min-h-[1.5rem]">
         <div className="text-secondary flex flex-wrap items-center space-x-2 ">
           {/* Sex mark (round style) */}
           <PetSexMark sex={sexCode as any} style="round" className="shrink-0" />
 
-          {/* Pet status */}
-          {petStatusName && (
-            <div className="flex items-center">
-              <span>{petStatusName}</span>
-            </div>
-          )}
+          {hasInfoRow ? (
+            <>
+              {/* Pet status */}
+              {petStatusName && (
+                <div className="flex items-center">
+                  <span>{petStatusName}</span>
+                </div>
+              )}
 
-          {/* Date of birth - hidden on small mobile */}
-          {dateOfBirth && (
-            <div className="hidden xs:flex items-center">
-              <span className="mr-2">&bull;</span>
-              <span>{dateOfBirth}</span>
-            </div>
-          )}
+              {/* Date of birth - hidden on small mobile */}
+              {dateOfBirth && (
+                <div className="hidden xs:flex items-center">
+                  <span className="mr-2">&bull;</span>
+                  <span>{dateOfBirth}</span>
+                </div>
+              )}
 
-          {/* COI - hidden on mobile */}
-          {coi !== undefined && coi !== null && (
-            <div className="hidden sm:flex items-center">
-              <span className="mr-2">&bull;</span>
-              <span>COI - {Number(coi).toFixed(2)}%</span>
-            </div>
+              {/* COI - hidden on mobile */}
+              {coi !== undefined && coi !== null && (
+                <div className="hidden sm:flex items-center">
+                  <span className="mr-2">&bull;</span>
+                  <span>COI - {Number(coi).toFixed(2)}%</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <span className={placeholderClass}>Status · Date of birth · COI</span>
           )}
         </div>
       </div>

@@ -91,18 +91,28 @@ export function LitterName({
   // Notes flag
   const hasNotesFlag = hasNotes || !!entity?.notes;
 
+  // Italic muted placeholder when a slot has no data — keeps the row at
+  // its full height (so swap from skeleton ↔ real never shifts the layout
+  // below) and signals what the slot is for.
+  const placeholderClass = "italic text-slate-400 dark:text-slate-500 font-normal";
+  const hasInfoRow = !!kennelName || !!statusName;
+
   return (
     <div className="pb-3 cursor-default">
       {/* Breed section: same breed → one, different → both with × */}
       <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1">
-        {fatherBreedName && (
-          <EntityLink name={fatherBreedName} slug={fatherBreedSlug} className="uppercase" />
-        )}
-        {isCrossBreed && (
+        {fatherBreedName ? (
           <>
-            <span className="text-secondary">×</span>
-            <EntityLink name={motherBreedName} slug={motherBreedSlug} className="uppercase" />
+            <EntityLink name={fatherBreedName} slug={fatherBreedSlug} className="uppercase" />
+            {isCrossBreed && (
+              <>
+                <span className="text-secondary">×</span>
+                <EntityLink name={motherBreedName} slug={motherBreedSlug} className="uppercase" />
+              </>
+            )}
           </>
+        ) : (
+          <span className={`uppercase ${placeholderClass}`}>Breed</span>
         )}
       </div>
 
@@ -131,24 +141,30 @@ export function LitterName({
       </div>
 
       {/* Info row: kennel, status */}
-      <div className="flex items-center">
+      <div className="flex items-center min-h-[1.5rem]">
         <div className="text-secondary flex flex-wrap items-center space-x-2 font-medium">
           {/* Color indicator */}
           <div className="bg-primary-300 dark:bg-surface-400 size-4 rounded-full" />
 
-          {/* Kennel - first item, no bullet */}
-          {kennelName && (
-            <div className="flex items-center">
-              <span>{kennelName}</span>
-            </div>
-          )}
+          {hasInfoRow ? (
+            <>
+              {/* Kennel - first item, no bullet */}
+              {kennelName && (
+                <div className="flex items-center">
+                  <span>{kennelName}</span>
+                </div>
+              )}
 
-          {/* Status - with bullet before, hidden on small mobile */}
-          {statusName && (
-            <div className="hidden xs:flex items-center">
-              {kennelName && <span className="mr-2">&bull;</span>}
-              <span>{statusName}</span>
-            </div>
+              {/* Status - with bullet before, hidden on small mobile */}
+              {statusName && (
+                <div className="hidden xs:flex items-center">
+                  {kennelName && <span className="mr-2">&bull;</span>}
+                  <span>{statusName}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <span className={placeholderClass}>Kennel · Status</span>
           )}
         </div>
       </div>

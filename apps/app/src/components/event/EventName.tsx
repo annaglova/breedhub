@@ -50,11 +50,21 @@ export function EventName({
   const startDate = entity?.start_date;
   const hasNotesFlag = hasNotes || !!entity?.notes;
 
+  // Italic muted placeholder when a slot has no data — keeps the row at
+  // its full height (so swap from skeleton ↔ real never shifts the layout
+  // below) and signals what the slot is for.
+  const placeholderClass = "italic text-slate-400 dark:text-slate-500 font-normal";
+  const hasInfoRow = !!startDate || !!statusName;
+
   return (
     <div className="pb-3 cursor-default">
       {/* Country */}
       <div className="text-md mb-3 min-h-[1.5rem] flex flex-wrap items-center space-x-1 uppercase">
-        {countryName && <span>{countryName}</span>}
+        {countryName ? (
+          <span>{countryName}</span>
+        ) : (
+          <span className={placeholderClass}>Country</span>
+        )}
       </div>
 
       {/* Event name with note flag */}
@@ -82,24 +92,30 @@ export function EventName({
       </div>
 
       {/* Info row: date, status */}
-      <div className="flex items-center">
+      <div className="flex items-center min-h-[1.5rem]">
         <div className="text-secondary flex flex-wrap items-center space-x-2 font-medium">
           {/* Color indicator */}
           <div className="bg-primary-300 dark:bg-surface-400 size-4 rounded-full" />
 
-          {/* Start date - no bullet before first item */}
-          {startDate && (
-            <div className="flex items-center">
-              <span>{formatDate(startDate)}</span>
-            </div>
-          )}
+          {hasInfoRow ? (
+            <>
+              {/* Start date - no bullet before first item */}
+              {startDate && (
+                <div className="flex items-center">
+                  <span>{formatDate(startDate)}</span>
+                </div>
+              )}
 
-          {/* Status - with bullet before, hidden on small mobile */}
-          {statusName && (
-            <div className="hidden xs:flex items-center">
-              {startDate && <span className="mr-2">&bull;</span>}
-              <span>{statusName}</span>
-            </div>
+              {/* Status - with bullet before, hidden on small mobile */}
+              {statusName && (
+                <div className="hidden xs:flex items-center">
+                  {startDate && <span className="mr-2">&bull;</span>}
+                  <span>{statusName}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <span className={placeholderClass}>Date · Status</span>
           )}
         </div>
       </div>

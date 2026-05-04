@@ -54,12 +54,20 @@ export function ContactName({
   const isBreeder = !!roles.breeder;
   const isJudge = !!roles.judge;
 
+  // Italic muted placeholder when a slot has no data — keeps the row at
+  // its full height (so swap from skeleton ↔ real never shifts the layout
+  // below) and signals to the contact what they could fill in.
+  const placeholderClass = "italic text-slate-400 dark:text-slate-500 font-normal";
+  const hasRoles = isBreeder || isJudge;
+
   return (
     <div className="pb-3 cursor-default">
       {/* Country */}
       <div className="text-md mb-2 min-h-[1.5rem]">
-        {countryName && (
+        {countryName ? (
           <span className="uppercase">{countryName}</span>
+        ) : (
+          <span className={`uppercase ${placeholderClass}`}>Country</span>
         )}
       </div>
 
@@ -95,24 +103,24 @@ export function ContactName({
       </div>
 
       {/* Roles: Breeder / Judge */}
-      <div className="flex items-center">
+      <div className="flex items-center min-h-[1.5rem]">
         <div className="text-secondary flex flex-wrap items-center space-x-2 font-medium">
           {/* Placeholder circle (like in KennelName) */}
           <div className="bg-primary-300 dark:bg-surface-400 size-4 rounded-full" />
 
-          {/* Breeder role */}
-          {isBreeder && (
-            <span>Breeder</span>
-          )}
+          {hasRoles ? (
+            <>
+              {/* Breeder role */}
+              {isBreeder && <span>Breeder</span>}
 
-          {/* Separator between roles */}
-          {isBreeder && isJudge && (
-            <span>&bull;</span>
-          )}
+              {/* Separator between roles */}
+              {isBreeder && isJudge && <span>&bull;</span>}
 
-          {/* Judge role */}
-          {isJudge && (
-            <span>Judge</span>
+              {/* Judge role */}
+              {isJudge && <span>Judge</span>}
+            </>
+          ) : (
+            <span className={placeholderClass}>Roles</span>
           )}
         </div>
       </div>

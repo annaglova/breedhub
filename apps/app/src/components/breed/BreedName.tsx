@@ -44,10 +44,14 @@ export function BreedName({
   const displayPatronCount = entity?.measurements?.patron_count ?? patronCount;
   return (
     <div className="pb-3 cursor-default">
-      {/* Achievement */}
+      {/* Achievement / support level */}
       <div className="text-md mb-2 min-h-[1.5rem]">
-        {displayAchievement && (
+        {displayAchievement ? (
           <span className="uppercase">{displayAchievement}</span>
+        ) : (
+          <span className="uppercase italic text-slate-400 dark:text-slate-500 font-normal">
+            Support level
+          </span>
         )}
       </div>
 

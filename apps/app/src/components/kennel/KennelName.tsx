@@ -70,12 +70,20 @@ export function KennelName({
   const federationName = entity?.federation_name || "";
   const foundationYear = formatYear(entity?.company_foundation_date);
 
+  // Italic muted placeholder when a slot has no data — keeps the row at
+  // its full height (so swap from skeleton ↔ real never shifts the layout
+  // below) and signals to the kennel owner what they could fill in.
+  const placeholderClass = "italic text-slate-400 dark:text-slate-500 font-normal";
+  const hasInfoRow = !!ownerName || !!federationName || !!foundationYear;
+
   return (
     <div className="pb-3 cursor-default">
       {/* Country */}
       <div className="text-md mb-2 min-h-[1.5rem]">
-        {countryName && (
+        {countryName ? (
           <span className="uppercase">{countryName}</span>
+        ) : (
+          <span className={`uppercase ${placeholderClass}`}>Country</span>
         )}
       </div>
 
@@ -111,36 +119,41 @@ export function KennelName({
       </div>
 
       {/* Additional info: owner, federation, since */}
-      <div className="flex items-center">
+      <div className="flex items-center min-h-[1.5rem]">
         <div className="text-secondary flex flex-wrap items-center space-x-2 font-medium">
           {/* Placeholder circle (like sex mark in PetName) */}
           <div className="bg-primary-300 dark:bg-surface-400 size-4 rounded-full" />
 
-          {/* Owner */}
-          {ownerName && (
-            ownerSlug ? (
-              <Link to={`/${ownerSlug}`} className="text-foreground hover:text-primary">
-                {ownerName}
-              </Link>
-            ) : (
-              <span>{ownerName}</span>
-            )
-          )}
+          {hasInfoRow ? (
+            <>
+              {/* Owner */}
+              {ownerName &&
+                (ownerSlug ? (
+                  <Link to={`/${ownerSlug}`} className="text-foreground hover:text-primary">
+                    {ownerName}
+                  </Link>
+                ) : (
+                  <span>{ownerName}</span>
+                ))}
 
-          {/* Federation - hidden on small mobile */}
-          {federationName && (
-            <div className="hidden xs:flex items-center">
-              {ownerName && <span className="mr-2">&bull;</span>}
-              <span>{federationName}</span>
-            </div>
-          )}
+              {/* Federation - hidden on small mobile */}
+              {federationName && (
+                <div className="hidden xs:flex items-center">
+                  {ownerName && <span className="mr-2">&bull;</span>}
+                  <span>{federationName}</span>
+                </div>
+              )}
 
-          {/* Since (foundation year) - hidden on mobile */}
-          {foundationYear && (
-            <div className="hidden sm:flex items-center">
-              <span className="mr-2">&bull;</span>
-              <span>Since {foundationYear}</span>
-            </div>
+              {/* Since (foundation year) - hidden on mobile */}
+              {foundationYear && (
+                <div className="hidden sm:flex items-center">
+                  <span className="mr-2">&bull;</span>
+                  <span>Since {foundationYear}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <span className={placeholderClass}>Owner · Federation · Since</span>
           )}
         </div>
       </div>
