@@ -55,35 +55,53 @@ function PetImage({
   alt: string;
   className?: string;
 }) {
-  const isBroken = src ? brokenImageCache.has(src) : false;
-  const showRealImage = !!src && !isBroken;
+  // Programmatically preload the real image — only mount the visible <img>
+  // after `onload` fires. While the URL is downloading or while it's
+  // failing, no <img> tag exists in the DOM, so Chrome can't paint its
+  // broken-image placeholder at the (off-center) top-left corner before
+  // we get a chance to unmount it. Result: only the centered fallback dog
+  // logo is ever visible until the real photo is fully decoded.
+  const [resolvedSrc, setResolvedSrc] = useState<string | null>(() => {
+    if (!src) return null;
+    return brokenImageCache.has(src) ? null : null;
+  });
 
-  const [imgFailed, setImgFailed] = useState(false);
-  const currentSrcRef = useRef(src);
-
-  const handleError = useCallback(() => {
-    if (src) brokenImageCache.add(src);
-    setImgFailed(true);
-  }, [src]);
-
-  // Reset failed state when src changes
   useEffect(() => {
-    if (currentSrcRef.current !== src) {
-      currentSrcRef.current = src;
-      setImgFailed(false);
+    if (!src) {
+      setResolvedSrc(null);
+      return;
     }
+    if (brokenImageCache.has(src)) {
+      setResolvedSrc(null);
+      return;
+    }
+
+    let cancelled = false;
+    const probe = new Image();
+    probe.onload = () => {
+      if (!cancelled) setResolvedSrc(src);
+    };
+    probe.onerror = () => {
+      brokenImageCache.add(src);
+      if (!cancelled) setResolvedSrc(null);
+    };
+    probe.src = src;
+
+    return () => {
+      cancelled = true;
+      probe.onload = null;
+      probe.onerror = null;
+    };
   }, [src]);
 
   return (
     <div className="flex size-full items-center justify-center bg-slate-50 dark:bg-slate-700 relative">
       <img className="w-2/3 h-auto" src={defaultPetLogo} alt={alt} />
-      {showRealImage && !imgFailed && (
+      {resolvedSrc && (
         <img
           className={className || "absolute inset-0 size-full object-cover"}
-          src={src}
+          src={resolvedSrc}
           alt={alt}
-          loading="lazy"
-          onError={handleError}
         />
       )}
     </div>
