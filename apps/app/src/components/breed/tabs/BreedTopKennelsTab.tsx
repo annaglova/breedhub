@@ -1,5 +1,6 @@
 import { AvatarCard, type AvatarEntity } from "@/components/shared/AvatarCard";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { BreedTopKennelsTabSkeleton } from "./BreedTopKennelsTabSkeleton";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
@@ -109,8 +110,10 @@ export function BreedTopKennelsTab({ dataSource }: BreedTopKennelsTabProps) {
     setIsLoading(false);
   }, []);
 
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
+    return <BreedTopKennelsTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   if (kennels.length === 0) {

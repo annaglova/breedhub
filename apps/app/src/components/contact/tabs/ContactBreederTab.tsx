@@ -1,8 +1,9 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import type { SexCode } from "@/components/shared/PetSexMark";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { ContactBreederTabSkeleton } from "./ContactBreederTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import {
   spaceStore,
   useInfiniteTabData,
@@ -293,8 +294,10 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
 
   const isLoading = kennelsLoading || offspringLoading;
 
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
+    return <ContactBreederTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   if (!kennelGroups.length) {

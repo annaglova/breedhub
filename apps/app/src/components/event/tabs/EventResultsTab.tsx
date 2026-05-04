@@ -1,5 +1,6 @@
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { EventResultsTabSkeleton } from "./EventResultsTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import {
   spaceStore,
   useInfiniteTabData,
@@ -240,9 +241,10 @@ export function EventResultsTab({
     return null;
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
+    return <EventResultsTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   // Error state

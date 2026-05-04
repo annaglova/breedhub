@@ -1,6 +1,7 @@
 import { SalePetCard, type SalePet } from "@/components/shared/SalePetCard";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { KennelServicesTabSkeleton } from "./KennelServicesTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import {
   spaceStore,
   useInfiniteTabData,
@@ -143,8 +144,10 @@ export function KennelServicesTab({
     return () => observer.disconnect();
   }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, pets.length]);
 
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
+    return <KennelServicesTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   if (pets.length === 0) {

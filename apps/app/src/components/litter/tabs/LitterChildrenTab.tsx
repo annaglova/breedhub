@@ -1,7 +1,8 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
 import { normalizeSexCode } from "@/components/shared/pedigree/types";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { LitterChildrenTabSkeleton } from "./LitterChildrenTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore, dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -153,9 +154,10 @@ export function LitterChildrenTab({
     }
   }, [isLoadingJunction, isEnriching, children.length, onLoadedCount]);
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoadingJunction || isEnriching) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(isLoadingJunction || isEnriching);
+  if (showSkeleton) {
+    return <LitterChildrenTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   // Error state

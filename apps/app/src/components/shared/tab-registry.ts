@@ -14,12 +14,22 @@ import { PetChildrenTabSkeleton } from '../pet/tabs/PetChildrenTabSkeleton';
 import { PetGeneralTabSkeleton } from '../pet/tabs/PetGeneralTabSkeleton';
 import { PetHealthTabSkeleton } from '../pet/tabs/PetHealthTabSkeleton';
 import { PetIdentifiersTabSkeleton } from '../pet/tabs/PetIdentifiersTabSkeleton';
+import { PetServicesTabSkeleton } from '../pet/tabs/PetServicesTabSkeleton';
 import { PetShowResultsTabSkeleton } from '../pet/tabs/PetShowResultsTabSkeleton';
 import { PetSiblingsTabSkeleton } from '../pet/tabs/PetSiblingsTabSkeleton';
+import { LitterChildrenTabSkeleton } from '../litter/tabs/LitterChildrenTabSkeleton';
 import { LitterGeneralTabSkeleton } from '../litter/tabs/LitterGeneralTabSkeleton';
+import { LitterServicesTabSkeleton } from '../litter/tabs/LitterServicesTabSkeleton';
 import { KennelGeneralTabSkeleton } from '../kennel/tabs/KennelGeneralTabSkeleton';
+import { KennelServicesTabSkeleton } from '../kennel/tabs/KennelServicesTabSkeleton';
+import { ContactBreederTabSkeleton } from '../contact/tabs/ContactBreederTabSkeleton';
 import { ContactGeneralTabSkeleton } from '../contact/tabs/ContactGeneralTabSkeleton';
+import { ContactJudgeTabSkeleton } from '../contact/tabs/ContactJudgeTabSkeleton';
+import { BreedPatronsTabSkeleton } from '../breed/tabs/BreedPatronsTabSkeleton';
+import { BreedTopKennelsTabSkeleton } from '../breed/tabs/BreedTopKennelsTabSkeleton';
+import { BreedTopPetsTabSkeleton } from '../breed/tabs/BreedTopPetsTabSkeleton';
 import { EventGeneralTabSkeleton } from '../event/tabs/EventGeneralTabSkeleton';
+import { EventResultsTabSkeleton } from '../event/tabs/EventResultsTabSkeleton';
 import { AlternatingTimelineSkeleton } from '@ui/components/timeline';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
@@ -108,6 +118,56 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
   }
   if (componentName === 'EventGeneralTab') {
     return React.createElement(EventGeneralTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'EventResultsTab') {
+    return React.createElement(EventResultsTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'PetServicesTab') {
+    return React.createElement(PetServicesTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'LitterChildrenTab') {
+    return React.createElement(LitterChildrenTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'LitterServicesTab') {
+    return React.createElement(LitterServicesTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'KennelServicesTab') {
+    return React.createElement(KennelServicesTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'ContactBreederTab') {
+    return React.createElement(ContactBreederTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'ContactJudgeTab') {
+    return React.createElement(ContactJudgeTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'BreedPatronsTab') {
+    return React.createElement(BreedPatronsTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'BreedTopKennelsTab') {
+    return React.createElement(BreedTopKennelsTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'BreedTopPetsTab') {
+    return React.createElement(BreedTopPetsTabSkeleton, {
       isFullscreen: props?.mode === 'fullscreen',
     });
   }

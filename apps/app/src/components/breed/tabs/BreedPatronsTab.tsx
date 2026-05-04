@@ -1,7 +1,8 @@
 import { AvatarCard, AvatarEntity } from "@/components/shared/AvatarCard";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { BreedPatronsTabSkeleton } from "./BreedPatronsTabSkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import {
   spaceStore,
@@ -170,9 +171,11 @@ export function BreedPatronsTab({
     );
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window so a fast
+  // cache hit doesn't briefly flash skeleton.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
+    return <BreedPatronsTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   // Error state

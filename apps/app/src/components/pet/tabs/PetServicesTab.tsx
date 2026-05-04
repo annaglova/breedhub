@@ -1,6 +1,7 @@
 import { LitterCard, LitterData } from "@/components/shared/LitterCard";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { PetServicesTabSkeleton } from "./PetServicesTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore, useTabData, dictionaryStore } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -346,9 +347,10 @@ export function PetServicesTab({
     }
   }, [isLoading, onLoadedCount, services.length]);
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(!!isLoading);
+  if (showSkeleton) {
+    return <PetServicesTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   // Error state

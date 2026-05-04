@@ -1,8 +1,9 @@
 import { InfinitePetGridTab } from "@/components/shared/InfinitePetGridTab";
 import type { Pet } from "@/components/shared/PetCard";
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { BreedTopPetsTabSkeleton } from "./BreedTopPetsTabSkeleton";
 import { useDisplayLimit } from "@/hooks/useDisplayLimit";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import {
   spaceStore,
@@ -168,9 +169,10 @@ export const BreedTopPetsTab = memo(function BreedTopPetsTab({
     );
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
+    return <BreedTopPetsTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   // Error state

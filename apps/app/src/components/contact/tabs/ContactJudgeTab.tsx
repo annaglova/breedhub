@@ -1,5 +1,6 @@
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { ContactJudgeTabSkeleton } from "./ContactJudgeTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
+import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import {
@@ -244,8 +245,10 @@ export function ContactJudgeTab({
 
   const visibleRows = useMemo(() => flattenVisible(roots), [roots]);
 
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native column-aware skeleton with shared anti-flash window.
+  const showSkeleton = useSkeletonWithDelay(isLoading);
+  if (showSkeleton) {
+    return <ContactJudgeTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   if (roots.length === 0) {
