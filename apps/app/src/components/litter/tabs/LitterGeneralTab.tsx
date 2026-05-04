@@ -85,6 +85,11 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
       return;
     }
 
+    // Clear stale lookups on entity switch — see PetGeneralTab for the
+    // matching rationale (avoids new-entity name + previous entity's
+    // resolved father/mother/breeder rendering for one frame).
+    setData({});
+
     async function loadLookups() {
       setIsLoading(true);
 
@@ -152,9 +157,10 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
 
   const iconSize = 16;
 
-  // Native skeleton mirrors fieldset structure with static labels and
-  // bar placeholders. Treats "no entity yet" as loading too.
-  if (!selectedEntity || isLoading) {
+  // Native skeleton on cold start (no entity yet). Drop the `isLoading`
+  // gate so entity-switch within the space matches kennel/contact/event
+  // (no skeleton flash). Stale lookups are cleared in the effect above.
+  if (!selectedEntity) {
     return <LitterGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 

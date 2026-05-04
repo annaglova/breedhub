@@ -141,12 +141,22 @@ export function AboveFoldLoadingProvider({
   const registeredCount = blockEntries.length;
   const readyCount = blockEntries.filter(([, ready]) => ready).length;
 
-  // All ready when:
-  // - No blocks registered (no async loading needed) OR
-  // - All registered blocks are ready
-  // AND min time has elapsed
-  const allBlocksReady = (registeredCount === 0 || readyCount === registeredCount) &&
+  // Sticky-ready: once all registered blocks have reported ready ONCE
+  // within this provider mount, stay ready for the rest of the lifetime.
+  // Aligns with SKELETON_LOADING_ARCHITECTURE P5/P8 — "background refreshes
+  // never paint skeleton over existing data". Without this, tabs with async
+  // lookups (pet/breed/litter use loadLookups effect) toggle their ready
+  // signal false→true on entity-switch within a space, which would re-fire
+  // the page-level skeleton even though the user already saw real content.
+  // Provider unmounts on space change (different SpaceShell key), so the
+  // ref correctly resets to false on cold-load into a new space.
+  const computedReady = (registeredCount === 0 || readyCount === registeredCount) &&
                          minTimeElapsed;
+  const hasEverBeenReadyRef = useRef(false);
+  if (computedReady) {
+    hasEverBeenReadyRef.current = true;
+  }
+  const allBlocksReady = hasEverBeenReadyRef.current || computedReady;
 
   // Show skeleton only when:
   // - Not all blocks are ready AND

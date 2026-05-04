@@ -99,6 +99,13 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
       return;
     }
 
+    // Clear stale lookups on entity switch so the new entity's name
+    // doesn't render briefly alongside the previous entity's resolved
+    // father/mother/breeder/etc. While lookups refetch we show "—"
+    // placeholders for ~50ms (matches kennel/contact/event behaviour
+    // where useDictionaryValue returns null until the cache hits).
+    setData({});
+
     async function loadLookups() {
       setIsLoading(true);
 
@@ -186,11 +193,13 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
 
   const iconSize = 16;
 
-  // Native skeleton mirrors the 3-fieldset layout, so cold-load shows the
-  // same icon+label structure that arrives with real values. Treat
-  // "no entity yet" as loading too — `selectedEntity` may still be
-  // resolving (slug → id) when the component first mounts.
-  if (!selectedEntity || isLoading) {
+  // Native skeleton on cold start (no entity yet). Drop the `isLoading`
+  // gate to avoid flashing skeleton on entity-switch within the space —
+  // kennel/contact/event don't show a skeleton there, so this keeps
+  // public-page entity-switch behaviour uniform. Stale lookups are
+  // cleared in the effect above; the brief "—" placeholder window is
+  // imperceptible in practice.
+  if (!selectedEntity) {
     return <PetGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 

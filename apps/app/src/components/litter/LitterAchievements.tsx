@@ -86,7 +86,11 @@ export function LitterAchievements({ entity }: LitterAchievementsProps) {
   );
 
   return (
-    <div className="flex flex-wrap gap-2 mt-3 mb-6 min-h-[2rem]" aria-label="parents">
+    // Wrapper spacing matches PetAchievements (`mt-2 min-h-[2rem]`) so the
+    // AchievementOutlet skeleton → real swap doesn't push tab content
+    // downward. The previous `mt-3 mb-6` made litter the only space with
+    // a visible content jump on cold-load.
+    <div className="flex flex-wrap gap-2 mt-2 min-h-[2rem]" aria-label="parents">
       {hasAnyParent ? (
         <>
           {father?.name && (
