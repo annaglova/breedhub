@@ -1,11 +1,13 @@
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatDate } from "@/utils/format";
 import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig, MergedDictionaryItem } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { AlternatingTimeline } from "@ui/components/timeline";
+import {
+  AlternatingTimeline,
+  AlternatingTimelineSkeleton,
+} from "@ui/components/timeline";
 import { Check } from "lucide-react";
 import { useMemo, useEffect } from "react";
 
@@ -131,9 +133,22 @@ export function BreedAchievementsTab({
     );
   }
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native timeline-shaped skeleton — keeps the alternating-card outline
+  // visible during cold-load instead of the generic 3-rect TabBodySkeleton.
+  // Treat "no breed yet" as loading too: useTabData is gated on breedId
+  // (enabled=false) so without this check the component falls through to
+  // the empty-state branch and flashes "No achievements data available"
+  // before the entity arrives.
+  if (!breedId || isLoading) {
+    return (
+      <div className="sm:pr-5">
+        <AlternatingTimelineSkeleton
+          itemCount={timelineLayout === "alternating" ? 6 : 5}
+          layout={timelineLayout}
+          showCards={true}
+        />
+      </div>
+    );
   }
 
   // Error state

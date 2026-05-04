@@ -1,5 +1,6 @@
 import { TabOutletRenderer } from "@/components/blocks/TabOutletRenderer";
 import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { buildTabSkeleton } from "@/components/shared/tab-registry";
 import { useAboveFoldBlockIf } from "@/contexts/AboveFoldLoadingContext";
 import type { PageConfig } from "@/types/page-config.types";
 import type { SpacePermissions } from "@/types/page-menu.types";
@@ -189,12 +190,32 @@ export function TabOutlet({
           ))}
         </div>
         {tabMode !== "tabs" &&
-          Array.from({ length: sectionCount }).map((_, i) => (
-            <div key={`section-${i}`} className={i === 0 ? "mt-6" : "mt-12"}>
-              <div className="mb-6 h-12 w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-              <TabBodySkeleton />
-            </div>
-          ))}
+          Array.from({ length: sectionCount }).map((_, i) => {
+            // Pick the matching tab so the skeleton body uses the tab's own
+            // native skeleton (column-aware table, alternating timeline,
+            // litter cards, etc.) — not the generic 3-rect TabBodySkeleton
+            // that overlays whatever the real tab will eventually render.
+            // Falls back to TabBodySkeleton for tabs without a native one.
+            const visibleEntries = Object.values(visibleTabs);
+            const tabConfig = visibleEntries[i];
+            const tabComponent = (tabConfig as any)?.component as string | undefined;
+            const tabFallback = tabComponent
+              ? buildTabSkeleton(tabComponent, {
+                  // pass entity so config-driven skeletons (EditFormSkeleton)
+                  // can derive their fields; safe to pass even when undefined.
+                  entity,
+                  fields: (tabConfig as any)?.fields,
+                  mode: "scroll",
+                })
+              : null;
+
+            return (
+              <div key={`section-${i}`} className={i === 0 ? "mt-6" : "mt-12"}>
+                <div className="mb-6 h-12 w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                {tabFallback ?? <TabBodySkeleton />}
+              </div>
+            );
+          })}
       </div>
     );
   };

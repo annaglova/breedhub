@@ -48,6 +48,10 @@ type TabModuleLoader = () => Promise<TabModule>;
  * - All other tabs (drawer/scroll mode) fall back to the shared
  *   TabBodySkeleton so layout reservation stays consistent.
  */
+export function buildTabSkeleton(componentName: string, props: any): React.ReactElement | null {
+  return buildFallback(componentName, props);
+}
+
 function buildFallback(componentName: string, props: any): React.ReactElement | null {
   if (componentName === 'EditFormTab') {
     return React.createElement(EditFormSkeleton, { fields: props?.fields });
@@ -82,6 +86,22 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
     return React.createElement(
       'div',
       { className: 'cursor-default sm:pr-5' },
+      React.createElement(AlternatingTimelineSkeleton, {
+        itemCount: isFs ? 6 : 5,
+        layout: isFs ? 'alternating' : 'right',
+        showCards: true,
+      }),
+    );
+  }
+  if (componentName === 'BreedAchievementsTab') {
+    // BreedAchievementsTab uses alternating layout only when fullscreen AND
+    // viewport ≥ 960px. We can't read viewport synchronously here, so the
+    // Suspense fallback uses `right` for non-fullscreen and the in-component
+    // loader (which has access to useMediaQuery) takes over on chunk-ready.
+    const isFs = props?.mode === 'fullscreen';
+    return React.createElement(
+      'div',
+      { className: 'sm:pr-5' },
       React.createElement(AlternatingTimelineSkeleton, {
         itemCount: isFs ? 6 : 5,
         layout: isFs ? 'alternating' : 'right',
