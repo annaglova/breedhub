@@ -11,6 +11,7 @@ import React from 'react';
 import { EditFormSkeleton } from '../edit/EditFormSkeleton';
 import { EditChildTableSkeleton } from '../edit/tabs/EditChildTableSkeleton';
 import { PetChildrenTabSkeleton } from '../pet/tabs/PetChildrenTabSkeleton';
+import { PetGeneralTabSkeleton } from '../pet/tabs/PetGeneralTabSkeleton';
 import { PetHealthTabSkeleton } from '../pet/tabs/PetHealthTabSkeleton';
 import { PetIdentifiersTabSkeleton } from '../pet/tabs/PetIdentifiersTabSkeleton';
 import { PetShowResultsTabSkeleton } from '../pet/tabs/PetShowResultsTabSkeleton';
@@ -78,6 +79,11 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
   }
   if (componentName === 'PetSiblingsTab') {
     return React.createElement(PetSiblingsTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'PetGeneralTab') {
+    return React.createElement(PetGeneralTabSkeleton, {
       isFullscreen: props?.mode === 'fullscreen',
     });
   }

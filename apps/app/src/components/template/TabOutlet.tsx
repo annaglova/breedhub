@@ -211,7 +211,12 @@ export function TabOutlet({
 
             return (
               <div key={`section-${i}`} className={i === 0 ? "mt-6" : "mt-12"}>
-                <div className="mb-6 h-12 w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                {/* Section header height must match real TabHeader exactly:
+                    `py-3 + h2 text-2xl font-display tracking-wide line-height`
+                    renders at 47px in browser, not 48px (h-12). Off-by-1
+                    accumulates per section → 2px page jump on swap with
+                    cap=2 sections. */}
+                <div className="mb-6 h-[47px] w-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
                 {tabFallback ?? <TabBodySkeleton />}
               </div>
             );

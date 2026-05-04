@@ -1,4 +1,4 @@
-import { TabBodySkeleton } from "@/components/shared/TabBodySkeleton";
+import { PetGeneralTabSkeleton } from "./PetGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { formatDate } from "@/utils/format";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
@@ -186,9 +186,12 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
 
   const iconSize = 16;
 
-  // Loading skeleton — shared TabBodySkeleton (W1.3 view-tab unification)
-  if (isLoading) {
-    return <TabBodySkeleton />;
+  // Native skeleton mirrors the 3-fieldset layout, so cold-load shows the
+  // same icon+label structure that arrives with real values. Treat
+  // "no entity yet" as loading too — `selectedEntity` may still be
+  // resolving (slug → id) when the component first mounts.
+  if (!selectedEntity || isLoading) {
+    return <PetGeneralTabSkeleton isFullscreen={isFullscreen} />;
   }
 
   return (
