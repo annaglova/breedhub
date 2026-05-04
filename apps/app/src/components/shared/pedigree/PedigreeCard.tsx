@@ -237,11 +237,17 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
               </div>
             )}
 
-            <div className="mt-3 sm:mt-4 flex w-full flex-col items-center border-t border-border">
-              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-2 mb-1.5 mt-3" />
-              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 my-1.5" />
-              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 my-1.5" />
-              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 my-1.5" />
+            {/* Mirror the real "Country + Year + Titles" block exactly:
+                same `h-20 mt-3 sm:mt-4 ... border-t pt-3 flex-col overflow-hidden`
+                wrapper. Without the same outer the skeleton block was ~22px
+                taller than real, and because the level-0 card uses
+                `justify-center` content shifted ~11px between skeleton ↔ real. */}
+            <div className="h-20 mt-3 sm:mt-4 w-full border-t border-border pt-3 flex flex-col items-center overflow-hidden">
+              {/* Country/year line */}
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-3 mb-1.5" />
+              {/* Titles (2-line clamp in real) */}
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3 mb-1.5" />
+              <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
             </div>
           </>
         )}
@@ -318,7 +324,10 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
                 <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-full h-3" />
               </div>
             </div>
-            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-2 mt-3" />
+            {/* Country/year placeholder mirrors `<em className="text-sm mt-auto">`.
+                shrink-0 keeps the bar at full 12px even though the middle row
+                uses h-full and would otherwise flex-squeeze it. */}
+            <div className="rounded-full bg-secondary-200 dark:bg-secondary-700 w-1/3 h-3 mt-3 shrink-0" />
           </>
         )}
       </div>
@@ -341,7 +350,7 @@ export function PedigreeCard({ pet, sex, level, canSelectPet, isSelected, onSele
           <PetSexMark
             sex={petSex}
             style="horizontal"
-            className="mx-auto w-36"
+            className="mx-auto w-36 shrink-0"
           />
 
           {!isEmpty ? (
