@@ -14,6 +14,7 @@ import { PetChildrenTabSkeleton } from '../pet/tabs/PetChildrenTabSkeleton';
 import { PetHealthTabSkeleton } from '../pet/tabs/PetHealthTabSkeleton';
 import { PetIdentifiersTabSkeleton } from '../pet/tabs/PetIdentifiersTabSkeleton';
 import { PetShowResultsTabSkeleton } from '../pet/tabs/PetShowResultsTabSkeleton';
+import { PetSiblingsTabSkeleton } from '../pet/tabs/PetSiblingsTabSkeleton';
 import { TabBodySkeleton } from './TabBodySkeleton';
 
 type TabModule = {
@@ -67,6 +68,11 @@ function buildFallback(componentName: string, props: any): React.ReactElement | 
   }
   if (componentName === 'PetChildrenTab') {
     return React.createElement(PetChildrenTabSkeleton, {
+      isFullscreen: props?.mode === 'fullscreen',
+    });
+  }
+  if (componentName === 'PetSiblingsTab') {
+    return React.createElement(PetSiblingsTabSkeleton, {
       isFullscreen: props?.mode === 'fullscreen',
     });
   }
