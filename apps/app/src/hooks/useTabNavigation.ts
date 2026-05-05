@@ -271,7 +271,22 @@ export function useTabNavigation({
             tabHeaderHeight = tabHeaderRect.height;
           }
 
-          stickyHeadersHeight = pageMenuTop + pageMenuRect.height + marginBottom + tabHeaderHeight;
+          // Special-case tabs whose body has its OWN sticky element pinned
+          // below the TabHeader (e.g. PetPedigreeTab horizontal scrollbar
+          // at `top: tabHeaderTop + 48`). The base calc (pageMenu + margin
+          // + tabHeader) lands above the inner sticky's bound, which makes
+          // the inner sticky pull up and stack ahead of the TabHeader —
+          // breaking the designed "scrollbar right under TabHeader"
+          // placement and leaving a visible gap above the TabHeader.
+          // Targeting just past the inner sticky's `top` keeps it at its
+          // natural in-flow position AND lets the TabHeader stick flush.
+          const innerSticky = element.querySelector('.sticky') as HTMLElement | null;
+          const innerStickyTop = innerSticky ? parseInt(innerSticky.style.top || '0') : 0;
+          if (innerStickyTop > 0) {
+            stickyHeadersHeight = innerStickyTop + 6;
+          } else {
+            stickyHeadersHeight = pageMenuTop + pageMenuRect.height + marginBottom + tabHeaderHeight;
+          }
         } else {
           // Fallback: just use a reasonable default
           stickyHeadersHeight = 250;
