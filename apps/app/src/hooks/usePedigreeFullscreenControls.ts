@@ -19,7 +19,7 @@ export function usePedigreeFullscreenControls({
     if (saved) return Number(saved) as GenerationCount;
     return window.matchMedia(mediaQueries["2xl"]).matches ? 5 : 4;
   });
-  const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(true);
+  const [isPedigreeCollapsed, setIsPedigreeCollapsed] = useState(false);
   const [linkToPedigree, setLinkToPedigree] = useState(
     () => sessionStorage.getItem(LINK_TO_PEDIGREE_KEY) === "1",
   );
