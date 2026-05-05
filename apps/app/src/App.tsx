@@ -4,7 +4,7 @@ import { queryClient } from '@/core/queryClient';
 import { AuthProvider } from '@shared/core/auth';
 import { AppRouter } from '@/router/AppRouter';
 import { useLoadingBar } from '@/hooks/useLoadingBar';
-import { spaceStore, appStore, userStore, toastStore } from '@breedhub/rxdb-store';
+import { spaceStore, appStore, userStore, userSettingsStore, toastStore } from '@breedhub/rxdb-store';
 import { Toaster } from '@ui/components/toast/Toaster';
 import "./app-theme.css";
 
@@ -43,6 +43,8 @@ function AppContent() {
         if (!userStore.initialized.value) {
           await userStore.initialize();
         }
+        // userSettingsStore subscribes to userStore.currentUserId; safe to call after userStore.initialize.
+        userSettingsStore.initialize();
         console.log('[App] CONDITIONS MET! Calling spaceStore.initialize() at', new Date().toISOString());
         await spaceStore.initialize();
         console.log('[App] spaceStore.initialize() completed in', performance.now() - startTime, 'ms at', new Date().toISOString());

@@ -129,3 +129,18 @@ export type { CachePolicyKey } from './cache/cache-policies';
 
 // Child-record field helpers
 export { getChildField } from './stores/space-child.helpers';
+
+// User settings store (preferences: units, language, theme, default breed)
+export { userSettingsStore } from './stores/user-settings.signal-store';
+export type { UserSettings } from './stores/user-settings.signal-store';
+
+// Measurement constants (canonical UUIDs for measurement_type and unit reference data)
+export {
+  MEASUREMENT_TYPE_ID,
+  UNIT_ID,
+  BASE_UNIT_FOR_MEASUREMENT_TYPE,
+} from './constants/measurement-constants';
+export type {
+  MeasurementTypeId,
+  UnitId,
+} from './constants/measurement-constants';
