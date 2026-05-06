@@ -40,3 +40,30 @@ export type MeasurementTypeId =
   (typeof MEASUREMENT_TYPE_ID)[keyof typeof MEASUREMENT_TYPE_ID];
 
 export type UnitId = (typeof UNIT_ID)[keyof typeof UNIT_ID];
+
+/**
+ * Semantic marker on a field config (`measurementKind: "weight"`) → measurement_type_id.
+ * The single switch that turns on measurement-aware rendering for a NumberInput.
+ * Unknown kinds resolve to undefined; renderer treats them as plain numbers.
+ */
+export const MEASUREMENT_KIND_TO_TYPE_ID: Record<string, MeasurementTypeId> = {
+  weight: MEASUREMENT_TYPE_ID.Weight,
+  height: MEASUREMENT_TYPE_ID.Height,
+  chestVolume: MEASUREMENT_TYPE_ID.ChestVolume,
+};
+
+/**
+ * Default min/max bounds per kind, in the SI base unit. Applied by
+ * `useFormValidation` when an explicit `validation.min`/`max` is absent.
+ *
+ * - Weight: 0.01 kg–200 kg (DB CHECK already enforces > 0; cap catches grams typed as kg).
+ * - Height/ChestVolume: 1 cm–200 cm (matches the 2026-05-05 cleanup pass).
+ */
+export const MEASUREMENT_KIND_DEFAULT_BOUNDS: Record<
+  string,
+  { min: number; max: number }
+> = {
+  weight: { min: 0.01, max: 200 },
+  height: { min: 1, max: 200 },
+  chestVolume: { min: 1, max: 200 },
+};

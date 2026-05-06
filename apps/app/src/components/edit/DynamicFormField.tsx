@@ -6,6 +6,7 @@
  */
 import React from "react";
 import { PetPickerInput } from "@/components/edit/inputs/PetPickerInput";
+import { MeasurementNumberInput } from "@/components/edit/inputs/MeasurementNumberInput";
 import { FORM_COMPONENT_MAP } from "@/components/edit/componentMap";
 import { extractDbFieldName } from "@/hooks/useDynamicFields";
 
@@ -84,6 +85,20 @@ export function DynamicFormField({
   if (!Component) return null;
 
   const fieldProps = getFieldProps(fieldId, field);
+
+  // measurementKind-tagged NumberInput → measurement-aware wrapper.
+  // SI ↔ display unit conversion + suffix; validation bounds remain in SI
+  // (handled by useFormValidation via measurementKind defaults).
+  if (field.component === "NumberInput" && field.measurementKind) {
+    return (
+      <div key={fieldId} className={className}>
+        <MeasurementNumberInput
+          measurementKind={field.measurementKind}
+          {...fieldProps}
+        />
+      </div>
+    );
+  }
 
   // Optional wrapper (e.g., JunctionFilterField in EditFormTab)
   if (wrapComponent) {

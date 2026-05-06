@@ -5,17 +5,31 @@
  * - required: auto-message "${displayName} is required"
  * - maxLength: auto-message "Maximum ${N} characters" (from validation.maxLength or top-level maxLength)
  * - pattern: custom { value, message } from validation.pattern
+ * - numeric min/max (SI): explicit `validation.min`/`max` or defaults via `measurementKind`
  */
 import { useCallback, useState } from "react";
+import { MEASUREMENT_KIND_DEFAULT_BOUNDS } from "@breedhub/rxdb-store";
 
 interface FieldValidationConfig {
   displayName?: string;
   required?: boolean;
   maxLength?: number;
+  /**
+   * Semantic measurement marker (e.g. "weight", "height"). When set, default
+   * numeric bounds from MEASUREMENT_KIND_DEFAULT_BOUNDS apply unless explicit
+   * `validation.min`/`max` override them. Validation runs against the SI value
+   * held in form state — never the display value.
+   */
+  measurementKind?: string;
   validation?: {
     maxLength?: number;
     notNull?: boolean;
     pattern?: { value: string; message: string };
+    /** Numeric bounds in SI base unit. */
+    min?: number;
+    max?: number;
+    minMessage?: string;
+    maxMessage?: string;
   };
 }
 
@@ -48,6 +62,37 @@ export function useFormValidation() {
             fieldConfig.validation.pattern;
           if (!new RegExp(patternValue).test(val)) {
             return message || "Invalid format";
+          }
+        }
+      }
+
+      // Numeric min/max — explicit `validation.min`/`max` win, otherwise fall
+      // back to `measurementKind` defaults. Bounds are in SI; the renderer
+      // formats the message into the display unit when it shows the error.
+      if (val !== null && val !== undefined && val !== "") {
+        const numVal = typeof val === "number" ? val : Number(val);
+        if (!Number.isNaN(numVal)) {
+          const kindBounds = fieldConfig.measurementKind
+            ? MEASUREMENT_KIND_DEFAULT_BOUNDS[fieldConfig.measurementKind]
+            : undefined;
+          const min =
+            fieldConfig.validation?.min !== undefined
+              ? fieldConfig.validation.min
+              : kindBounds?.min;
+          const max =
+            fieldConfig.validation?.max !== undefined
+              ? fieldConfig.validation.max
+              : kindBounds?.max;
+
+          if (min !== undefined && numVal < min) {
+            return (
+              fieldConfig.validation?.minMessage ?? `Minimum value is ${min}`
+            );
+          }
+          if (max !== undefined && numVal > max) {
+            return (
+              fieldConfig.validation?.maxMessage ?? `Maximum value is ${max}`
+            );
           }
         }
       }

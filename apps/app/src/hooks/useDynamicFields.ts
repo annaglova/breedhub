@@ -215,6 +215,17 @@ export function useDynamicFields({ fields, getValue, onChange, readonlyCondition
       const wrappedChange = (value: any) => handleChange(fieldId, dbFieldName, value);
 
       if (ONCHANGE_COMPONENTS.has(componentName)) {
+        // RxDB schemas type numeric columns as `number`, so NumberInput must
+        // round-trip its string DOM value back to a Number before reaching
+        // form state. Empty stays "" so an unset field doesn't become 0.
+        if (componentName === "NumberInput") {
+          return {
+            onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+              const v = e.target.value;
+              wrappedChange(v === "" ? "" : Number(v));
+            },
+          };
+        }
         return { onChange: (e: React.ChangeEvent<HTMLInputElement>) => wrappedChange(e.target.value) };
       }
       if (ONCHECKED_COMPONENTS.has(componentName)) {
