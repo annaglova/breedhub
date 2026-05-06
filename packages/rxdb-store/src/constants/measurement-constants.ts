@@ -67,3 +67,17 @@ export const MEASUREMENT_KIND_DEFAULT_BOUNDS: Record<
   height: { min: 1, max: 200 },
   chestVolume: { min: 1, max: 200 },
 };
+
+/**
+ * Field-config marker `displayUnit: "g"` (etc.) → unit.id.
+ * Forces a specific display unit for measurement-aware inputs, overriding the
+ * user's `user_settings.weight_unit_id` / `size_unit_id` preference. Used by
+ * the litter weight matrix so newborn puppies are always entered in grams.
+ */
+export const DISPLAY_UNIT_TO_UNIT_ID: Record<string, UnitId> = {
+  kg: UNIT_ID.Kg,
+  g: UNIT_ID.g,
+  lbs: UNIT_ID.Lbs,
+  cm: UNIT_ID.Cm,
+  in: UNIT_ID.In,
+};

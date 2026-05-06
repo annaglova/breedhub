@@ -151,6 +151,7 @@ export {
   BASE_UNIT_FOR_MEASUREMENT_TYPE,
   MEASUREMENT_KIND_TO_TYPE_ID,
   MEASUREMENT_KIND_DEFAULT_BOUNDS,
+  DISPLAY_UNIT_TO_UNIT_ID,
 } from './constants/measurement-constants';
 export type {
   MeasurementTypeId,

@@ -1,7 +1,15 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
-import { spaceStore, syncQueueService, toast } from "@breedhub/rxdb-store";
+import {
+  spaceStore,
+  syncQueueService,
+  toast,
+  DISPLAY_UNIT_TO_UNIT_ID,
+  MEASUREMENT_KIND_TO_TYPE_ID,
+} from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import { useMeasurementUnits } from "@/hooks/useMeasurementUnits";
+import { formatMeasurement, toBase } from "@/utils/format-measurement";
 import {
   groupCellRecordsIntoRows,
   mergeRowsWithDrafts,
@@ -46,6 +54,10 @@ interface MatrixFieldConfig {
   referencedTable?: string;
   referencedFieldID?: string;
   referencedFieldName?: string;
+  /** Semantic measurement marker — turns on SI ↔ display conversion for cell. */
+  measurementKind?: string;
+  /** Forces a specific display unit (e.g. "g") regardless of user_settings preference. */
+  displayUnit?: string;
 }
 
 interface ParsedFields {
@@ -199,6 +211,23 @@ export function EditChildMatrixTab({
 
   const parsed = useMemo(() => parseFields(fields), [fields]);
   const cellTable = cellTableFromDataSource || parsed.cellTable;
+
+  // Cell measurement context: when the cell field carries `measurementKind`
+  // and `displayUnit`, the matrix renders/saves in the configured display unit
+  // (e.g. grams) while DB storage stays SI. Falls back to raw passthrough when
+  // the markers are absent or unit metadata isn't loaded yet.
+  const { unitsByType } = useMeasurementUnits();
+  const cellMeasurement = useMemo(() => {
+    const cellField = parsed.cell?.field;
+    if (!cellField?.measurementKind || !cellField.displayUnit) return null;
+    const measurementTypeId = MEASUREMENT_KIND_TO_TYPE_ID[cellField.measurementKind];
+    const displayUnitId = DISPLAY_UNIT_TO_UNIT_ID[cellField.displayUnit];
+    if (!measurementTypeId || !displayUnitId) return null;
+    const units = unitsByType[measurementTypeId];
+    if (!units) return null;
+    const unitName = units.find((u) => u.id === displayUnitId)?.name ?? "";
+    return { measurementTypeId, displayUnitId, unitName };
+  }, [parsed.cell, unitsByType]);
   // Stable constants ref — parseFields recreates `constants` each render, but
   // its content is stable when `fields` is stable. Used as effect dep so we
   // don't re-fetch on every render.
@@ -558,8 +587,22 @@ export function EditChildMatrixTab({
       const columnId = columnEntity.id as string;
       const existing = row.cellRecords[columnId];
       const cleaned = rawValue.trim();
-      const numeric = cleaned === "" ? null : Number(cleaned);
-      if (numeric !== null && Number.isNaN(numeric)) return;
+      const enteredNumeric = cleaned === "" ? null : Number(cleaned);
+      if (enteredNumeric !== null && Number.isNaN(enteredNumeric)) return;
+      // Convert display unit → SI before persisting when measurement context is active.
+      const numeric = (() => {
+        if (enteredNumeric === null || !cellMeasurement) return enteredNumeric;
+        try {
+          return toBase(
+            enteredNumeric,
+            cellMeasurement.displayUnitId,
+            cellMeasurement.measurementTypeId,
+            unitsByType,
+          );
+        } catch {
+          return enteredNumeric;
+        }
+      })();
 
       // Clearing a cell → soft-delete existing, or no-op on draft
       if (numeric === null) {
@@ -623,7 +666,7 @@ export function EditChildMatrixTab({
       }
       setRefreshTick((t) => t + 1);
     },
-    [parsed, cellTable, columnEntityTable, label],
+    [parsed, cellTable, columnEntityTable, label, cellMeasurement, unitsByType],
   );
 
   const handleRemoveRow = useCallback(
@@ -797,24 +840,45 @@ export function EditChildMatrixTab({
                 {columnEntities.map((entity) => {
                   const id = entity.id as string;
                   const cellRec = row.cellRecords[id];
-                  const value = cellRec
+                  const rawValue = cellRec
                     ? (cellRec.additional as Record<string, any>)?.[parsed.cell!.column]
                     : null;
+                  // Convert SI → display unit when cellMeasurement is active.
+                  let displayValue: string | number | null | undefined = rawValue;
+                  if (cellMeasurement && rawValue !== null && rawValue !== undefined && rawValue !== "") {
+                    const formatted = formatMeasurement(
+                      Number(rawValue),
+                      cellMeasurement.measurementTypeId,
+                      cellMeasurement.displayUnitId,
+                      unitsByType,
+                    );
+                    if (formatted && Number.isFinite(formatted.display)) {
+                      displayValue = Number(formatted.display.toFixed(2));
+                    }
+                  }
+                  const suffix = cellMeasurement?.unitName;
                   return (
                     <TableCell
                       key={id}
                       className="first:pl-4 last:pr-4 text-center"
                     >
-                      <Input
-                        type="number"
-                        size="default"
-                        className="text-center"
-                        defaultValue={(value as string | number | null | undefined) ?? ""}
-                        key={`${row.key}-${id}-${cellRec?.id ?? "new"}`}
-                        onBlur={(event) =>
-                          handleCellChange(row, entity, event.target.value)
-                        }
-                      />
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          size="default"
+                          className={cn("text-center", suffix && "pr-10")}
+                          defaultValue={(displayValue as string | number | null | undefined) ?? ""}
+                          key={`${row.key}-${id}-${cellRec?.id ?? "new"}`}
+                          onBlur={(event) =>
+                            handleCellChange(row, entity, event.target.value)
+                          }
+                        />
+                        {suffix && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <span className="select-none text-sm">{suffix}</span>
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                   );
                 })}
