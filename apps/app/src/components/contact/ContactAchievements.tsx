@@ -1,4 +1,4 @@
-import { dictionaryStore } from "@breedhub/rxdb-store";
+import { loadLookupById } from "@/utils/lookup";
 import { Chip } from "@ui/components/chip";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -17,7 +17,7 @@ interface ContactAchievementsProps {
  * ContactAchievements - Displays contact's achievements as chips
  *
  * Reads kennels[] and top_pets[] ID arrays from entity,
- * enriches with name/slug via dictionaryStore, renders as clickable chips.
+ * enriches with name/slug via loadLookupById, renders as clickable chips.
  */
 export function ContactAchievements({
   entity,
@@ -41,7 +41,7 @@ export function ContactAchievements({
     async function loadKennels() {
       const results: Array<EnrichedEntity | null> = await Promise.all(
         kennelIds!.map(async (k) => {
-          const record = await dictionaryStore.getRecordById("account", k.id);
+          const record = await loadLookupById("account", k.id);
           return record ? { id: k.id, name: record.name as string, slug: record.slug as string } : null;
         })
       );
@@ -65,11 +65,10 @@ export function ContactAchievements({
 
     async function loadTopPets() {
       const results: Array<EnrichedEntity | null> = await Promise.all(
-        // pet is partitioned by breed_id — top_pets jsonb already carries it; pass it through
-        // so PG can prune partitions instead of locking all 450.
         topPetIds!.map(async (tp) => {
-          const record = await dictionaryStore.getRecordById("pet", tp.id, {
-            partitionFilter: { field: "breed_id", value: tp.breed_id },
+          const record = await loadLookupById("pet", tp.id, {
+            field: "breed_id",
+            value: tp.breed_id,
           });
           return record ? { id: tp.id, name: record.name as string, slug: record.slug as string } : null;
         })

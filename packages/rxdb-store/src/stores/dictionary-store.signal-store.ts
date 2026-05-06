@@ -6,6 +6,7 @@ import type { AppDatabase } from '../services/database.service';
 import { dictionariesSchema, type DictionaryDocument } from '../collections/dictionaries.schema';
 import { supabase } from '../supabase/client';
 import { buildDictionaryDedupeKey } from './dictionary-store.helpers';
+import type { PartitionFilter } from '../types/partition';
 
 // Helpers
 import {
@@ -920,7 +921,9 @@ class DictionaryStore {
    * IMPORTANT for partitioned tables (e.g. `pet`, partitioned by `breed_id`):
    * pass `partitionFilter` so Postgres can prune partitions. Without it the
    * server scans all 450 partitions and exhausts max_locks_per_transaction.
-   * `id` alone is NOT unique across partitions in our schema.
+   * Note: `pet.id` is a UUID and is globally unique despite the partitioning,
+   * so the local RxDB cache key (`table_name + id`) needs no partition column.
+   * `partitionFilter` is for the *server-side* query plan only.
    */
   getRecordById(
     tableName: string,
@@ -929,7 +932,7 @@ class DictionaryStore {
       idField?: string;
       nameField?: string;
       additionalFields?: string[];
-      partitionFilter?: { field: string; value: string };
+      partitionFilter?: PartitionFilter;
     } = {}
   ): Promise<Record<string, unknown> | null> {
     const idField = options.idField ?? 'id';
@@ -971,7 +974,7 @@ class DictionaryStore {
     idField: string,
     nameField: string,
     additionalFields: string[] | undefined,
-    partitionFilter: { field: string; value: string } | undefined,
+    partitionFilter: PartitionFilter | undefined,
   ): Promise<Record<string, unknown> | null> {
     // Wait for initialization if not ready yet (max 10s)
     if (!this.initialized.value) {
@@ -979,7 +982,11 @@ class DictionaryStore {
     }
 
     try {
-      // First check local RxDB cache
+      // First check local RxDB cache. For partitioned tables (pet) the
+      // partition column is intentionally NOT in this selector — pet.id is a
+      // UUID and is globally unique across partitions, so {table, id} is
+      // enough to uniquely identify the row locally. partitionFilter is for
+      // the server-side Supabase query plan, not the cache.
       if (this.collection) {
         const cached = await this.collection.findOne({
           selector: {

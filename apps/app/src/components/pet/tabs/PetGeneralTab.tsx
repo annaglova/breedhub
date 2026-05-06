@@ -3,6 +3,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
 import { formatMeasurement } from "@/utils/format-measurement";
+import { loadLookupById } from "@/utils/lookup";
 import { useMeasurementUnits } from "@/hooks/useMeasurementUnits";
 import {
   spaceStore,
@@ -56,27 +57,6 @@ interface PetGeneralData {
   coatType?: DictionaryValue;
   coatColor?: DictionaryValue;
   weight?: number;
-}
-
-/**
- * Load lookup data by ID using dictionaryStore
- * Returns null if id is not provided.
- *
- * `partitionFilter` MUST be passed for partitioned tables (`pet`, partitioned
- * by `breed_id`); otherwise Postgres scans all 450 partitions and exhausts
- * max_locks_per_transaction.
- */
-async function loadLookupById(
-  table: string,
-  id: string | null | undefined,
-  partitionFilter?: { field: string; value: string } | null
-): Promise<Record<string, unknown> | null> {
-  if (!id) return null;
-  return dictionaryStore.getRecordById(
-    table,
-    id,
-    partitionFilter ? { partitionFilter } : undefined,
-  );
 }
 
 interface PetGeneralTabProps {
@@ -158,8 +138,6 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
           loadLookupById("coat_color", selectedEntity.coat_color_id),
           loadLookupById("country", selectedEntity.country_of_birth_id),
           loadLookupById("country", selectedEntity.country_of_stay_id),
-          // Entities (pet, contact, account) - also use dictionaryStore for simplicity.
-          // pet is partitioned by breed_id — pass partitionFilter or PG scans all 450 partitions.
           loadLookupById(
             "pet",
             selectedEntity.father_id,

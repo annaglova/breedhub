@@ -5,6 +5,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore, dictionaryStore, useTabData } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
+import { loadLookupById } from "@/utils/lookup";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect, useState } from "react";
 
@@ -12,17 +13,6 @@ interface LitterChildrenTabProps {
   onLoadedCount?: (count: number) => void;
   mode?: "scroll" | "fullscreen";
   dataSource?: DataSourceConfig[];
-}
-
-/**
- * Load lookup data by ID using dictionaryStore
- */
-async function loadLookupById(
-  table: string,
-  id: string | null | undefined
-): Promise<Record<string, unknown> | null> {
-  if (!id) return null;
-  return dictionaryStore.getRecordById(table, id);
 }
 
 /**

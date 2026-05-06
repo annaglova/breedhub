@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 function createSupabaseMock() {
   const single = vi.fn();
-  const eq = vi.fn(() => ({ single }));
+  // Allow .eq() chains (id + optional partition) before .single()
+  const eq: any = vi.fn(() => chain);
+  const chain = { eq, single };
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
 
@@ -152,6 +154,34 @@ describe("dictionary-store.signal-store", () => {
     await harness.store.getRecordById("country", "country-1");
 
     expect(harness.supabaseCalls.select).toHaveBeenCalledWith("*");
+  });
+
+  it("threads partitionFilter into the Supabase .eq chain for partitioned tables", async () => {
+    const harness = await loadDictionaryStoreHarness({
+      supabaseResult: {
+        data: { id: "pet-1", name: "Rex" },
+        error: null,
+      },
+    });
+
+    await harness.store.getRecordById("pet", "pet-1", {
+      partitionFilter: { field: "breed_id", value: "breed-A" },
+    });
+
+    // Two .eq() calls: id first, then partition column.
+    expect(harness.supabaseCalls.eq).toHaveBeenCalledWith("id", "pet-1");
+    expect(harness.supabaseCalls.eq).toHaveBeenCalledWith("breed_id", "breed-A");
+  });
+
+  it("does not call .eq() with a partition column when partitionFilter is omitted", async () => {
+    const harness = await loadDictionaryStoreHarness({
+      supabaseResult: { data: { id: "sex-1", name: "Male" }, error: null },
+    });
+
+    await harness.store.getRecordById("sex", "sex-1");
+
+    expect(harness.supabaseCalls.eq).toHaveBeenCalledWith("id", "sex-1");
+    expect(harness.supabaseCalls.eq).toHaveBeenCalledTimes(1);
   });
 
   it("reuses cached records when the requested additional field is already present", async () => {
@@ -357,6 +387,48 @@ describe("dictionary-store.signal-store", () => {
 
     await store.getRecordById("sex", "id-1");
     await store.getRecordById("sex", "id-1");
+
+    expect(store.runGetRecordById).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not share in-flight getRecordById calls for different partitionFilter values on the same id", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetRecordById.mockResolvedValue(null);
+
+    await Promise.all([
+      store.getRecordById("pet", "pet-1", { partitionFilter: { field: "breed_id", value: "breed-A" } }),
+      store.getRecordById("pet", "pet-1", { partitionFilter: { field: "breed_id", value: "breed-B" } }),
+    ]);
+
+    expect(store.runGetRecordById).toHaveBeenCalledTimes(2);
+  });
+
+  it("shares one in-flight getRecordById promise when partitionFilter is identical", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    let resolveShared!: (value: Record<string, unknown>) => void;
+    const sharedPromise = new Promise<Record<string, unknown>>((resolve) => {
+      resolveShared = resolve;
+    });
+    store.runGetRecordById.mockReturnValue(sharedPromise);
+
+    const filter = { field: "breed_id", value: "breed-A" };
+    const first = store.getRecordById("pet", "pet-1", { partitionFilter: filter });
+    const second = store.getRecordById("pet", "pet-1", { partitionFilter: filter });
+
+    expect(second).toBe(first);
+    expect(store.runGetRecordById).toHaveBeenCalledTimes(1);
+    resolveShared({ id: "pet-1", name: "Pet" });
+    await first;
+  });
+
+  it("treats absent vs present partitionFilter as different in-flight calls", async () => {
+    const { store } = await loadDictionaryDedupeHarness();
+    store.runGetRecordById.mockResolvedValue(null);
+
+    await Promise.all([
+      store.getRecordById("pet", "pet-1"),
+      store.getRecordById("pet", "pet-1", { partitionFilter: { field: "breed_id", value: "breed-A" } }),
+    ]);
 
     expect(store.runGetRecordById).toHaveBeenCalledTimes(2);
   });

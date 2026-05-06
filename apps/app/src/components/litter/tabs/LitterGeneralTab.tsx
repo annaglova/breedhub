@@ -2,6 +2,7 @@ import { LitterGeneralTabSkeleton } from "./LitterGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
+import { loadLookupById } from "@/utils/lookup";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
@@ -38,26 +39,6 @@ interface LitterGeneralData {
   femaleAmount?: number;
 }
 
-/**
- * Load lookup data by ID using dictionaryStore
- * Returns null if id is not provided.
- *
- * `partitionFilter` MUST be passed for partitioned tables (`pet`, partitioned
- * by `breed_id`); otherwise Postgres scans all 450 partitions and exhausts
- * max_locks_per_transaction.
- */
-async function loadLookupById(
-  table: string,
-  id: string | null | undefined,
-  partitionFilter?: { field: string; value: string } | null
-): Promise<Record<string, unknown> | null> {
-  if (!id) return null;
-  return dictionaryStore.getRecordById(
-    table,
-    id,
-    partitionFilter ? { partitionFilter } : undefined,
-  );
-}
 
 interface LitterGeneralTabProps {
   onLoadedCount?: (count: number) => void;

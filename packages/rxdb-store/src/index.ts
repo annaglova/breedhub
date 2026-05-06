@@ -134,6 +134,9 @@ export { getChildField } from './stores/space-child.helpers';
 export { userSettingsStore } from './stores/user-settings.signal-store';
 export type { UserSettings } from './stores/user-settings.signal-store';
 
+// Partition filter type — pass to APIs querying partitioned tables (e.g. pet)
+export type { PartitionFilter } from './types/partition';
+
 // Measurement constants (canonical UUIDs for measurement_type and unit reference data)
 export {
   MEASUREMENT_TYPE_ID,
