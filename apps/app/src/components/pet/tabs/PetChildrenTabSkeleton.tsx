@@ -46,10 +46,10 @@ export function PetChildrenTabSkeleton({
                 <span className="invisible">{"\u00A0"}</span>
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-20 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
               </div>
-              <p className="text-secondary hidden text-sm font-light sm:block relative">
+              <div className="text-secondary hidden text-sm font-light sm:block relative">
                 <span className="invisible">{"\u00A0"}</span>
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 h-2.5 w-6 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-              </p>
+              </div>
             </div>
 
             {/* Other parent */}
@@ -58,10 +58,10 @@ export function PetChildrenTabSkeleton({
                 <span className="invisible">{"\u00A0"}</span>
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-40 max-w-full rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
               </div>
-              <p className="text-secondary text-sm font-light relative">
+              <div className="text-secondary text-sm font-light relative">
                 <span className="invisible">{"\u00A0"}</span>
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 h-2.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-              </p>
+              </div>
             </div>
           </div>
 
