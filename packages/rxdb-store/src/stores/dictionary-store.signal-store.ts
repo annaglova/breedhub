@@ -915,7 +915,12 @@ class DictionaryStore {
   /**
    * Get a single record by ID from dictionary table
    * Used for pre-loading selected values in LookupInput and dictionary lookups
-   * Fetches ALL fields by default, or a narrow projection when additionalFields is provided
+   * Fetches ALL fields by default, or a narrow projection when additionalFields is provided.
+   *
+   * IMPORTANT for partitioned tables (e.g. `pet`, partitioned by `breed_id`):
+   * pass `partitionFilter` so Postgres can prune partitions. Without it the
+   * server scans all 450 partitions and exhausts max_locks_per_transaction.
+   * `id` alone is NOT unique across partitions in our schema.
    */
   getRecordById(
     tableName: string,
@@ -924,19 +929,24 @@ class DictionaryStore {
       idField?: string;
       nameField?: string;
       additionalFields?: string[];
+      partitionFilter?: { field: string; value: string };
     } = {}
   ): Promise<Record<string, unknown> | null> {
     const idField = options.idField ?? 'id';
     const nameField = options.nameField ?? 'name';
     const additionalFields = options.additionalFields;
+    const partitionFilter = options.partitionFilter;
 
     // In-flight dedupe: synchronous identity contract (matches getDictionary).
     // Callers in the same render tick get the same Promise instance back.
+    const partitionKey = partitionFilter
+      ? `${partitionFilter.field}=${partitionFilter.value}`
+      : '';
     const dedupeKey = `${tableName}::${idField}::${id}::${
       additionalFields?.length
         ? [...additionalFields].sort().join(',')
         : '*'
-    }`;
+    }::${partitionKey}`;
     const inflight = this.inflightRecord.get(dedupeKey);
     if (inflight) {
       return inflight;
@@ -947,6 +957,7 @@ class DictionaryStore {
       idField,
       nameField,
       additionalFields,
+      partitionFilter,
     ).finally(() => {
       this.inflightRecord.delete(dedupeKey);
     });
@@ -960,6 +971,7 @@ class DictionaryStore {
     idField: string,
     nameField: string,
     additionalFields: string[] | undefined,
+    partitionFilter: { field: string; value: string } | undefined,
   ): Promise<Record<string, unknown> | null> {
     // Wait for initialization if not ready yet (max 10s)
     if (!this.initialized.value) {
@@ -1004,11 +1016,14 @@ class DictionaryStore {
 
       // If not in cache, fetch from Supabase
       if (!isOffline()) {
-        const { data, error } = await supabase
+        let query = supabase
           .from(tableName)
           .select(selectFields)
-          .eq(idField, id)
-          .single();
+          .eq(idField, id);
+        if (partitionFilter) {
+          query = query.eq(partitionFilter.field, partitionFilter.value);
+        }
+        const { data, error } = await query.single();
 
         if (error) {
           console.error('[DictionaryStore] getRecordById error:', error);

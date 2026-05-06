@@ -40,14 +40,23 @@ interface LitterGeneralData {
 
 /**
  * Load lookup data by ID using dictionaryStore
- * Returns null if id is not provided
+ * Returns null if id is not provided.
+ *
+ * `partitionFilter` MUST be passed for partitioned tables (`pet`, partitioned
+ * by `breed_id`); otherwise Postgres scans all 450 partitions and exhausts
+ * max_locks_per_transaction.
  */
 async function loadLookupById(
   table: string,
-  id: string | null | undefined
+  id: string | null | undefined,
+  partitionFilter?: { field: string; value: string } | null
 ): Promise<Record<string, unknown> | null> {
   if (!id) return null;
-  return dictionaryStore.getRecordById(table, id);
+  return dictionaryStore.getRecordById(
+    table,
+    id,
+    partitionFilter ? { partitionFilter } : undefined,
+  );
 }
 
 interface LitterGeneralTabProps {
@@ -100,10 +109,23 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
           await dictionaryStore.initialize();
         }
 
-        // Load all lookups in parallel
+        // Load all lookups in parallel.
+        // pet is partitioned by breed_id — pass partitionFilter or PG scans all 450 partitions.
         const [father, mother, breeder, kennel, status] = await Promise.all([
-          loadLookupById("pet", selectedEntity.father_id),
-          loadLookupById("pet", selectedEntity.mother_id),
+          loadLookupById(
+            "pet",
+            selectedEntity.father_id,
+            selectedEntity.father_breed_id
+              ? { field: "breed_id", value: selectedEntity.father_breed_id as string }
+              : null,
+          ),
+          loadLookupById(
+            "pet",
+            selectedEntity.mother_id,
+            selectedEntity.mother_breed_id
+              ? { field: "breed_id", value: selectedEntity.mother_breed_id as string }
+              : null,
+          ),
           loadLookupById("contact", selectedEntity.breeder_id),
           loadLookupById("account", selectedEntity.kennel_id),
           loadLookupById("litter_status", selectedEntity.status_id),

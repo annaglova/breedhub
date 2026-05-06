@@ -65,8 +65,12 @@ export function ContactAchievements({
 
     async function loadTopPets() {
       const results: Array<EnrichedEntity | null> = await Promise.all(
+        // pet is partitioned by breed_id — top_pets jsonb already carries it; pass it through
+        // so PG can prune partitions instead of locking all 450.
         topPetIds!.map(async (tp) => {
-          const record = await dictionaryStore.getRecordById("pet", tp.id);
+          const record = await dictionaryStore.getRecordById("pet", tp.id, {
+            partitionFilter: { field: "breed_id", value: tp.breed_id },
+          });
           return record ? { id: tp.id, name: record.name as string, slug: record.slug as string } : null;
         })
       );
