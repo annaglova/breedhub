@@ -16,6 +16,11 @@ const tabsConfig = {
 
 describe("TabOutlet skeleton", () => {
   const pillSelector = "div.h-4.rounded-full.animate-pulse";
+  // Menu pill row only; section bodies render native tab skeletons that
+  // contain their own animate-pulse elements, so a tree-wide query would
+  // mix menu pills with body skeletons.
+  const menuPills = (container: HTMLElement) =>
+    container.querySelector("div.flex.gap-4.border-b")?.querySelectorAll(pillSelector) ?? [];
 
   it("renders one placeholder pill per config entry", () => {
     const { container } = render(
@@ -26,14 +31,14 @@ describe("TabOutlet skeleton", () => {
         tabMode="scroll"
       />,
     );
-    expect(container.querySelectorAll(pillSelector).length).toBe(4);
+    expect(menuPills(container).length).toBe(4);
   });
 
-  it("falls back to 4 placeholder pills when no config is provided", () => {
+  it("renders nothing when no tabs config is provided", () => {
     const { container } = render(
       <TabOutlet component="PageMenu" isLoading tabMode="scroll" />,
     );
-    expect(container.querySelectorAll(pillSelector).length).toBe(4);
+    expect(container.firstChild).toBeNull();
   });
 
   it("uses deterministic pill widths so re-renders don't jitter (no Math.random)", () => {
@@ -46,7 +51,7 @@ describe("TabOutlet skeleton", () => {
           tabMode="scroll"
         />,
       );
-      const widths = Array.from(container.querySelectorAll(pillSelector)).map(
+      const widths = Array.from(menuPills(container)).map(
         (el) => (el as HTMLElement).style.width,
       );
       unmount();

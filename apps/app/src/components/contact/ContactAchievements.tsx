@@ -1,4 +1,4 @@
-import { loadLookupById } from "@/utils/lookup";
+import { loadLookupById, loadPetByBreed } from "@/utils/lookup";
 import { Chip } from "@ui/components/chip";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -66,10 +66,7 @@ export function ContactAchievements({
     async function loadTopPets() {
       const results: Array<EnrichedEntity | null> = await Promise.all(
         topPetIds!.map(async (tp) => {
-          const record = await loadLookupById("pet", tp.id, {
-            field: "breed_id",
-            value: tp.breed_id,
-          });
+          const record = await loadPetByBreed(tp.id, tp.breed_id, "ContactAchievements");
           return record ? { id: tp.id, name: record.name as string, slug: record.slug as string } : null;
         })
       );

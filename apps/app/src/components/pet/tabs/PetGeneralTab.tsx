@@ -3,7 +3,7 @@ import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
 import { formatMeasurement } from "@/utils/format-measurement";
-import { loadLookupById } from "@/utils/lookup";
+import { loadLookupById, loadPetByBreed } from "@/utils/lookup";
 import { useMeasurementUnits } from "@/hooks/useMeasurementUnits";
 import {
   spaceStore,
@@ -138,19 +138,15 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
           loadLookupById("coat_color", selectedEntity.coat_color_id),
           loadLookupById("country", selectedEntity.country_of_birth_id),
           loadLookupById("country", selectedEntity.country_of_stay_id),
-          loadLookupById(
-            "pet",
-            selectedEntity.father_id,
-            selectedEntity.father_breed_id
-              ? { field: "breed_id", value: selectedEntity.father_breed_id as string }
-              : null,
+          loadPetByBreed(
+            selectedEntity.father_id as string | undefined,
+            selectedEntity.father_breed_id,
+            "PetGeneralTab",
           ),
-          loadLookupById(
-            "pet",
-            selectedEntity.mother_id,
-            selectedEntity.mother_breed_id
-              ? { field: "breed_id", value: selectedEntity.mother_breed_id as string }
-              : null,
+          loadPetByBreed(
+            selectedEntity.mother_id as string | undefined,
+            selectedEntity.mother_breed_id,
+            "PetGeneralTab",
           ),
           loadLookupById("contact", selectedEntity.breeder_id),
           loadLookupById("contact", selectedEntity.owner_id),

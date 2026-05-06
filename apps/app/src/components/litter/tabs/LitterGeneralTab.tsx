@@ -2,7 +2,7 @@ import { LitterGeneralTabSkeleton } from "./LitterGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
-import { loadLookupById } from "@/utils/lookup";
+import { loadLookupById, loadPetByBreed } from "@/utils/lookup";
 import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
@@ -93,19 +93,15 @@ export function LitterGeneralTab({ onLoadedCount, onAboveFoldReady }: LitterGene
         // Load all lookups in parallel.
         // pet is partitioned by breed_id — pass partitionFilter or PG scans all 450 partitions.
         const [father, mother, breeder, kennel, status] = await Promise.all([
-          loadLookupById(
-            "pet",
-            selectedEntity.father_id,
-            selectedEntity.father_breed_id
-              ? { field: "breed_id", value: selectedEntity.father_breed_id as string }
-              : null,
+          loadPetByBreed(
+            selectedEntity.father_id as string | undefined,
+            selectedEntity.father_breed_id,
+            "LitterGeneralTab",
           ),
-          loadLookupById(
-            "pet",
-            selectedEntity.mother_id,
-            selectedEntity.mother_breed_id
-              ? { field: "breed_id", value: selectedEntity.mother_breed_id as string }
-              : null,
+          loadPetByBreed(
+            selectedEntity.mother_id as string | undefined,
+            selectedEntity.mother_breed_id,
+            "LitterGeneralTab",
           ),
           loadLookupById("contact", selectedEntity.breeder_id),
           loadLookupById("account", selectedEntity.kennel_id),
