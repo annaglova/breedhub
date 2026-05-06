@@ -3,7 +3,7 @@ import { normalizeSexCode } from "@/components/shared/pedigree/types";
 import { LitterChildrenTabSkeleton } from "./LitterChildrenTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
-import { spaceStore, dictionaryStore, useTabData } from "@breedhub/rxdb-store";
+import { spaceStore, dictionaryStore, useTabData, getPartitionFieldForEntity } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { loadLookupById } from "@/utils/lookup";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -107,6 +107,12 @@ export function LitterChildrenTab({
           breedId: record.partitionId || record.additional?.pet_breed_id || record.pet_breed_id,
         }));
 
+        const partitionField = getPartitionFieldForEntity("pet");
+        if (!partitionField) {
+          console.warn("[LitterChildrenTab] no partition field configured for pet; skipping load");
+          setChildren([]);
+          return;
+        }
         const allPets = await spaceStore.loadEntitiesByPartitionRefs("pet", petRefs
           .filter(
             (ref): ref is { petId: string; breedId: string } =>
@@ -116,7 +122,7 @@ export function LitterChildrenTab({
             id: ref.petId,
             partitionId: ref.breedId,
           })), {
-          partitionField: "breed_id",
+          partitionField,
         });
 
         // Enrich each pet with dictionaries

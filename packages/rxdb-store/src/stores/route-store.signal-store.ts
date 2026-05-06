@@ -5,6 +5,7 @@ import type { AppDatabase } from '../services/database.service';
 import { routesSchema, type RouteDocument } from '../collections/routes.schema';
 import { supabase } from '../supabase/client';
 import { findDocumentByPrimaryKey } from '../utils/rxdb-document.helpers';
+import { recordPartitionFieldFromRoute } from '../utils/partition-fields';
 
 // Helpers
 import {
@@ -160,6 +161,7 @@ class RouteStore {
 
         if (!isExpired) {
           // console.debug('[RouteStore] Cache hit:', cached.slug);
+          recordPartitionFieldFromRoute(cached.entity, cached.partition_field);
           return {
             slug: cached.slug,
             entity: cached.entity,
@@ -198,6 +200,7 @@ class RouteStore {
           cachedAt: Date.now()
         });
 
+        recordPartitionFieldFromRoute(route.entity, route.partition_field);
         return route;
       }
 
@@ -285,6 +288,7 @@ class RouteStore {
         model: route.model,
         cachedAt: Date.now()
       });
+      recordPartitionFieldFromRoute(route.entity, route.partition_field);
     } catch (error) {
       // Non-critical - just log
       console.warn('[RouteStore] Failed to save route:', error);

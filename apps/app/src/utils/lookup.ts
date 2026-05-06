@@ -1,4 +1,4 @@
-import { dictionaryStore } from "@breedhub/rxdb-store";
+import { dictionaryStore, getPartitionFieldForEntity } from "@breedhub/rxdb-store";
 import type { PartitionFilter } from "@breedhub/rxdb-store";
 
 /**
@@ -43,5 +43,10 @@ export async function loadPetByBreed(
     );
     return null;
   }
-  return loadLookupById("pet", petId, { field: "breed_id", value: breedId });
+  const field = getPartitionFieldForEntity("pet");
+  if (!field) {
+    console.warn(`[${context}] no partition field configured for pet; skipping lookup`);
+    return null;
+  }
+  return loadLookupById("pet", petId, { field, value: breedId });
 }

@@ -137,6 +137,13 @@ export type { UserSettings } from './stores/user-settings.signal-store';
 // Partition filter type — pass to APIs querying partitioned tables (e.g. pet)
 export type { PartitionFilter } from './types/partition';
 
+// Partition-field resolver — entity name → partition column (e.g. 'pet' → 'breed_id')
+export {
+  PARTITION_FIELDS,
+  getPartitionFieldForEntity,
+  recordPartitionFieldFromRoute,
+} from './utils/partition-fields';
+
 // Measurement constants (canonical UUIDs for measurement_type and unit reference data)
 export {
   MEASUREMENT_TYPE_ID,

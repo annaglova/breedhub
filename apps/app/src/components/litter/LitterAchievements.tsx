@@ -1,7 +1,10 @@
 import { useCollectionValue } from "@/hooks/useCollectionValue";
+import { getPartitionFieldForEntity } from "@breedhub/rxdb-store";
 import { cn } from "@ui/lib/utils";
 import { Mars, Venus } from "lucide-react";
 import { Link } from "react-router-dom";
+
+const PET_PARTITION_FIELD = getPartitionFieldForEntity("pet");
 
 // Parent data from enrichment
 interface Parent {
@@ -63,15 +66,19 @@ function ParentChip({
  * Shows father and mother as clickable chips with male/female icons (white)
  */
 export function LitterAchievements({ entity }: LitterAchievementsProps) {
-  // Get father data from collection (enrichment pattern)
-  // Pet is partitioned by breed_id, so we pass it for efficient partition pruning
+  // Get father data from collection (enrichment pattern).
+  // Pet is partitioned — pass partition key for efficient partition pruning.
   const father = useCollectionValue<Parent>("pet", entity?.father_id, {
-    partitionKey: { field: "breed_id", value: entity?.father_breed_id },
+    partitionKey: PET_PARTITION_FIELD
+      ? { field: PET_PARTITION_FIELD, value: entity?.father_breed_id }
+      : undefined,
   });
 
   // Get mother data from collection (enrichment pattern)
   const mother = useCollectionValue<Parent>("pet", entity?.mother_id, {
-    partitionKey: { field: "breed_id", value: entity?.mother_breed_id },
+    partitionKey: PET_PARTITION_FIELD
+      ? { field: PET_PARTITION_FIELD, value: entity?.mother_breed_id }
+      : undefined,
   });
 
   const hasAnyParent = !!father?.name || !!mother?.name;

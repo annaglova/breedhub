@@ -4,7 +4,7 @@ import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
 import { extractDbFieldName } from "@/hooks/useDynamicFields";
 import { useEditForm } from "@/hooks/useEditForm";
 import { useResolveConditions } from "@/hooks/useResolveConditions";
-import { routeStore, generateSlug, getDatabase } from "@breedhub/rxdb-store";
+import { routeStore, generateSlug, getDatabase, getPartitionFieldForEntity } from "@breedhub/rxdb-store";
 import { getValueForLabel } from "@/components/space/utils/filter-url-helpers";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -44,13 +44,17 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
   const handleCreated = useCallback(async (entity: any) => {
     const slug = entity.slug || generateSlug(entity.name || '', entity.id);
 
+    // Resolve partition field from config; entity may not be partitioned at all.
+    const partitionField = getPartitionFieldForEntity(entityType || '');
+    const partitionValue = partitionField ? entity[partitionField] : null;
+
     // Cache route locally so SlugResolver finds it before push completes
     await routeStore.saveRoute({
       slug,
       entity: entityType || '',
       entity_id: entity.id,
-      entity_partition_id: entity.breed_id || '',
-      partition_field: entity.breed_id ? 'breed_id' : '',
+      entity_partition_id: partitionValue || '',
+      partition_field: partitionValue && partitionField ? partitionField : '',
       model: entityType || '',
     });
 

@@ -1,6 +1,9 @@
 import { Chip } from "@ui/components/chip";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
+import { getPartitionFieldForEntity } from "@breedhub/rxdb-store";
 import { Link } from "react-router-dom";
+
+const PET_PARTITION_FIELD = getPartitionFieldForEntity("pet");
 
 interface TopPetRef {
   id: string;
@@ -40,7 +43,9 @@ export function KennelAchievements({
     topPetRef ? 'pet' : undefined,
     topPetRef?.id,
     {
-      partitionKey: { field: 'breed_id', value: topPetRef?.breed_id }
+      partitionKey: PET_PARTITION_FIELD
+        ? { field: PET_PARTITION_FIELD, value: topPetRef?.breed_id }
+        : undefined,
     }
   );
 
