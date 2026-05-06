@@ -2,7 +2,14 @@ import { PetGeneralTabSkeleton } from "./PetGeneralTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { formatDate } from "@/utils/format";
-import { spaceStore, dictionaryStore } from "@breedhub/rxdb-store";
+import { formatMeasurement } from "@/utils/format-measurement";
+import { useMeasurementUnits } from "@/hooks/useMeasurementUnits";
+import {
+  spaceStore,
+  dictionaryStore,
+  userSettingsStore,
+  MEASUREMENT_TYPE_ID,
+} from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import {
@@ -91,6 +98,10 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
   // State for lookup data
   const [data, setData] = useState<PetGeneralData>({});
   const [isLoading, setIsLoading] = useState(true);
+
+  // Unit metadata for display-time conversion (Kg ↔ Lbs, Cm ↔ In)
+  const { unitsByType } = useMeasurementUnits();
+  const weightUnitId = userSettingsStore.weightUnitId.value;
 
   // Load lookup data when entity changes
   useEffect(() => {
@@ -318,7 +329,18 @@ export function PetGeneralTab({ onLoadedCount, onAboveFoldReady }: PetGeneralTab
           </div>
           <div className="grid grid-cols-[16px_70px_1fr] sm:grid-cols-[22px_80px_1fr] items-center gap-3">
             <InfoRow icon={<Scale size={iconSize} />} label="Weight">
-              <span>{data.weight ? `${data.weight} kg` : "—"}</span>
+              <span>{(() => {
+                const f = formatMeasurement(
+                  data.weight,
+                  MEASUREMENT_TYPE_ID.Weight,
+                  weightUnitId,
+                  unitsByType,
+                );
+                if (!f) return "—";
+                // Round to 2 decimals; Number() drops trailing zeros so 2.7 stays "2.7".
+                const display = Number(f.display.toFixed(2));
+                return `${display} ${f.unit}`.trim();
+              })()}</span>
             </InfoRow>
           </div>
         </div>
