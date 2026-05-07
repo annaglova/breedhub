@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildEntitySchemasMap,
+  findMissingRequiredFilters,
   getSupabaseSource,
   getEntityFieldsSchema,
   parseSpaceConfigurations,
@@ -153,5 +154,54 @@ describe("space-config.helpers", () => {
 
     expect(parseSpaceConfigurations({ entities: {} })).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith("[SpaceStore] No workspaces found in app config");
+  });
+
+  describe("findMissingRequiredFilters", () => {
+    const fieldConfigs = {
+      breed_id: { required: true },
+      pet_type_id: { required: true },
+      country_id: { required: false },
+      sex: {},
+    };
+
+    it("returns empty array when all required filters are filled", () => {
+      const filters = { breed_id: "abc", pet_type_id: "dog", country_id: "" };
+      expect(findMissingRequiredFilters(filters, fieldConfigs)).toEqual([]);
+    });
+
+    it("flags required fields that are undefined or absent", () => {
+      const filters = { breed_id: "abc" };
+      expect(findMissingRequiredFilters(filters, fieldConfigs)).toEqual([
+        "pet_type_id",
+      ]);
+    });
+
+    it("flags required fields whose value is null, empty string, or empty array", () => {
+      expect(
+        findMissingRequiredFilters(
+          { breed_id: null, pet_type_id: "" },
+          fieldConfigs,
+        ),
+      ).toEqual(["breed_id", "pet_type_id"]);
+
+      expect(
+        findMissingRequiredFilters(
+          { breed_id: [], pet_type_id: "dog" },
+          fieldConfigs,
+        ),
+      ).toEqual(["breed_id"]);
+    });
+
+    it("ignores fields without required: true", () => {
+      const filters = { breed_id: "abc", pet_type_id: "dog" };
+      expect(findMissingRequiredFilters(filters, fieldConfigs)).toEqual([]);
+    });
+
+    it("treats falsy non-empty values (0, false) as filled", () => {
+      const cfg = { active: { required: true }, count: { required: true } };
+      expect(
+        findMissingRequiredFilters({ active: false, count: 0 }, cfg),
+      ).toEqual([]);
+    });
   });
 });

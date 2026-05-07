@@ -22,6 +22,7 @@ import {
   type SpaceFilterField,
   type SpaceMainFilterField,
   type SpaceMainFilterFieldsResult,
+  findMissingRequiredFilters,
   getFilterFieldsFromConfig,
   getSupabaseSource,
   getMainFilterFieldFromConfig,
@@ -1019,6 +1020,34 @@ class SpaceStore {
     );
     filters = preparedFilters.filters;
     const fieldConfigs = preparedFilters.fieldConfigs;
+
+    // Required-filter gate: skip Supabase + offline fallback when any required
+    // filter slot is empty. The space UI renders an empty/picker state from
+    // entityStore.requiredFiltersMissing.
+    const missingRequired = findMissingRequiredFilters(filters, fieldConfigs);
+    const gatedEntityStore = this.entityStores.get(entityType);
+    if (missingRequired.length > 0) {
+      if (gatedEntityStore) {
+        gatedEntityStore.requiredFiltersMissing.value = missingRequired;
+        gatedEntityStore.loading.value = false;
+        if (cursor === null) {
+          gatedEntityStore.totalFromServer.value = 0;
+        }
+      }
+      return {
+        records: [],
+        total: 0,
+        hasMore: false,
+        nextCursor: null,
+      };
+    }
+    if (
+      gatedEntityStore &&
+      gatedEntityStore.requiredFiltersMissing.value.length > 0
+    ) {
+      gatedEntityStore.requiredFiltersMissing.value = [];
+    }
+
     const offlineFlowBase = {
       entityType,
       filters,

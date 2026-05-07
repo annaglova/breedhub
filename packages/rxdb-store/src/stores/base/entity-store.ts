@@ -15,6 +15,10 @@ export class EntityStore<T extends { id: string }> {
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
 
+  // Required-filter gate: non-empty list = queries skipped because a required
+  // filter slot is unfilled. Consumers render an empty/picker UI from this.
+  requiredFiltersMissing = signal<string[]>([]);
+
   // Server metadata
   totalFromServer = signal<number | null>(null); // Total count from Supabase
 

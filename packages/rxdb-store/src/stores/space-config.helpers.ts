@@ -627,6 +627,27 @@ export function getFilterFieldsFromConfig(
   return filterOptions;
 }
 
+export function findMissingRequiredFilters(
+  filters: Record<string, unknown>,
+  fieldConfigs: Record<string, unknown>,
+): string[] {
+  const missing: string[] = [];
+  for (const [fieldName, cfgUnknown] of Object.entries(fieldConfigs)) {
+    const cfg = cfgUnknown as SpaceFilterFieldConfig | undefined;
+    if (cfg?.required !== true) continue;
+    const value = filters[fieldName];
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      missing.push(fieldName);
+    }
+  }
+  return missing;
+}
+
 export function getMainFilterFieldFromConfig(
   spaceConfig: SpaceConfig | undefined,
 ): SpaceMainFilterField | null {
