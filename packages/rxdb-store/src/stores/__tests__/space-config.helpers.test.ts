@@ -203,5 +203,20 @@ describe("space-config.helpers", () => {
         findMissingRequiredFilters({ active: false, count: 0 }, cfg),
       ).toEqual([]);
     });
+
+    it("ignores main filter (search) inputs even when required:true", () => {
+      // The breed/pet space configs mark the search field (name) as
+      // required + mainFilterField=true. That flag means "validate the
+      // search submit", not "block list until user types". The gate must
+      // skip it so the list can load with only partition keys filled.
+      const cfg = {
+        name: { required: true, mainFilterField: true, fieldType: "string" },
+        pet_type_id: { required: true, fieldType: "uuid" },
+      };
+      expect(
+        findMissingRequiredFilters({ pet_type_id: "abc" }, cfg),
+      ).toEqual([]);
+      expect(findMissingRequiredFilters({}, cfg)).toEqual(["pet_type_id"]);
+    });
   });
 });

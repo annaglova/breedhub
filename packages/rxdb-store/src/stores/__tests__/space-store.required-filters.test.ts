@@ -56,7 +56,8 @@ describe("spaceStore.applyFilters required-filter gate", () => {
     });
     expect(entityStore.requiredFiltersMissing.value).toEqual(["breed_id"]);
     expect(entityStore.loading.value).toBe(false);
-    expect(entityStore.totalFromServer.value).toBe(0);
+    // Don't assert totalFromServer — gate must NOT touch it so the count cache
+    // can hydrate on the next valid call (regression seen 2026-05-07).
     expect(fromMock).not.toHaveBeenCalled();
   });
 

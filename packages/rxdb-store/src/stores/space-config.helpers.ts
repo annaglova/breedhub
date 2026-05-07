@@ -635,6 +635,10 @@ export function findMissingRequiredFilters(
   for (const [fieldName, cfgUnknown] of Object.entries(fieldConfigs)) {
     const cfg = cfgUnknown as SpaceFilterFieldConfig | undefined;
     if (cfg?.required !== true) continue;
+    // mainFilterField = search input ("Search Pets...") — its `required: true`
+    // means "validate when user submits a search", not "block list until filled".
+    // Same carve-out as in `getFilterFieldsFromConfig`.
+    if (cfg?.mainFilterField === true) continue;
     const value = filters[fieldName];
     if (
       value === undefined ||

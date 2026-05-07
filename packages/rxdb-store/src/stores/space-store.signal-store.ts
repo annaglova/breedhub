@@ -1030,9 +1030,9 @@ class SpaceStore {
       if (gatedEntityStore) {
         gatedEntityStore.requiredFiltersMissing.value = missingRequired;
         gatedEntityStore.loading.value = false;
-        if (cursor === null) {
-          gatedEntityStore.totalFromServer.value = 0;
-        }
+        // Do NOT reset totalFromServer here. fetchOrCacheTotalCount's cache
+        // path only writes when totalFromServer.value === null (see
+        // onCountResolved); writing 0 freezes a stale value into the store.
       }
       return {
         records: [],
