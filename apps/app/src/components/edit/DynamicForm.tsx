@@ -51,8 +51,22 @@ export function DynamicForm({
   onValidateReady,
   applyDefaults,
 }: DynamicFormProps) {
+  // Combine baseline visibility filter with the explicit fieldFilter prop.
+  // Fields with hidden:true or showInForm:false stay in the raw schema (so
+  // initial-state hooks like applyDefaults still see them and seed default
+  // values on create) but are excluded from rendering and validation.
+  const effectiveFieldFilter = useCallback(
+    (key: string, c: EditFieldConfig) => {
+      if (c.hidden) return false;
+      if (c.showInForm === false) return false;
+      return fieldFilter ? fieldFilter(key, c) : true;
+    },
+    [fieldFilter]
+  );
+
   // Shared form fields logic
   const {
+    filteredFields,
     groupedFields,
     getFieldProps: baseGetFieldProps,
     wrapWithJunction,
@@ -64,7 +78,7 @@ export function DynamicForm({
     entity,
     formChanges,
     readonlyConditions,
-    fieldFilter,
+    fieldFilter: effectiveFieldFilter,
     parentEntity,
   });
 
@@ -111,18 +125,17 @@ export function DynamicForm({
     };
   }, [baseGetFieldProps, readOnly, errors, touched, touchAndValidate]);
 
-  // Expose validate function to parent
+  // Expose validate function to parent. Validates only the fields that
+  // would actually render (after effectiveFieldFilter), so hidden fields
+  // with required:true don't block create.
   const validateFn = useCallback(() => {
-    if (!fields) return false;
-    const visibleFields = Object.fromEntries(
-      Object.entries(fields).filter(([, c]) => !c.hidden && c.showInForm !== false)
-    );
+    if (!filteredFields || Object.keys(filteredFields).length === 0) return false;
     return validateAll(
-      visibleFields,
+      filteredFields,
       (key) => formChanges[extractDbFieldName(key)] ?? getValue(extractDbFieldName(key)),
       extractDbFieldName,
     );
-  }, [fields, formChanges, getValue, validateAll]);
+  }, [filteredFields, formChanges, getValue, validateAll]);
 
   useEffect(() => {
     onValidateReady?.(validateFn);

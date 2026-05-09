@@ -243,10 +243,11 @@ export function EditFormTab({ fields, onLoadedCount, entityType, onSaveReady, on
     onDirtyChange?.(hasChanges);
   }, [hasChanges, onDirtyChange]);
 
-  // Report field count
+  // Report field count — match DynamicForm's render filter so the
+  // skeleton row count agrees with the actual rendered field count.
   const fieldCount = useMemo(() => {
     if (!fields) return 0;
-    return Object.values(fields).filter(f => !f.hidden).length;
+    return Object.values(fields).filter(f => !f.hidden && f.showInForm !== false).length;
   }, [fields]);
 
   useEffect(() => {
