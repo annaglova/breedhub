@@ -44,6 +44,8 @@ interface LookupInputProps
   filterByIds?: string[] | null; // Only show records with these IDs
   // Junction table server-side join filter (for dictionary mode with many-to-many relationships)
   junctionFilter?: { junctionTable: string; junctionFilterField: string; filterValue: string } | null;
+  // Static filter on referenced table (e.g. { type_id: "<uuid>" }), config-driven via field.defaultFilters
+  defaultFilters?: Record<string, any>;
   // Style variant for disabled state
   disabledOnGray?: boolean; // Use white background when disabled (for gray backgrounds)
 }
@@ -72,6 +74,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       filterByValue,
       filterByIds,
       junctionFilter,
+      defaultFilters: staticDefaultFilters,
       disabled,
       disabledOnGray,
       ...props
@@ -238,6 +241,12 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             if (filterByIds && filterByIds.length > 0) {
               filters[referencedFieldID] = filterByIds;
             }
+            // Add static config-driven filters (field.defaultFilters)
+            if (staticDefaultFilters) {
+              for (const [key, val] of Object.entries(staticDefaultFilters)) {
+                filters[key] = val;
+              }
+            }
 
             // Build fieldConfigs for proper operator detection
             const fieldConfigs: Record<string, any> = {};
@@ -248,6 +257,18 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
             // Add config for ID filter (breed restrictions)
             if (filterByIds && filterByIds.length > 0) {
               fieldConfigs[referencedFieldID] = { fieldType: 'uuid', operator: 'in' };
+            }
+            // Operator detection for static defaultFilters: array → in, scalar → eq.
+            // fieldType: 'uuid' covers our common case (FKs); applyFilters falls back
+            // to its own type inference for non-uuid columns when not provided.
+            if (staticDefaultFilters) {
+              for (const [key, val] of Object.entries(staticDefaultFilters)) {
+                if (fieldConfigs[key]) continue;
+                fieldConfigs[key] = {
+                  fieldType: 'uuid',
+                  operator: Array.isArray(val) ? 'in' : 'eq',
+                };
+              }
             }
 
             console.log("[LookupInput] Final filters:", filters, "fieldConfigs:", fieldConfigs);
@@ -291,9 +312,15 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               currentCursor
             );
 
-            // Build defaultFilters for cascade filtering (e.g., filterBy: "object_id")
-            const defaultFilters: Record<string, any> | undefined =
+            // Build defaultFilters: merge static config-driven filter (field.defaultFilters)
+            // with cascade filter (filterBy: "object_id"). Static keys lose to cascade
+            // on conflict — cascade is contextually more specific.
+            const cascadeFilter: Record<string, any> | undefined =
               filterBy && filterByValue ? { [filterBy]: filterByValue } : undefined;
+            const mergedDefaultFilters: Record<string, any> | undefined =
+              staticDefaultFilters || cascadeFilter
+                ? { ...(staticDefaultFilters || {}), ...(cascadeFilter || {}) }
+                : undefined;
 
             const {
               records,
@@ -307,7 +334,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
               cursor: currentCursor, // ✅ Use cursor instead of offset
               filterByIds: filterByIds || undefined, // Small ID sets (client-side)
               junctionFilter: junctionFilter || undefined, // Server-side join (large sets)
-              defaultFilters, // Cascade filter (e.g., object_id = selected value)
+              defaultFilters: mergedDefaultFilters, // Static + cascade
             });
 
             opts = records.map((record) => ({
@@ -367,6 +394,7 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         filterByValue,
         filterByIds,
         junctionFilter,
+        staticDefaultFilters,
       ]
     );
 
