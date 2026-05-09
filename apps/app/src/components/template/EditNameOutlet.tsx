@@ -1,4 +1,5 @@
 import { Icon } from "@/components/shared/Icon";
+import { useSpaceConfig } from "@/contexts/SpaceContext";
 import { usePageActions } from "@/hooks/usePageActions";
 import { usePageMenuButtons } from "@/hooks/usePageMenu";
 import type { PageConfig } from "@/types/page-config.types";
@@ -50,31 +51,19 @@ export function EditNameOutlet({
 }: EditNameOutletProps) {
   const navigate = useNavigate();
 
-  // Entity name labels for create mode
-  const ENTITY_NAME_LABELS: Record<string, string> = {
-    pet: "Pet",
-    breed: "Breed",
-    kennel: "Kennel",
-    litter: "Litter",
-    contact: "Contact",
-    event: "Event",
-  };
+  // Resolve display model from space config (entitySchemaModel) — falls back
+  // to the route's entityType when config is not yet hydrated. This is what
+  // distinguishes e.g. "Kennel profile" from raw schema name "account".
+  const spaceConfig = useSpaceConfig();
+  const modelKey = (spaceConfig?.entitySchemaModel as string | undefined) || entityType || "";
+  const modelLabel = modelKey ? modelKey.charAt(0).toUpperCase() + modelKey.slice(1) : "";
 
   const displayName = isCreateMode
-    ? (createModeName || `New ${entityType ? ENTITY_NAME_LABELS[entityType] || entityType : ""}`)
+    ? (createModeName || (modelLabel ? `New ${modelLabel}` : ""))
     : (entity?.name || "");
   const slug = entity?.slug;
 
-  // Entity type display labels
-  const ENTITY_TYPE_LABELS: Record<string, string> = {
-    pet: "Pet profile",
-    breed: "Breed profile",
-    kennel: "Kennel profile",
-    litter: "Litter profile",
-    contact: "Contact profile",
-    event: "Event",
-  };
-  const entityTypeLabel = entityType ? ENTITY_TYPE_LABELS[entityType] || entityType : "";
+  const entityTypeLabel = modelLabel ? `${modelLabel} profile` : "";
 
   // Get button items from config (duplicateOnDesktop items for sticky context)
   const buttonItems = usePageMenuButtons({
