@@ -74,9 +74,13 @@ export function EditNameOutlet({
   });
 
   // Action handlers with custom save
-  const { executeAction } = usePageActions(entity, {
-    ...(onSave ? { save: onSave } : {}),
-  });
+  const { executeAction } = usePageActions(
+    entity,
+    {
+      ...(onSave ? { save: onSave } : {}),
+    },
+    entityType,
+  );
 
   return (
     <div

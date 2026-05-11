@@ -138,7 +138,7 @@ export function AvatarOutlet({
   };
 
   // Action handlers
-  const { executeAction } = usePageActions(entity, customActionHandlers);
+  const { executeAction } = usePageActions(entity, customActionHandlers, entityType);
 
   // Check if we have any buttons or menu items to show
   const hasButtons = buttonItems.length > 0;
