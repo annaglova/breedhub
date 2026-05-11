@@ -1,4 +1,4 @@
-import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { EntityNoteFlag } from "@/components/note/EntityNoteFlag";
 import { Link } from "react-router-dom";
 
 interface BreedNameProps {
@@ -8,8 +8,6 @@ interface BreedNameProps {
   petProfileCount?: number;
   kennelCount?: number;
   patronCount?: number;
-  hasNotes?: boolean;
-  onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
@@ -27,8 +25,6 @@ export function BreedName({
   petProfileCount = 1234,
   kennelCount = 56,
   patronCount = 89,
-  hasNotes = false,
-  onNotesClick,
   linkToFullscreen = true,
 }: BreedNameProps) {
   // Extract data from entity if provided
@@ -69,9 +65,10 @@ export function BreedName({
             <span className="cursor-default">{displayName}</span>
           )}
         </h1>
-        <NoteFlagButton
-          hasNotes={hasNotes}
-          onClick={onNotesClick}
+        <EntityNoteFlag
+          entity={entity}
+          entityType="breed"
+          entityName={displayName}
           mode="page"
           className="self-start"
         />

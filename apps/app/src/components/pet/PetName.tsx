@@ -2,13 +2,11 @@ import { PetSexMark } from "@/components/shared/PetSexMark";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
-import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { EntityNoteFlag } from "@/components/note/EntityNoteFlag";
 import { Link } from "react-router-dom";
 
 interface PetNameProps {
   entity?: any;
-  hasNotes?: boolean;
-  onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
@@ -38,8 +36,6 @@ function formatDate(dateString?: string): string {
  */
 export function PetName({
   entity,
-  hasNotes = false,
-  onNotesClick,
   linkToFullscreen = true,
 }: PetNameProps) {
   // Resolve IDs to values via dictionary lookup
@@ -106,9 +102,10 @@ export function PetName({
         />
 
         {/* Note flag */}
-        <NoteFlagButton
-          hasNotes={hasNotes}
-          onClick={onNotesClick}
+        <EntityNoteFlag
+          entity={entity}
+          entityType="pet"
+          entityName={displayName}
           mode="page"
           className="self-start"
         />

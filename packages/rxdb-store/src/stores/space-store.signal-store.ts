@@ -668,13 +668,12 @@ class SpaceStore {
     try {
       const id = crypto.randomUUID();
       const userId = userStore.currentUserId.value;
-      // Generate slug client-side (same algorithm as server trigger)
-      const slug = generateSlug(data.name || '', id);
+      const hasSlug = !!collection.schema.jsonSchema.properties?.slug;
 
       const newEntity = {
         ...data,
         id,
-        slug,
+        ...(hasSlug && { slug: generateSlug(data.name || '', id) }),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         ...(userId && { created_by: userId, updated_by: userId }),

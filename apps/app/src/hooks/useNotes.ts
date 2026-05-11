@@ -17,6 +17,7 @@ export function useNotes(
     from: params.from || 0,
     filters: params.filters,
     orderBy: params.orderBy,
-    enabled: params.enabled
+    enabled: params.enabled,
+    fieldConfigs: params.fieldConfigs,
   });
 }

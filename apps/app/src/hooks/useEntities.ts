@@ -19,6 +19,7 @@ export interface EntityListHookParams {
   filters?: EntityListFilters;
   orderBy?: OrderBy;
   enabled?: boolean;
+  fieldConfigs?: Record<string, EntityFieldConfig>;
 }
 
 interface UseEntitiesParams extends EntityListHookParams {

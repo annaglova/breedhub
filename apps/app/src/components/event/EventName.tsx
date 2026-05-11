@@ -1,11 +1,9 @@
-import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { EntityNoteFlag } from "@/components/note/EntityNoteFlag";
 import { Link } from "react-router-dom";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 interface EventNameProps {
   entity?: any;
-  hasNotes?: boolean;
-  onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
@@ -35,8 +33,6 @@ function formatDate(dateString?: string): string {
  */
 export function EventName({
   entity,
-  hasNotes = false,
-  onNotesClick,
   linkToFullscreen = true,
 }: EventNameProps) {
   // Resolve FK fields via dictionary lookup (enrichment pattern)
@@ -48,7 +44,6 @@ export function EventName({
   const displayName = entity?.name || "Unknown Program";
   const slug = entity?.slug;
   const startDate = entity?.start_date;
-  const hasNotesFlag = hasNotes || !!entity?.notes;
 
   // Italic muted placeholder when a slot has no data — keeps the row at
   // its full height (so swap from skeleton ↔ real never shifts the layout
@@ -83,9 +78,10 @@ export function EventName({
         </h1>
 
         {/* Note flag button */}
-        <NoteFlagButton
-          hasNotes={hasNotesFlag}
-          onClick={onNotesClick}
+        <EntityNoteFlag
+          entity={entity}
+          entityType="event"
+          entityName={displayName}
           mode="page"
           className="self-start pr-7"
         />

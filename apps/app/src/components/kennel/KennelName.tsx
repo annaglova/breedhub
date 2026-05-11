@@ -1,6 +1,6 @@
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
-import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { EntityNoteFlag } from "@/components/note/EntityNoteFlag";
 import { Link } from "react-router-dom";
 import { dictionaryStore } from "@breedhub/rxdb-store";
 import { useEffect, useState } from "react";
@@ -14,11 +14,8 @@ interface KennelNameProps {
     owner_name?: string;
     federation_name?: string;
     company_foundation_date?: string;
-    notes?: string;
     [key: string]: any;
   };
-  hasNotes?: boolean;
-  onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
@@ -45,8 +42,6 @@ function formatYear(dateString?: string): string {
  */
 export function KennelName({
   entity,
-  hasNotes = false,
-  onNotesClick,
   linkToFullscreen = true,
 }: KennelNameProps) {
   // Enrich country from dictionary
@@ -110,9 +105,10 @@ export function KennelName({
         />
 
         {/* Note flag */}
-        <NoteFlagButton
-          hasNotes={hasNotes || !!entity?.notes}
-          onClick={onNotesClick}
+        <EntityNoteFlag
+          entity={entity}
+          entityType="account"
+          entityName={displayName}
           mode="page"
           className="self-start pr-7"
         />

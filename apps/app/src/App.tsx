@@ -6,6 +6,7 @@ import { AppRouter } from '@/router/AppRouter';
 import { useLoadingBar } from '@/hooks/useLoadingBar';
 import { spaceStore, appStore, userStore, userSettingsStore, toastStore } from '@breedhub/rxdb-store';
 import { Toaster } from '@ui/components/toast/Toaster';
+import { NoteDialog } from '@/components/note/NoteDialog';
 import "./app-theme.css";
 
 function AppContent() {
@@ -80,6 +81,7 @@ function AppContent() {
         toasts={toastStore.toasts}
         onRemove={(id) => toastStore.remove(id)}
       />
+      <NoteDialog />
     </AuthProvider>
   );
 }

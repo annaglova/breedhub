@@ -1,12 +1,10 @@
-import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { EntityNoteFlag } from "@/components/note/EntityNoteFlag";
 import { Link } from "react-router-dom";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 
 interface LitterNameProps {
   entity?: any;
-  hasNotes?: boolean;
-  onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
@@ -48,8 +46,6 @@ function EntityLink({
  */
 export function LitterName({
   entity,
-  hasNotes = false,
-  onNotesClick,
   linkToFullscreen = true,
 }: LitterNameProps) {
   // Resolve status_id to name via dictionary lookup
@@ -87,9 +83,6 @@ export function LitterName({
 
   // Kennel from enrichment with fallback (including VIEW field)
   const kennelName = entity?.kennel?.name || entity?.kennel_name || kennel?.name;
-
-  // Notes flag
-  const hasNotesFlag = hasNotes || !!entity?.notes;
 
   // Italic muted placeholder when a slot has no data — keeps the row at
   // its full height (so swap from skeleton ↔ real never shifts the layout
@@ -132,9 +125,10 @@ export function LitterName({
         </h1>
 
         {/* Note flag button */}
-        <NoteFlagButton
-          hasNotes={hasNotesFlag}
-          onClick={onNotesClick}
+        <EntityNoteFlag
+          entity={entity}
+          entityType="litter"
+          entityName={displayName}
           mode="page"
           className="self-start pr-7"
         />

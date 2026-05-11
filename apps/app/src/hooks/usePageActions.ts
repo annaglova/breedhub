@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dictionaryStore, toast, generateSlug } from '@breedhub/rxdb-store';
+import { dictionaryStore, toast, generateSlug, getPartitionFieldForEntity } from '@breedhub/rxdb-store';
+import { noteDialogStore } from '@/stores/note-dialog.store';
 
 interface NavigateToTabParams {
   tab: string;
@@ -20,7 +21,8 @@ type ActionParams = NavigateToTabParams | Record<string, any>;
  */
 export function usePageActions(
   entity: any,
-  customHandlers?: Record<string, (params?: ActionParams) => void>
+  customHandlers?: Record<string, (params?: ActionParams) => void>,
+  entityType?: string,
 ) {
   const navigate = useNavigate();
   const getSlug = useCallback(() => {
@@ -64,9 +66,22 @@ export function usePageActions(
   }, [entity]);
 
   const handleMakeNote = useCallback(() => {
-    console.log('[PageActions] Make note:', entity);
-    // TODO: Open notes dialog
-  }, [entity]);
+    if (!entity?.id) {
+      console.warn('[PageActions] make_note: missing entity id');
+      return;
+    }
+    if (!entityType) {
+      console.warn('[PageActions] make_note: missing entityType');
+      return;
+    }
+    const partitionField = getPartitionFieldForEntity(entityType);
+    noteDialogStore.openFor({
+      entity: entityType,
+      entityId: entity.id,
+      entityName: entity?.name ?? '',
+      entityPartitionId: partitionField ? entity?.[partitionField] ?? null : null,
+    });
+  }, [entity, entityType]);
 
   const handleBugReport = useCallback(() => {
     console.log('[PageActions] Bug report');

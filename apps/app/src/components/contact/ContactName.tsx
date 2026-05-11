@@ -1,6 +1,6 @@
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
-import { NoteFlagButton } from "@ui/components/note-flag-button";
+import { EntityNoteFlag } from "@/components/note/EntityNoteFlag";
 import { Link } from "react-router-dom";
 
 interface ContactRoles {
@@ -17,11 +17,8 @@ interface ContactNameProps {
     country_id?: string;
     contact_roles?: ContactRoles;
     verification_status_id?: string;
-    notes?: string;
     [key: string]: any;
   };
-  hasNotes?: boolean;
-  onNotesClick?: () => void;
   /** If true, clicking on name navigates to fullscreen page */
   linkToFullscreen?: boolean;
 }
@@ -38,8 +35,6 @@ interface ContactNameProps {
  */
 export function ContactName({
   entity,
-  hasNotes = false,
-  onNotesClick,
   linkToFullscreen = true,
 }: ContactNameProps) {
   // Enrich country from dictionary
@@ -94,9 +89,10 @@ export function ContactName({
         />
 
         {/* Note flag */}
-        <NoteFlagButton
-          hasNotes={hasNotes || !!entity?.notes}
-          onClick={onNotesClick}
+        <EntityNoteFlag
+          entity={entity}
+          entityType="contact"
+          entityName={displayName}
           mode="page"
           className="self-start pr-7"
         />

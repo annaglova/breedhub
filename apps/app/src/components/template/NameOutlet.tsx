@@ -117,11 +117,15 @@ export function NameOutlet({
   const { requestDelete, DeleteDialog } = useDeleteEntity(entityType, entity);
 
   // Action handlers
-  const { executeAction } = usePageActions(entity, {
-    // Custom handlers can be passed here
-    ...(onSupport && { support: onSupport }),
-    delete: requestDelete,
-  });
+  const { executeAction } = usePageActions(
+    entity,
+    {
+      // Custom handlers can be passed here
+      ...(onSupport && { support: onSupport }),
+      delete: requestDelete,
+    },
+    entityType,
+  );
 
   return (
     <div
