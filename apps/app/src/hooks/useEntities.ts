@@ -18,6 +18,7 @@ export interface EntityListHookParams {
   from?: number;
   filters?: EntityListFilters;
   orderBy?: OrderBy;
+  enabled?: boolean;
 }
 
 interface UseEntitiesParams extends EntityListHookParams {
