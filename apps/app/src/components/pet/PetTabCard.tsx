@@ -6,6 +6,8 @@ import { PetServices } from "@/components/shared/PetServices";
 import { PetSexMark } from "@/components/shared/PetSexMark";
 import { normalizeSexCode } from "@/components/shared/pedigree/types";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { noteIndicatorStore } from "@/stores/note-indicator.store";
+import { useSignals } from "@preact/signals-react/runtime";
 import defaultPetLogo from "@/assets/images/pettypes/dog-logo.svg";
 
 // Tier marks format from DB
@@ -62,6 +64,7 @@ export function PetTabCard({
   selected = false,
   onClick,
 }: PetTabCardProps) {
+  useSignals();
   // Resolve pet_status_id to name via dictionary lookup
   const petStatusName = useDictionaryValue("pet_status", entity.pet_status_id);
 
@@ -76,7 +79,7 @@ export function PetTabCard({
     PetStatus: petStatusName,
     VerificationStatus: entity.verification_status_id,
     DateOfBirth: entity.date_of_birth,
-    HasNotes: !!entity.notes || Math.random() > 0.7, // Mock for visual testing
+    HasNotes: noteIndicatorStore.has("pet", entity.id ?? ""),
     TierMarks: entity.tier_marks,
     Services: entity.services,
   };

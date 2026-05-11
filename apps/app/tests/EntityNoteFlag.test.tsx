@@ -38,7 +38,7 @@ describe("EntityNoteFlag", () => {
     vi.clearAllMocks();
   });
 
-  it("sets hasNotes=false when total is 0", () => {
+  it("sets hasNotes=false when entities list is empty", () => {
     mockUseEntityNotes.mockReturnValue({ data: { entities: [], total: 0 } });
     mockGetPartitionField.mockReturnValue(undefined);
 
@@ -49,8 +49,10 @@ describe("EntityNoteFlag", () => {
     expect(screen.getByTestId("flag").getAttribute("data-has-notes")).toBe("false");
   });
 
-  it("sets hasNotes=true when total > 0", () => {
-    mockUseEntityNotes.mockReturnValue({ data: { entities: [], total: 3 } });
+  it("sets hasNotes=true when entities list is non-empty", () => {
+    mockUseEntityNotes.mockReturnValue({
+      data: { entities: [{ id: "n-1" }, { id: "n-2" }], total: 2 },
+    });
     mockGetPartitionField.mockReturnValue(undefined);
 
     render(

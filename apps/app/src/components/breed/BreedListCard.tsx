@@ -2,6 +2,8 @@ import { BreedProgressLight } from "@/components/shared/BreedProgressLight";
 import { NoteFlag } from "@/components/shared/NoteFlag";
 import { TopPatrons } from "@/components/shared/TopPatrons";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
+import { noteIndicatorStore } from "@/stores/note-indicator.store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 // Interface for real data from RxDB
 interface BreedEntity {
@@ -39,9 +41,11 @@ export function BreedListCard({
   selected = false,
   onClick,
 }: BreedListCardProps) {
+  useSignals();
+  const breedId = entity.Id || entity.id || "";
   // Extract data from the entity with fallbacks
   const breed = {
-    Id: entity.Id || entity.id,
+    Id: breedId,
     Name: entity.Name || entity.name || "Unknown",
     Avatar: entity.Avatar || entity.avatar_url,
     PetProfileCount: entity.measurements?.pet_profile_count || 0,
@@ -50,7 +54,7 @@ export function BreedListCard({
     // Support data from support_data JSONB field
     AchievementProgress: entity.support_data?.progress_percent || 0,
     SupportLabel: entity.support_data?.label || "",
-    HasNotes: Math.random() > 0.7, // Random for visual testing
+    HasNotes: noteIndicatorStore.has("breed", breedId),
     // Top patrons from top_patrons JSONB field (object with order keys: {"1": {...}, "2": {...}})
     TopPatrons: entity.top_patrons
       ? Object.values(entity.top_patrons).filter(

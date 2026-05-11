@@ -3,6 +3,8 @@ import { PetServices } from "@/components/shared/PetServices";
 import { TierMark } from "@/components/shared/TierMark";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
+import { noteIndicatorStore } from "@/stores/note-indicator.store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -54,6 +56,7 @@ export function KennelListCard({
   selected = false,
   onClick,
 }: KennelListCardProps) {
+  useSignals();
   // Kennels use default slate outline (no sex-based or user-based coloring)
   const outlineClass = "outline-slate-300 dark:outline-slate-400";
 
@@ -64,7 +67,7 @@ export function KennelListCard({
     OwnerName: entity.owner_name || "",
     FederationName: entity.federation_name || "",
     FoundationYear: getYear(entity.company_foundation_date),
-    HasNotes: !!entity.notes,
+    HasNotes: noteIndicatorStore.has("account", entity.id ?? ""),
     TierMarks: entity.tier_marks,
     Services: entity.services,
   };

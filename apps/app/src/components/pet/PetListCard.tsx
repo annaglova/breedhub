@@ -4,6 +4,8 @@ import { TierMark } from "@/components/shared/TierMark";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { noteIndicatorStore } from "@/stores/note-indicator.store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -60,6 +62,8 @@ export function PetListCard({
   selected = false,
   onClick,
 }: PetListCardProps) {
+  useSignals();
+  const petId = entity.Id || entity.id || "";
   // Resolve pet_status_id to name via dictionary lookup
   const petStatusName = useDictionaryValue("pet_status", entity.pet_status_id);
 
@@ -90,8 +94,7 @@ export function PetListCard({
     // Dates and measurements
     DateOfBirth: entity.date_of_birth,
     COI: entity.coi,
-    // Notes - TODO: use real data when available
-    HasNotes: !!entity.notes || Math.random() > 0.7, // Mock for visual testing
+    HasNotes: noteIndicatorStore.has("pet", petId),
     // Tier marks - uses real data from entity
     // Format: { owner: { contact_name, product_name }, breeder: { contact_name, product_name } }
     TierMarks: entity.tier_marks,

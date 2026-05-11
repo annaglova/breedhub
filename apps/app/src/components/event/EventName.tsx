@@ -80,7 +80,7 @@ export function EventName({
         {/* Note flag button */}
         <EntityNoteFlag
           entity={entity}
-          entityType="event"
+          entityType="program"
           entityName={displayName}
           mode="page"
           className="self-start pr-7"

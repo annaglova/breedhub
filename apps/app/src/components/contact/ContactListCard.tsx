@@ -2,6 +2,8 @@ import { NoteFlag } from "@/components/shared/NoteFlag";
 import { TierMark } from "@/components/shared/TierMark";
 import { VerificationBadge } from "@/components/shared/VerificationBadge";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
+import { noteIndicatorStore } from "@/stores/note-indicator.store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -63,6 +65,7 @@ export function ContactListCard({
   selected = false,
   onClick,
 }: ContactListCardProps) {
+  useSignals();
   // Determine avatar outline color based on whether contact is a registered user
   const hasUser = !!entity.user_id;
   const getOutlineClass = () => {
@@ -95,8 +98,7 @@ export function ContactListCard({
     IsBreeder: isBreeder,
     IsJudge: isJudge,
     IsHandler: isHandler,
-    // Notes - uses real data from entity
-    HasNotes: !!entity.notes,
+    HasNotes: noteIndicatorStore.has("contact", entity.id ?? ""),
     // Breed patronage - uses real data from entity
     BreedPatronage: entity.breed_patronage,
     // Tier marks - uses real data from entity

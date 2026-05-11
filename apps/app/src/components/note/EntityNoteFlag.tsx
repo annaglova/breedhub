@@ -20,7 +20,7 @@ export function EntityNoteFlag({
 }: EntityNoteFlagProps) {
   const entityId = entity?.id ?? "";
   const { data } = useEntityNotes(entityType, entityId);
-  const hasNotes = (data?.total ?? 0) > 0;
+  const hasNotes = (data?.entities?.length ?? 0) > 0;
 
   const handleClick = () => {
     if (!entityId) return;

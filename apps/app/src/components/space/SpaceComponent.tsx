@@ -1,3 +1,4 @@
+import { useNotedEntityIds } from "@/hooks/useNotedEntityIds";
 import { useSpaceBrowseState } from "@/hooks/space/useSpaceBrowseState";
 import { useCreateEntityNavigation } from "@/hooks/space/useCreateEntityNavigation";
 import { useSpaceLayoutState } from "@/hooks/space/useSpaceLayoutState";
@@ -75,6 +76,10 @@ export function SpaceComponent<T extends { id: string }>({
 
   // For convenience, use same variable name throughout component
   const finalConfig = config;
+
+  // Preload "my notes" entity ids for this space so list cards can show
+  // a bookmark indicator without each card running its own query.
+  useNotedEntityIds(config?.entitySchemaName ?? "");
 
   // Navigation and routing
   const navigate = useNavigate();

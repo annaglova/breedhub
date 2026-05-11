@@ -1,6 +1,8 @@
 import { NoteFlag } from "@/components/shared/NoteFlag";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { noteIndicatorStore } from "@/stores/note-indicator.store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 /**
  * Interface for program data from RxDB/Supabase
@@ -12,7 +14,6 @@ interface ProgramEntity {
   start_date?: string;
   status_id?: string;
   event_id?: string;
-  notes?: string;
   [key: string]: any;
 }
 
@@ -44,6 +45,7 @@ export function EventListCard({
   selected = false,
   onClick,
 }: EventListCardProps) {
+  useSignals();
   // Resolve status_id to name via dictionary lookup (program_status)
   const statusName = useDictionaryValue("program_status", entity.status_id);
 
@@ -54,7 +56,7 @@ export function EventListCard({
     Name: entity.name || "Unknown",
     StartDate: entity.start_date,
     StatusName: statusName,
-    HasNotes: !!entity.notes,
+    HasNotes: noteIndicatorStore.has("program", entity.id ?? ""),
   };
 
   const formattedDate = formatDate(program.StartDate);

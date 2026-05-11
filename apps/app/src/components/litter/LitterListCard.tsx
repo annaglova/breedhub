@@ -4,6 +4,8 @@ import { TierMark } from "@/components/shared/TierMark";
 import { EntityListCardWrapper } from "@/components/space/EntityListCardWrapper";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useDictionaryValue } from "@/hooks/useDictionaryValue";
+import { noteIndicatorStore } from "@/stores/note-indicator.store";
+import { useSignals } from "@preact/signals-react/runtime";
 
 // Tier marks format from DB
 interface TierMarkEntry {
@@ -60,6 +62,7 @@ export function LitterListCard({
   selected = false,
   onClick,
 }: LitterListCardProps) {
+  useSignals();
   // Resolve status_id to name via dictionary lookup
   const statusName = useDictionaryValue("litter_status", entity.status_id);
 
@@ -79,8 +82,7 @@ export function LitterListCard({
     KennelName: kennel?.name,
     // Dates
     DateOfBirth: entity.date_of_birth,
-    // Notes
-    HasNotes: !!entity.notes,
+    HasNotes: noteIndicatorStore.has("litter", entity.id ?? ""),
     // Tier marks
     TierMarks: entity.tier_marks,
     // Services
