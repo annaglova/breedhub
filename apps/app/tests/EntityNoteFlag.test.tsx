@@ -2,13 +2,19 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
 
-const { mockUseEntityNotes, mockOpenFor, mockGetPartitionField } = vi.hoisted(
-  () => ({
-    mockUseEntityNotes: vi.fn(),
-    mockOpenFor: vi.fn(),
-    mockGetPartitionField: vi.fn(),
-  }),
-);
+const {
+  mockUseEntityNotes,
+  mockOpenFor,
+  mockGetPartitionField,
+  mockUseAuth,
+  mockNavigate,
+} = vi.hoisted(() => ({
+  mockUseEntityNotes: vi.fn(),
+  mockOpenFor: vi.fn(),
+  mockGetPartitionField: vi.fn(),
+  mockUseAuth: vi.fn(),
+  mockNavigate: vi.fn(),
+}));
 
 vi.mock("../src/hooks/useEntityNotes", () => ({
   useEntityNotes: mockUseEntityNotes,
@@ -20,6 +26,15 @@ vi.mock("../src/stores/note-dialog.store", () => ({
 
 vi.mock("@breedhub/rxdb-store", () => ({
   getPartitionFieldForEntity: mockGetPartitionField,
+}));
+
+vi.mock("@shared/core/auth", () => ({
+  useAuth: mockUseAuth,
+}));
+
+vi.mock("react-router-dom", () => ({
+  useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: "/breeds/german-shepherd", search: "", hash: "" }),
 }));
 
 vi.mock("@ui/components/note-flag-button", () => ({
@@ -36,6 +51,7 @@ import { EntityNoteFlag } from "../src/components/note/EntityNoteFlag";
 describe("EntityNoteFlag", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseAuth.mockReturnValue({ authenticated: true });
   });
 
   it("sets hasNotes=false when entities list is empty", () => {
@@ -111,5 +127,22 @@ describe("EntityNoteFlag", () => {
     fireEvent.click(screen.getByTestId("flag"));
 
     expect(mockOpenFor).not.toHaveBeenCalled();
+  });
+
+  it("redirects unauth user to sign-in with current url instead of opening dialog", () => {
+    mockUseAuth.mockReturnValue({ authenticated: false });
+    mockUseEntityNotes.mockReturnValue({ data: { entities: [], total: 0 } });
+    mockGetPartitionField.mockReturnValue(undefined);
+
+    render(
+      <EntityNoteFlag entity={{ id: "b-1" }} entityType="breed" entityName="Bulldog" />,
+    );
+
+    fireEvent.click(screen.getByTestId("flag"));
+
+    expect(mockOpenFor).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/sign-in?redirectURL=%2Fbreeds%2Fgerman-shepherd",
+    );
   });
 });
