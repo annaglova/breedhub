@@ -63,7 +63,10 @@ export function generateSchemaForEntity(
         break;
     }
 
-    properties[fieldKey] = { type: schemaType };
+    const isRequired = !!(fieldConfig?.required || fieldConfig?.isPrimaryKey);
+    properties[fieldKey] = {
+      type: isRequired ? schemaType : [schemaType, 'null'],
+    };
 
     if (schemaType === 'string') {
       const maxLength = fieldConfig?.maxLength;
@@ -74,7 +77,7 @@ export function generateSchemaForEntity(
       }
     }
 
-    if (fieldConfig?.required || fieldConfig?.isPrimaryKey) {
+    if (isRequired) {
       required.push(fieldKey);
     }
   };
