@@ -28,5 +28,6 @@ export function useEntityNotes(
     recordsCount: 50,
     enabled: authenticated && !!entityId && !!user.id,
     fieldConfigs: FIELD_CONFIGS,
+    live: true,
   });
 }

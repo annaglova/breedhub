@@ -15,8 +15,6 @@ import { useEntityNotes } from "@/hooks/useEntityNotes";
 import { noteDialogStore } from "@/stores/note-dialog.store";
 import { formatDate } from "@/utils/format";
 
-const UNDO_WINDOW_MS = 5000;
-
 export function NoteDialog() {
   useSignals();
   const payload = noteDialogStore.payload.value;
@@ -25,14 +23,12 @@ export function NoteDialog() {
   const [text, setText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const [pendingDelete, setPendingDelete] = useState<Set<string>>(new Set());
 
   const { data, isLoading } = useEntityNotes(
     payload?.entity ?? "",
     payload?.entityId ?? "",
   );
-  const allNotes = data?.entities ?? [];
-  const notes = allNotes.filter((n: any) => !pendingDelete.has(n.id));
+  const notes = data?.entities ?? [];
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -80,32 +76,9 @@ export function NoteDialog() {
     setEditText("");
   };
 
-  const handleDelete = (note: any) => {
-    setPendingDelete((prev) => new Set(prev).add(note.id));
-
-    const timeoutId = window.setTimeout(() => {
-      void spaceStore.delete("note", note.id);
-      setPendingDelete((prev) => {
-        const next = new Set(prev);
-        next.delete(note.id);
-        return next;
-      });
-    }, UNDO_WINDOW_MS);
-
-    toast.info("Note deleted", {
-      duration: UNDO_WINDOW_MS,
-      action: {
-        label: "Undo",
-        onClick: () => {
-          window.clearTimeout(timeoutId);
-          setPendingDelete((prev) => {
-            const next = new Set(prev);
-            next.delete(note.id);
-            return next;
-          });
-        },
-      },
-    });
+  const handleDelete = async (note: any) => {
+    await spaceStore.delete("note", note.id);
+    toast.info("Note deleted");
   };
 
   const isEditingAny = editingId !== null;
@@ -128,10 +101,13 @@ export function NoteDialog() {
           <ul className="space-y-3 max-h-[40vh] overflow-y-auto pr-1">
             {notes.map((n: any) => {
               const isEditing = editingId === n.id;
+              const isHardDimmed = isEditingAny && !isEditing;
               return (
                 <li
                   key={n.id}
-                  className="rounded-md border border-slate-300 bg-white/95 p-3 dark:border-zinc-700 dark:bg-zinc-900/60"
+                  className={`rounded-md border border-slate-300 bg-white/95 p-3 dark:border-zinc-700 dark:bg-zinc-900/60 ${
+                    isHardDimmed ? "opacity-50 pointer-events-none" : ""
+                  }`}
                 >
                   {isEditing ? (
                     <div className="space-y-2">
@@ -162,10 +138,10 @@ export function NoteDialog() {
                   ) : (
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-slate-500 mb-1">
+                        <div className="text-sm text-slate-400 mb-1">
                           {formatDate(n.created_at)}
                         </div>
-                        <div className="text-base whitespace-pre-wrap text-slate-700 dark:text-slate-200">
+                        <div className="text-base whitespace-pre-wrap text-slate-400 dark:text-slate-500">
                           {n.text}
                         </div>
                       </div>
