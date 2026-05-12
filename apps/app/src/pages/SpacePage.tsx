@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { SpaceComponent } from '@/components/space/SpaceComponent';
 import { PublicPageTemplate } from '@/components/template/PublicPageTemplate';
@@ -6,7 +6,12 @@ import { EditPageTemplate } from '@/components/template/EditPageTemplate';
 import { TabPageTemplate } from '@/components/template/TabPageTemplate';
 import { registerAllComponents } from '@/components/registerComponents';
 import { getEntityHook } from '@/hooks/hookRegistry';
-import { appStore, spaceStore } from '@breedhub/rxdb-store';
+import {
+  appStore,
+  entityReplicationService,
+  spaceStore,
+  syncQueueService,
+} from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
 import { getComponent } from '@/components/space/componentRegistry';
 
@@ -212,6 +217,34 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
     () => spaceStore.getSpaceConfigSignal(entityType),
     [entityType]
   );
+
+  // For private spaces, subscribe to mutation + pull-with-deltas channels and
+  // refresh the totalCount when the server-side state changes. Public spaces
+  // skip this — their counts are vanity numbers cached for the full TTL.
+  const isPrivateSpace = spaceConfigSignal.value?.isPublic === false;
+  useEffect(() => {
+    if (!isPrivateSpace) return;
+
+    const handleMutation = (mutationEntityType: string) => {
+      if (mutationEntityType === entityType) {
+        spaceStore.refreshTotalFromServer(entityType);
+      }
+    };
+    const handlePullDeltas = () => {
+      spaceStore.refreshTotalFromServer(entityType);
+    };
+
+    const unsubMutation = syncQueueService.onMutationSuccess(handleMutation);
+    const unsubPull = entityReplicationService.subscribeToPullWithDeltas(
+      entityType,
+      handlePullDeltas,
+    );
+
+    return () => {
+      unsubMutation();
+      unsubPull();
+    };
+  }, [entityType, isPrivateSpace]);
 
   const selectedEntityShellProps = useMemo(
     () => ({

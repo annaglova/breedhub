@@ -399,7 +399,7 @@ class SpaceStore {
   }
 
   /** Case-insensitive lookup in spaceConfigs map */
-  private resolveSpaceConfig(entityType: string): SpaceConfig | undefined {
+  resolveSpaceConfig(entityType: string): SpaceConfig | undefined {
     return resolveSpaceConfig(this.spaceConfigs, entityType);
   }
 
