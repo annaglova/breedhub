@@ -79,6 +79,7 @@ export interface SpaceFilterFieldConfig extends ConfigRecord {
   orFields?: string[];
   mainFilterField?: boolean;
   searchSlug?: string;
+  options?: Array<{ value: string; label: string; disabled?: boolean }>;
 }
 
 export interface SpaceViewRawConfig extends ConfigRecord {
@@ -169,6 +170,7 @@ export interface SpaceFilterField {
   junctionField?: string;
   junctionFilterField?: string;
   orFields?: string[];
+  options?: Array<{ value: string; label: string; disabled?: boolean }>;
 }
 
 export interface SpaceMainFilterField {
@@ -623,6 +625,7 @@ export function getFilterFieldsFromConfig(
       junctionField: field.junctionField,
       junctionFilterField: field.junctionFilterField,
       orFields: field.orFields,
+      options: field.options,
     });
   }
 

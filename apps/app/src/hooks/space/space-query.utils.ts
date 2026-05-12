@@ -17,10 +17,8 @@ export const FILTER_RESERVED_QUERY_PARAMS: readonly string[] = [
   ...SPACE_RESERVED_QUERY_PARAMS,
 ] as const;
 
-// Used by buildFiltersFromSearchParams — `entity` is a routing param, never a filter value.
 export const FILTER_BUILD_RESERVED_QUERY_PARAMS: readonly string[] = [
   ...FILTER_RESERVED_QUERY_PARAMS,
-  "entity",
 ] as const;
 
 export const TOTAL_COUNT_RESERVED_QUERY_PARAMS: readonly string[] = [
