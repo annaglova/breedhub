@@ -19,6 +19,6 @@ export function useNotes(
     orderBy: params.orderBy || { field: 'created_at', direction: 'desc' },
     enabled: params.enabled,
     fieldConfigs: params.fieldConfigs,
-    live: params.live,
+    live: params.live ?? true,
   });
 }
