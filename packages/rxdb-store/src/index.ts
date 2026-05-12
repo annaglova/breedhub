@@ -73,7 +73,7 @@ export type { Toast, ToastType, ToastOptions } from './stores/toast.store';
 export { buildInitialTimeline, rebuildTimelineOnDateChange } from './utils/timeline-builder';
 export { buildInitialPedigree } from './utils/pedigree-builder';
 export { generateSlug } from './utils/slug-generator';
-export { detectOperator, type FilterOperator } from './utils/filter-builder';
+export { detectOperator, matchRecordValue, type FilterOperator } from './utils/filter-builder';
 
 // Supabase utilities
 export { supabase, checkSupabaseConnection } from './supabase/client';

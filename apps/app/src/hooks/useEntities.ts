@@ -1,19 +1,18 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  detectOperator,
   spaceStore,
   type BusinessEntity,
-  type FilterOperator,
   type OrderBy,
 } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
+import {
+  buildLiveMatcher,
+  buildLiveSorter,
+  type EntityFieldConfig,
+  type EntityListFilters,
+} from './useEntities.live';
 
-export type EntityListFilters = Record<string, unknown>;
-
-export interface EntityFieldConfig {
-  fieldType?: string;
-  operator?: string;
-}
+export type { EntityFieldConfig, EntityListFilters } from './useEntities.live';
 
 export interface EntityListHookParams {
   recordsCount?: number;
@@ -37,84 +36,6 @@ export interface EntityListHookParams {
    * detectOperator() — same path the server uses — so search works.
    */
   live?: boolean;
-}
-
-function matchByOperator(
-  recordValue: unknown,
-  operator: FilterOperator,
-  value: unknown,
-): boolean {
-  if (value === undefined || value === null || value === "") return true;
-  switch (operator) {
-    case "eq":
-      return recordValue === value;
-    case "ne":
-      return recordValue !== value;
-    case "ilike":
-    case "contains":
-      return (
-        typeof recordValue === "string" &&
-        recordValue
-          .toLowerCase()
-          .includes(String(value).toLowerCase())
-      );
-    case "gt":
-      return (recordValue as any) > (value as any);
-    case "gte":
-      return (recordValue as any) >= (value as any);
-    case "lt":
-      return (recordValue as any) < (value as any);
-    case "lte":
-      return (recordValue as any) <= (value as any);
-    case "in":
-      return Array.isArray(value) && value.includes(recordValue);
-    default:
-      return recordValue === value;
-  }
-}
-
-function buildLiveMatcher(
-  filters: EntityListFilters | undefined,
-  fieldConfigs?: Record<string, EntityFieldConfig>,
-): (record: any) => boolean {
-  if (!filters) return () => true;
-  const entries = Object.entries(filters);
-  return (record: any) => {
-    for (const [key, value] of entries) {
-      if (value === undefined || value === null || value === "") continue;
-      const cfg = fieldConfigs?.[key];
-      const operator = detectOperator(cfg?.fieldType ?? "", cfg?.operator);
-      if (!matchByOperator(record?.[key], operator, value)) return false;
-    }
-    return true;
-  };
-}
-
-function buildLiveSorter(orderBy?: OrderBy): (a: any, b: any) => number {
-  if (!orderBy) return () => 0;
-  const dir = orderBy.direction === "desc" ? -1 : 1;
-  const field = orderBy.field;
-  const tie = orderBy.tieBreaker;
-  return (a, b) => {
-    const av = a?.[field];
-    const bv = b?.[field];
-    if (av == null && bv == null) return 0;
-    if (av == null) return 1;
-    if (bv == null) return -1;
-    if (av < bv) return -1 * dir;
-    if (av > bv) return 1 * dir;
-    if (tie) {
-      const tdir = tie.direction === "desc" ? -1 : 1;
-      const tav = a?.[tie.field];
-      const tbv = b?.[tie.field];
-      if (tav == null && tbv == null) return 0;
-      if (tav == null) return 1;
-      if (tbv == null) return -1;
-      if (tav < tbv) return -1 * tdir;
-      if (tav > tbv) return 1 * tdir;
-    }
-    return 0;
-  };
 }
 
 interface UseEntitiesParams extends EntityListHookParams {

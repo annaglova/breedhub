@@ -9,11 +9,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 async function loadHarness() {
   vi.resetModules();
   const getRecordById = vi.fn(async () => ({ id: "x", name: "Rex" }));
+  const getPartitionFieldForEntity = vi.fn(() => "breed_id");
   vi.doMock("@breedhub/rxdb-store", () => ({
     dictionaryStore: { getRecordById },
+    getPartitionFieldForEntity,
   }));
   const module = await import("@/utils/lookup");
-  return { ...module, getRecordById };
+  return { ...module, getRecordById, getPartitionFieldForEntity };
 }
 
 describe("loadLookupById", () => {

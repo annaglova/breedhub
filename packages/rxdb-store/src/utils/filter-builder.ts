@@ -81,6 +81,43 @@ export function detectOperator(
   }
 }
 
+/**
+ * Match a record field value against the same operator set used to build
+ * backend/RxDB filters.
+ */
+export function matchRecordValue(
+  recordValue: unknown,
+  operator: FilterOperator,
+  value: unknown,
+): boolean {
+  if (value === undefined || value === null || value === '') return true;
+
+  switch (operator) {
+    case 'eq':
+      return recordValue === value;
+    case 'ne':
+      return recordValue !== value;
+    case 'ilike':
+    case 'contains':
+      return (
+        typeof recordValue === 'string' &&
+        recordValue.toLowerCase().includes(String(value).toLowerCase())
+      );
+    case 'gt':
+      return (recordValue as any) > (value as any);
+    case 'gte':
+      return (recordValue as any) >= (value as any);
+    case 'lt':
+      return (recordValue as any) < (value as any);
+    case 'lte':
+      return (recordValue as any) <= (value as any);
+    case 'in':
+      return Array.isArray(value) && value.includes(recordValue);
+    default:
+      return recordValue === value;
+  }
+}
+
 // ============= RxDB Filters =============
 
 /**

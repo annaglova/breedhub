@@ -13,9 +13,59 @@ import {
   applySupabaseFilter,
   buildPostgrestFilterExpr,
   applySupabaseFilterWithOrFields,
+  matchRecordValue,
   type RxDBSelectorLike,
   type SupabaseFilterQuery,
 } from '../filter-builder';
+
+// ============= matchRecordValue =============
+
+describe('matchRecordValue', () => {
+  it('short-circuits empty filter values', () => {
+    expect(matchRecordValue('anything', 'eq', undefined)).toBe(true);
+    expect(matchRecordValue('anything', 'eq', null)).toBe(true);
+    expect(matchRecordValue('anything', 'eq', '')).toBe(true);
+  });
+
+  it('matches eq with strict equality', () => {
+    expect(matchRecordValue('123', 'eq', '123')).toBe(true);
+    expect(matchRecordValue(123, 'eq', '123')).toBe(false);
+  });
+
+  it('matches ne with strict inequality', () => {
+    expect(matchRecordValue('123', 'ne', '456')).toBe(true);
+    expect(matchRecordValue('123', 'ne', '123')).toBe(false);
+  });
+
+  it('matches ilike and contains case-insensitively', () => {
+    expect(matchRecordValue('Golden Retriever', 'ilike', 'retr')).toBe(true);
+    expect(matchRecordValue('Golden Retriever', 'contains', 'GOLD')).toBe(true);
+    expect(matchRecordValue('Golden Retriever', 'contains', 'poodle')).toBe(false);
+  });
+
+  it('returns false for non-string ilike records', () => {
+    expect(matchRecordValue(12345, 'ilike', '234')).toBe(false);
+  });
+
+  it('matches comparison operators', () => {
+    expect(matchRecordValue(10, 'gt', 5)).toBe(true);
+    expect(matchRecordValue(10, 'gte', 10)).toBe(true);
+    expect(matchRecordValue(10, 'lt', 20)).toBe(true);
+    expect(matchRecordValue(10, 'lte', 10)).toBe(true);
+    expect(matchRecordValue(10, 'gt', 20)).toBe(false);
+  });
+
+  it('matches in only when the filter value is an array containing the record value', () => {
+    expect(matchRecordValue('active', 'in', ['pending', 'active'])).toBe(true);
+    expect(matchRecordValue('active', 'in', ['pending'])).toBe(false);
+    expect(matchRecordValue('active', 'in', 'active')).toBe(false);
+  });
+
+  it('defaults to strict equality for unknown operators', () => {
+    expect(matchRecordValue('abc', 'unknown', 'abc')).toBe(true);
+    expect(matchRecordValue(123, 'unknown', '123')).toBe(false);
+  });
+});
 
 // ============= buildRxDBCondition =============
 
