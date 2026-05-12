@@ -1128,7 +1128,13 @@ class SpaceStore {
             applyFilters(
               supabase
                 .from(entityType)
-                .select('*', { count: 'exact', head: true })
+                .select('*', {
+                  // Public spaces (millions of rows) use planner stats (pg_class.reltuples)
+                  // for instant approximate counts; private spaces stay exact since their
+                  // working set is small and the user expects ±0 accuracy on their own data.
+                  count: spaceConfig?.isPublic === false ? 'exact' : 'planned',
+                  head: true,
+                })
                 .or('deleted.is.null,deleted.eq.false'),
             ),
           onCountResolved: (count, source) => {
