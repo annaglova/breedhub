@@ -16,7 +16,7 @@ export function useNotes(
     recordsCount: params.recordsCount || 50,
     from: params.from || 0,
     filters: params.filters,
-    orderBy: params.orderBy,
+    orderBy: params.orderBy || { field: 'created_at', direction: 'desc' },
     enabled: params.enabled,
     fieldConfigs: params.fieldConfigs,
     live: params.live,
