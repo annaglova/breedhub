@@ -77,11 +77,14 @@ export function EntitiesCounter({
 
   const cachedTotal = getCachedTotal();
 
-  // Prefer the live `total` prop (driven by useEntities + Stage 4 reactive
-  // totalFromServer channel — stays in sync with server). Fall back to the
-  // localStorage cache only during the first paint before the live total
-  // resolves, so the counter never flashes empty on cold load.
-  const displayTotal = total > 0 ? total : cachedTotal;
+  // Pick whichever number is authoritative for the FULL set, not the
+  // current page slice. applyFilters returns total = page size, so for
+  // paginated public spaces that's smaller than the cached server total.
+  // For non-paginated (private) spaces, total === entitiesCount and cache
+  // is the snapshot of the server count after Stage 4 refresh.
+  // Math.max trades both ways for free: page slice loses to cached server,
+  // and a stale cache loses to a freshly-resolved larger total.
+  const displayTotal = Math.max(cachedTotal, total);
 
   // Use initialCount as fallback for entitiesCount when it's 0
   const displayEntitiesCount = entitiesCount > 0 ? entitiesCount : initialCount;
@@ -95,8 +98,12 @@ export function EntitiesCounter({
     );
   }
 
-  // If we have all items loaded
-  if (entitiesCount > 0 && entitiesCount >= displayTotal) {
+  // If we have all items loaded.
+  // Require total > entitiesCount as confirmation that the page slice is
+  // smaller than the full set (paginated case). Otherwise we're on a
+  // non-paginated view and entitiesCount IS the full count.
+  const isConfirmedTotal = total > entitiesCount || cachedTotal > 0;
+  if (entitiesCount > 0 && entitiesCount >= displayTotal && isConfirmedTotal) {
     return (
       <div className="text-sm text-muted-foreground mt-1">
         Showing all {formatNumber(displayTotal)}
