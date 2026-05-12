@@ -1,7 +1,17 @@
 import { EntityTabCardWrapper } from "@/components/space/EntityTabCardWrapper";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
-import { Link } from "react-router-dom";
-import { Pencil, Trash2 } from "lucide-react";
+import { noteDialogStore } from "@/stores/note-dialog.store";
+import { spaceStore, toast } from "@breedhub/rxdb-store";
+import { Button } from "@ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@ui/components/dropdown-menu";
+import { ExternalLink, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@ui/lib/utils";
 
 interface NoteEntity {
@@ -25,8 +35,6 @@ interface NoteTabCardProps {
   entity: NoteEntity;
   selected?: boolean;
   onClick?: () => void;
-  onEdit?: (entity: NoteEntity) => void;
-  onDelete?: (entity: NoteEntity) => void;
   mode?: "space" | "card";
 }
 
@@ -51,10 +59,9 @@ export function NoteTabCard({
   entity,
   selected = false,
   onClick,
-  onEdit,
-  onDelete,
   mode = "space",
 }: NoteTabCardProps) {
+  const navigate = useNavigate();
   const linkedEntity = entity.entity;
   const linkedId = entity.entity_id;
   const linkedPartition = entity.entity_partition_id;
@@ -70,19 +77,32 @@ export function NoteTabCard({
   const formattedDate = formatDate(entity.created_at);
   const noteText = entity.text || "";
 
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onEdit?.(entity);
+  const handleEdit = () => {
+    if (!linkedEntity || !linkedId) return;
+    noteDialogStore.openFor({
+      entity: linkedEntity,
+      entityId: linkedId,
+      entityName: connectedEntity?.name ?? "",
+      entityPartitionId: linkedPartition ?? null,
+    });
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onDelete?.(entity);
+  const handleDelete = async () => {
+    await spaceStore.delete("note", entity.id);
+    toast.info("Note deleted");
   };
+
+  const handleNavigate = () => {
+    if (connectedEntity?.slug) {
+      navigate(`/${connectedEntity.slug}`);
+    }
+  };
+
+  const navigateLabel = linkedEntity ? `Open ${linkedEntity}` : "Open record";
 
   return (
     <EntityTabCardWrapper selected={selected} onClick={onClick}>
-      <div className="bg-slate-50/50 flex h-[206px] overflow-auto rounded-xl border border-surface-border px-7 py-5 text-start text-sm text-slate-700">
+      <div className="bg-slate-50/50 flex h-[206px] overflow-auto rounded-xl border border-surface-border px-7 py-5 text-start text-base text-slate-700 whitespace-pre-wrap">
         {noteText}
       </div>
 
@@ -111,7 +131,7 @@ export function NoteTabCard({
             </div>
 
             <div
-              className="ml-3 flex w-full flex-col space-y-0.5 truncate"
+              className="ml-3 flex min-w-0 flex-1 flex-col space-y-0.5 truncate"
               title={connectedEntity?.name}
             >
               <div className="w-auto truncate">
@@ -138,23 +158,42 @@ export function NoteTabCard({
           <span className="text-slate-500 text-sm">{formattedDate}</span>
         )}
 
-        <div className="text-slate-400 ml-auto flex space-x-3">
-          <button
-            type="button"
-            aria-label="Edit"
-            onClick={handleEdit}
-            className="hover:text-slate-600 transition-colors"
-          >
-            <Pencil className="size-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Delete"
-            onClick={handleDelete}
-            className="hover:text-red-500 transition-colors"
-          >
-            <Trash2 className="size-4" />
-          </button>
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost-secondary"
+                type="button"
+                aria-label="Note actions"
+                onClick={(e) => e.stopPropagation()}
+                className="size-8 rounded-full p-0 shrink-0 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+              >
+                <MoreVertical size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DropdownMenuItem onClick={handleEdit}>
+                <Pencil size={14} className="mr-2" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 size={14} className="mr-2" /> Delete
+              </DropdownMenuItem>
+              {connectedEntity?.slug && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleNavigate}>
+                    <ExternalLink size={14} className="mr-2" /> {navigateLabel}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </EntityTabCardWrapper>
