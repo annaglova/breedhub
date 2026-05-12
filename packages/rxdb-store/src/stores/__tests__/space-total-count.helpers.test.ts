@@ -169,6 +169,88 @@ describe("space-total-count.helpers", () => {
     );
   });
 
+  it("returns early on cache hit when isPublic is not false", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(3 * 60 * 60 * 1000);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const fetchFreshCount = vi.fn();
+    const onCountResolved = vi.fn();
+
+    await fetchOrCacheTotalCount({
+      entityType: "pet",
+      filters: {},
+      ttlMs: 14 * 24 * 60 * 60 * 1000,
+      isPublic: true,
+      readCache: () =>
+        JSON.stringify({
+          value: 42,
+          timestamp: 1 * 60 * 60 * 1000,
+        }),
+      writeCache: vi.fn(),
+      fetchFreshCount,
+      onCountResolved,
+    });
+
+    expect(fetchFreshCount).not.toHaveBeenCalled();
+    expect(onCountResolved).toHaveBeenCalledOnce();
+    expect(onCountResolved).toHaveBeenCalledWith(42, "cache");
+  });
+
+  it("uses private cache hit as SWR and resolves both cache and fresh counts", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(3 * 60 * 60 * 1000);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const fetchFreshCount = vi.fn(async () => ({ count: 43, error: null }));
+    const onCountResolved = vi.fn();
+    const writeCache = vi.fn();
+
+    await fetchOrCacheTotalCount({
+      entityType: "pet",
+      filters: {},
+      ttlMs: 14 * 24 * 60 * 60 * 1000,
+      isPublic: false,
+      readCache: () =>
+        JSON.stringify({
+          value: 42,
+          timestamp: 1 * 60 * 60 * 1000,
+        }),
+      writeCache,
+      fetchFreshCount,
+      onCountResolved,
+    });
+
+    expect(fetchFreshCount).toHaveBeenCalledOnce();
+    expect(onCountResolved).toHaveBeenNthCalledWith(1, 42, "cache");
+    expect(onCountResolved).toHaveBeenNthCalledWith(2, 43, "fresh");
+    expect(writeCache).toHaveBeenCalledWith(
+      "totalCount_pet",
+      JSON.stringify({
+        value: 43,
+        timestamp: 3 * 60 * 60 * 1000,
+      }),
+    );
+  });
+
+  it("fetches once on private cache miss like public spaces", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(10_000);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const fetchFreshCount = vi.fn(async () => ({ count: 9, error: null }));
+    const onCountResolved = vi.fn();
+
+    await fetchOrCacheTotalCount({
+      entityType: "pet",
+      filters: {},
+      ttlMs: 5_000,
+      isPublic: false,
+      readCache: () => null,
+      writeCache: vi.fn(),
+      fetchFreshCount,
+      onCountResolved,
+    });
+
+    expect(fetchFreshCount).toHaveBeenCalledOnce();
+    expect(onCountResolved).toHaveBeenCalledOnce();
+    expect(onCountResolved).toHaveBeenCalledWith(9, "fresh");
+  });
+
   it("refreshes expired cached total count and writes back fresh value", async () => {
     vi.spyOn(Date, "now").mockReturnValue(10_000);
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});

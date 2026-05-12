@@ -691,6 +691,173 @@ describe("entity-replication.service", () => {
     expect(callback).not.toHaveBeenCalled();
   });
 
+  describe("subscribeToPullWithDeltas", () => {
+    it("fires with documents.length when pull returns docs", async () => {
+      const service = new EntityReplicationService();
+      const callback = vi.fn();
+
+      service.subscribeToPullWithDeltas("pet", callback);
+      queueSelectResult("pet", {
+        data: [
+          {
+            id: "pet-1",
+            name: "Alpha",
+            created_at: "2026-04-20T10:00:00.000Z",
+            updated_at: "2026-04-21T10:00:00.000Z",
+            deleted: false,
+          },
+          {
+            id: "pet-2",
+            name: "Beta",
+            created_at: "2026-04-20T10:00:00.000Z",
+            updated_at: "2026-04-21T11:00:00.000Z",
+            deleted: false,
+          },
+        ],
+        error: null,
+      });
+      queueSelectResult("pet", { count: 2, error: null }, "count");
+
+      await service.setupReplication(createDb("pet", createCollection()), "pet", {
+        enableRealtime: false,
+      });
+
+      const config = mockState.replicateRxCollectionMock.mock.calls[0][0];
+      await config.pull.handler(null, 20);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(2);
+    });
+
+    it("does not fire on empty pull", async () => {
+      const service = new EntityReplicationService();
+      const callback = vi.fn();
+
+      service.subscribeToPullWithDeltas("pet", callback);
+      queueSelectResult("pet", { data: [], error: null });
+      queueSelectResult("pet", { count: 0, error: null }, "count");
+
+      await service.setupReplication(createDb("pet", createCollection()), "pet", {
+        enableRealtime: false,
+      });
+
+      const config = mockState.replicateRxCollectionMock.mock.calls[0][0];
+      await config.pull.handler(null, 20);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("scopes subscriptions per entityType", async () => {
+      const service = new EntityReplicationService();
+      const petCallback = vi.fn();
+      const breedCallback = vi.fn();
+
+      service.subscribeToPullWithDeltas("pet", petCallback);
+      service.subscribeToPullWithDeltas("breed", breedCallback);
+      queueSelectResult("pet", {
+        data: [
+          {
+            id: "pet-1",
+            name: "Alpha",
+            created_at: "2026-04-20T10:00:00.000Z",
+            updated_at: "2026-04-21T10:00:00.000Z",
+            deleted: false,
+          },
+        ],
+        error: null,
+      });
+      queueSelectResult("pet", { count: 1, error: null }, "count");
+      queueSelectResult("breed", {
+        data: [
+          {
+            id: "breed-1",
+            name: "Breed 1",
+            created_at: "2026-04-20T10:00:00.000Z",
+            updated_at: "2026-04-21T10:00:00.000Z",
+            deleted: false,
+          },
+          {
+            id: "breed-2",
+            name: "Breed 2",
+            created_at: "2026-04-20T10:00:00.000Z",
+            updated_at: "2026-04-21T11:00:00.000Z",
+            deleted: false,
+          },
+        ],
+        error: null,
+      });
+      queueSelectResult("breed", { count: 2, error: null }, "count");
+
+      await service.setupReplication(createDb("pet", createCollection()), "pet", {
+        enableRealtime: false,
+      });
+      await service.setupReplication(
+        createDb("breed", createCollection()),
+        "breed",
+        { enableRealtime: false },
+      );
+
+      const petConfig = mockState.replicateRxCollectionMock.mock.calls[0][0];
+      const breedConfig = mockState.replicateRxCollectionMock.mock.calls[1][0];
+
+      await petConfig.pull.handler(null, 20);
+
+      expect(petCallback).toHaveBeenCalledTimes(1);
+      expect(petCallback).toHaveBeenCalledWith(1);
+      expect(breedCallback).not.toHaveBeenCalled();
+
+      await breedConfig.pull.handler(null, 20);
+
+      expect(petCallback).toHaveBeenCalledTimes(1);
+      expect(breedCallback).toHaveBeenCalledTimes(1);
+      expect(breedCallback).toHaveBeenCalledWith(2);
+    });
+
+    it("unsubscribe stops notifications", async () => {
+      const service = new EntityReplicationService();
+      const callback = vi.fn();
+      const unsubscribe = service.subscribeToPullWithDeltas("pet", callback);
+
+      queueSelectResult("pet", {
+        data: [
+          {
+            id: "pet-1",
+            name: "Alpha",
+            created_at: "2026-04-20T10:00:00.000Z",
+            updated_at: "2026-04-21T10:00:00.000Z",
+            deleted: false,
+          },
+        ],
+        error: null,
+      });
+      queueSelectResult("pet", { count: 1, error: null }, "count");
+      queueSelectResult("pet", {
+        data: [
+          {
+            id: "pet-2",
+            name: "Beta",
+            created_at: "2026-04-20T10:00:00.000Z",
+            updated_at: "2026-04-21T11:00:00.000Z",
+            deleted: false,
+          },
+        ],
+        error: null,
+      });
+
+      await service.setupReplication(createDb("pet", createCollection()), "pet", {
+        enableRealtime: false,
+      });
+
+      const config = mockState.replicateRxCollectionMock.mock.calls[0][0];
+      await config.pull.handler(null, 20);
+      unsubscribe();
+      await config.pull.handler(null, 20);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(1);
+    });
+  });
+
   it("manualPull fetches the next batch after the latest local document and persists the checkpoint", async () => {
     const service = new EntityReplicationService();
     const { localStorageMock, storage } = createLocalStorageMock();

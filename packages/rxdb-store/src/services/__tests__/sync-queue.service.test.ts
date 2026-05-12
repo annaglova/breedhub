@@ -612,6 +612,209 @@ describe("sync-queue.service", () => {
     harness.syncQueueService.destroy();
   });
 
+  describe("onMutationSuccess", () => {
+    it("fires on entity upsert success", async () => {
+      const harness = await loadSyncQueueHarness({
+        entityDocs: [
+          {
+            id: "entity-upsert",
+            entityType: "pet",
+            entityId: "pet-1",
+            operation: "upsert",
+            payload: { id: "pet-1", name: "Alpha" },
+            onConflict: "id",
+            retries: 0,
+            createdAt: 1,
+          },
+        ],
+        childDocs: [],
+      });
+      const callback = vi.fn();
+
+      queueOperationResult(mockState.upsertQueues, "pet", { error: null });
+
+      await harness.syncQueueService.initialize(harness.db);
+      harness.syncQueueService.onMutationSuccess(callback);
+      await harness.syncQueueService.processNow();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith("pet", "upsert");
+
+      harness.syncQueueService.destroy();
+    });
+
+    it("fires on entity delete success", async () => {
+      const harness = await loadSyncQueueHarness({
+        entityDocs: [
+          {
+            id: "entity-delete",
+            entityType: "pet",
+            entityId: "pet-1",
+            operation: "delete",
+            payload: { id: "pet-1", name: "Alpha" },
+            onConflict: "id",
+            retries: 0,
+            createdAt: 1,
+          },
+        ],
+        childDocs: [],
+      });
+      const callback = vi.fn();
+
+      queueOperationResult(mockState.upsertQueues, "pet", { error: null });
+
+      await harness.syncQueueService.initialize(harness.db);
+      harness.syncQueueService.onMutationSuccess(callback);
+      await harness.syncQueueService.processNow();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith("pet", "delete");
+
+      harness.syncQueueService.destroy();
+    });
+
+    it("does not fire on child queue success", async () => {
+      const harness = await loadSyncQueueHarness({
+        entityDocs: [],
+        childDocs: [
+          {
+            id: "child-upsert",
+            entityType: "pet",
+            tableType: "title_in_pet",
+            recordId: "child-1",
+            operation: "upsert",
+            payload: { id: "child-1", title_id: "title-1" },
+            onConflict: "id",
+            retries: 0,
+            createdAt: 1,
+          },
+        ],
+      });
+      const callback = vi.fn();
+
+      queueOperationResult(mockState.upsertQueues, "title_in_pet", {
+        error: null,
+      });
+
+      await harness.syncQueueService.initialize(harness.db);
+      harness.syncQueueService.onMutationSuccess(callback);
+      await harness.syncQueueService.processNow();
+
+      expect(callback).not.toHaveBeenCalled();
+
+      harness.syncQueueService.destroy();
+    });
+
+    it("does not fire on Supabase failure", async () => {
+      const harness = await loadSyncQueueHarness({
+        entityDocs: [
+          {
+            id: "entity-upsert",
+            entityType: "pet",
+            entityId: "pet-1",
+            operation: "upsert",
+            payload: { id: "pet-1" },
+            onConflict: "id",
+            retries: 10,
+            createdAt: 1,
+          },
+        ],
+        childDocs: [],
+      });
+      const callback = vi.fn();
+
+      queueOperationResult(mockState.upsertQueues, "pet", {
+        error: { message: "supabase boom" },
+      });
+
+      await harness.syncQueueService.initialize(harness.db);
+      harness.syncQueueService.onMutationSuccess(callback);
+      await harness.syncQueueService.processNow();
+
+      expect(callback).not.toHaveBeenCalled();
+
+      harness.syncQueueService.destroy();
+    });
+
+    it("notifies multiple subscribers in registration order", async () => {
+      const harness = await loadSyncQueueHarness({
+        entityDocs: [
+          {
+            id: "entity-upsert",
+            entityType: "pet",
+            entityId: "pet-1",
+            operation: "upsert",
+            payload: { id: "pet-1" },
+            onConflict: "id",
+            retries: 0,
+            createdAt: 1,
+          },
+        ],
+        childDocs: [],
+      });
+      const calls: string[] = [];
+
+      queueOperationResult(mockState.upsertQueues, "pet", { error: null });
+
+      await harness.syncQueueService.initialize(harness.db);
+      harness.syncQueueService.onMutationSuccess((entityType, operation) => {
+        calls.push(`first:${entityType}:${operation}`);
+      });
+      harness.syncQueueService.onMutationSuccess((entityType, operation) => {
+        calls.push(`second:${entityType}:${operation}`);
+      });
+      await harness.syncQueueService.processNow();
+
+      expect(calls).toEqual(["first:pet:upsert", "second:pet:upsert"]);
+
+      harness.syncQueueService.destroy();
+    });
+
+    it("unsubscribe stops further notifications", async () => {
+      const harness = await loadSyncQueueHarness({
+        entityDocs: [
+          {
+            id: "entity-upsert-1",
+            entityType: "pet",
+            entityId: "pet-1",
+            operation: "upsert",
+            payload: { id: "pet-1" },
+            onConflict: "id",
+            retries: 0,
+            createdAt: 1,
+          },
+        ],
+        childDocs: [],
+      });
+      const callback = vi.fn();
+
+      queueOperationResult(mockState.upsertQueues, "pet", { error: null });
+
+      await harness.syncQueueService.initialize(harness.db);
+      const unsubscribe = harness.syncQueueService.onMutationSuccess(callback);
+      await harness.syncQueueService.processNow();
+
+      unsubscribe();
+      await harness.entityQueue!.insert({
+        id: "entity-upsert-2",
+        entityType: "pet",
+        entityId: "pet-2",
+        operation: "upsert",
+        payload: { id: "pet-2" },
+        onConflict: "id",
+        retries: 0,
+        createdAt: 2,
+      });
+      queueOperationResult(mockState.upsertQueues, "pet", { error: null });
+      await harness.syncQueueService.processNow();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith("pet", "upsert");
+
+      harness.syncQueueService.destroy();
+    });
+  });
+
   it("waitForCommit resolves only after the child queue item is acknowledged by Supabase", async () => {
     const harness = await loadSyncQueueHarness({
       entityDocs: [],
