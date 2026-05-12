@@ -86,7 +86,7 @@ export function inspectCachedTotalCount(
     const { value, timestamp } = JSON.parse(cachedValue);
     const ageMs = now - timestamp;
 
-    if (ageMs < ttlMs && value > 0) {
+    if (ageMs < ttlMs && typeof value === "number" && value >= 0) {
       return {
         status: "hit",
         value,

@@ -1,4 +1,10 @@
 import { signal, computed, batch, Signal, ReadonlySignal } from '@preact/signals-react';
+import {
+  buildTotalCountCacheKey,
+  inspectCachedTotalCount,
+} from '../space-total-count.helpers';
+
+const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
 /**
  * Base EntityStore class implementing the Entity Management pattern
@@ -242,34 +248,42 @@ export class EntityStore<T extends { id: string }> {
    * Called immediately on EntityStore creation for instant UI feedback
    */
   initTotalFromCache(entityType: string): void {
-    const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
     try {
-      const cached = localStorage.getItem(`totalCount_${entityType}`);
-      if (cached) {
-        // Try JSON format first (new format with TTL)
-        try {
-          const parsed = JSON.parse(cached);
-          if (typeof parsed === 'object' && parsed.value && parsed.timestamp) {
-            const age = Date.now() - parsed.timestamp;
-            if (age < TOTAL_COUNT_TTL_MS && parsed.value > 0) {
-              this.totalFromServer.value = parsed.value;
-              console.log(`[EntityStore-${entityType}] ⚡ Instant totalFromServer from cache: ${parsed.value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
-              return;
-            }
-            // Cache expired - don't use it
-            console.log(`[EntityStore-${entityType}] ⏰ Cache expired, will fetch fresh`);
-            return;
+      const cacheKey = buildTotalCountCacheKey(entityType);
+      const cached = localStorage.getItem(cacheKey);
+      if (!cached) return;
+
+      // Legacy bare-number migration must precede inspectCachedTotalCount:
+      // JSON.parse("42") returns the primitive 42, which the helper reports
+      // as `refresh` (NaN age), not `invalid`, so we'd lose the value.
+      const trimmed = cached.trim();
+      if (/^\d+$/.test(trimmed)) {
+        const count = parseInt(trimmed, 10);
+        if (Number.isFinite(count) && count >= 0) {
+          try {
+            localStorage.setItem(
+              cacheKey,
+              JSON.stringify({ value: count, timestamp: Date.now() }),
+            );
+          } catch {
+            // ignore storage write failures
           }
-        } catch {
-          // Legacy format (plain number string) - migrate it
-          const count = parseInt(cached, 10);
-          if (!isNaN(count) && count > 0) {
-            const cacheData = { value: count, timestamp: Date.now() };
-            localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
-            this.totalFromServer.value = count;
-            console.log(`[EntityStore-${entityType}] ⚡ Migrated legacy cache: ${count}`);
-          }
+          this.totalFromServer.value = count;
+          console.log(`[EntityStore-${entityType}] ⚡ Migrated legacy cache: ${count}`);
         }
+        return;
+      }
+
+      const inspection = inspectCachedTotalCount(cached, TOTAL_COUNT_TTL_MS);
+      if (inspection.status === 'hit' && inspection.value !== undefined) {
+        this.totalFromServer.value = inspection.value;
+        console.log(
+          `[EntityStore-${entityType}] ⚡ Instant totalFromServer from cache: ${inspection.value} (age: ${Math.round((inspection.ageMs ?? 0) / 1000 / 60 / 60)}h)`,
+        );
+        return;
+      }
+      if (inspection.status === 'refresh') {
+        console.log(`[EntityStore-${entityType}] ⏰ Cache expired, will fetch fresh`);
       }
     } catch (e) {
       console.warn(`[EntityStore-${entityType}] Failed to read cache:`, e);

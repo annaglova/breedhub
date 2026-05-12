@@ -575,6 +575,67 @@ describe("entity-replication.service", () => {
     );
   });
 
+  it("getTotalCount returns 0 from in-memory metadata (regression: previously fell through because if(0) is falsy)", () => {
+    const service = new EntityReplicationService();
+    const now = Date.now();
+    const { localStorageMock } = createLocalStorageMock({
+      totalCount_pet: JSON.stringify({
+        value: 42,
+        timestamp: now,
+      }),
+    });
+
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: localStorageMock,
+    });
+
+    (service as any).entityMetadata.set("pet", {
+      total: 0,
+      lastSync: "2026-04-21T12:00:00.000Z",
+    });
+
+    expect(service.getTotalCount("pet")).toBe(0);
+  });
+
+  it("getTotalCount returns a cached zero from localStorage (regression: value>0 dropped it)", () => {
+    const service = new EntityReplicationService();
+    const { localStorageMock } = createLocalStorageMock({
+      totalCount_pet: JSON.stringify({
+        value: 0,
+        timestamp: Date.now(),
+      }),
+    });
+
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: localStorageMock,
+    });
+
+    expect(service.getTotalCount("pet")).toBe(0);
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("Using cached totalCount: 0"),
+    );
+  });
+
+  it("getTotalCount tolerates an invalid cache entry and returns 0", () => {
+    const service = new EntityReplicationService();
+    const { localStorageMock } = createLocalStorageMock({
+      totalCount_pet: "{not-json",
+    });
+
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: localStorageMock,
+    });
+
+    let result: number | undefined;
+    expect(() => {
+      result = service.getTotalCount("pet");
+    }).not.toThrow();
+    expect(result).toBe(0);
+  });
+
   it("migrates a legacy plain-number-string cache into the new TTL JSON format", () => {
     const service = new EntityReplicationService();
     const { localStorageMock, storage } = createLocalStorageMock({

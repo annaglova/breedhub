@@ -49,7 +49,7 @@ describe("space-total-count.helpers", () => {
     });
   });
 
-  it("marks stale or non-positive cache values for refresh", () => {
+  it("treats a cached zero as a legitimate hit (not a sentinel for refresh)", () => {
     expect(
       inspectCachedTotalCount(
         JSON.stringify({ value: 0, timestamp: 1_000 }),
@@ -57,10 +57,13 @@ describe("space-total-count.helpers", () => {
         2_000,
       ),
     ).toEqual({
-      status: "refresh",
+      status: "hit",
+      value: 0,
       ageMs: 1_000,
     });
+  });
 
+  it("marks stale cache values for refresh", () => {
     expect(
       inspectCachedTotalCount(
         JSON.stringify({ value: 42, timestamp: 1_000 }),

@@ -7,7 +7,7 @@
  * Run: pnpm --filter @breedhub/rxdb-store test
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { EntityStore } from '../entity-store';
 
 // Test entity type
@@ -556,6 +556,93 @@ describe('EntityStore', () => {
       store.setTotalFromServer(1000);
 
       expect(store.totalFromServer.value).toBe(1000);
+    });
+  });
+
+  describe('initTotalFromCache', () => {
+    beforeEach(() => {
+      const storage = new Map<string, string>();
+
+      Object.defineProperty(globalThis, 'localStorage', {
+        configurable: true,
+        value: {
+          getItem: (key: string) => storage.get(key) ?? null,
+          setItem: (key: string, value: string) => {
+            storage.set(key, value);
+          },
+          removeItem: (key: string) => {
+            storage.delete(key);
+          },
+          clear: () => {
+            storage.clear();
+          },
+        },
+      });
+
+      localStorage.clear();
+    });
+
+    afterEach(() => {
+      Reflect.deleteProperty(globalThis, 'localStorage');
+    });
+
+    it('sets totalFromServer from a modern JSON cache entry', () => {
+      localStorage.setItem(
+        'totalCount_pet',
+        JSON.stringify({ value: 42, timestamp: Date.now() }),
+      );
+
+      store.initTotalFromCache('pet');
+
+      expect(store.totalFromServer.value).toBe(42);
+    });
+
+    it('sets totalFromServer to 0 when the cached value is 0', () => {
+      localStorage.setItem(
+        'totalCount_pet',
+        JSON.stringify({ value: 0, timestamp: Date.now() }),
+      );
+
+      store.initTotalFromCache('pet');
+
+      expect(store.totalFromServer.value).toBe(0);
+    });
+
+    it('leaves totalFromServer untouched when cache is expired', () => {
+      localStorage.setItem(
+        'totalCount_pet',
+        JSON.stringify({
+          value: 42,
+          timestamp: Date.now() - 30 * 24 * 60 * 60 * 1000,
+        }),
+      );
+
+      store.initTotalFromCache('pet');
+
+      expect(store.totalFromServer.value).toBeNull();
+    });
+
+    it('migrates a legacy bare-number cache and sets totalFromServer', () => {
+      localStorage.setItem('totalCount_pet', '42');
+
+      store.initTotalFromCache('pet');
+
+      expect(store.totalFromServer.value).toBe(42);
+
+      const migrated = localStorage.getItem('totalCount_pet');
+      expect(migrated).not.toBeNull();
+
+      const parsed = JSON.parse(migrated!);
+      expect(parsed.value).toBe(42);
+      expect(typeof parsed.timestamp).toBe('number');
+    });
+
+    it('is a no-op when no cache entry exists', () => {
+      localStorage.clear();
+
+      store.initTotalFromCache('pet');
+
+      expect(store.totalFromServer.value).toBeNull();
     });
   });
 });

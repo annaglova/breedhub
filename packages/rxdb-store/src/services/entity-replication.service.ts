@@ -7,6 +7,12 @@ import {
   findDocumentByPrimaryKey,
   mapSupabaseToRxDBDoc,
 } from '../utils/rxdb-document.helpers';
+import {
+  buildTotalCountCacheKey,
+  inspectCachedTotalCount,
+} from '../stores/space-total-count.helpers';
+
+const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
 export interface ReplicationOptions {
   batchSize?: number;
@@ -208,7 +214,10 @@ export class EntityReplicationService {
                   // Cache in localStorage for instant access on next load (with TTL timestamp)
                   try {
                     const cacheData = { value: count, timestamp: Date.now() };
-                    localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
+                    localStorage.setItem(
+                      buildTotalCountCacheKey(entityType),
+                      JSON.stringify(cacheData),
+                    );
                   } catch (e) {
                     console.warn(`[EntityReplication-${entityType}] Failed to cache totalCount in localStorage:`, e);
                   }
@@ -564,54 +573,43 @@ export class EntityReplicationService {
    * @returns total count або 0 якщо немає
    */
   getTotalCount(entityType: string): number {
-    // Try memory first
+    // Try memory first (treat 0 as a real value, not "missing")
     const memoryTotal = this.entityMetadata.get(entityType)?.total;
-    if (memoryTotal) {
+    if (memoryTotal !== undefined) {
       return memoryTotal;
     }
 
-    // Try localStorage cache (with TTL check)
-    const TOTAL_COUNT_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
     try {
-      const cached = localStorage.getItem(`totalCount_${entityType}`);
-      if (cached) {
-        // Try JSON format first (new format with TTL). Note: JSON.parse
-        // succeeds on bare numeric strings like "13" (returns a number),
-        // so the legacy-migration path must also handle the
-        // parsed-as-number case, not just the JSON.parse-throws case.
-        let parsed: unknown;
-        let parseThrew = false;
-        try {
-          parsed = JSON.parse(cached);
-        } catch {
-          parseThrew = true;
-        }
+      const cacheKey = buildTotalCountCacheKey(entityType);
+      const cached = localStorage.getItem(cacheKey);
+      if (!cached) return 0;
 
-        if (!parseThrew && parsed && typeof parsed === 'object') {
-          const objParsed = parsed as { value?: number; timestamp?: number };
-          if (objParsed.value && objParsed.timestamp) {
-            const age = Date.now() - objParsed.timestamp;
-            if (age < TOTAL_COUNT_TTL_MS && objParsed.value > 0) {
-              console.log(`[EntityReplication-${entityType}] 📦 Using cached totalCount: ${objParsed.value} (age: ${Math.round(age / 1000 / 60 / 60)}h)`);
-              return objParsed.value;
-            }
-            // Cache expired
-            console.log(`[EntityReplication-${entityType}] 📦 Cache expired, returning 0`);
-            return 0;
+      // Legacy bare-number migration must precede inspectCachedTotalCount:
+      // JSON.parse("42") returns the primitive 42, which the helper reports
+      // as `refresh` (NaN age), not `invalid`, so we'd lose the value.
+      const trimmed = cached.trim();
+      if (/^\d+$/.test(trimmed)) {
+        const count = parseInt(trimmed, 10);
+        if (Number.isFinite(count) && count >= 0) {
+          try {
+            localStorage.setItem(
+              cacheKey,
+              JSON.stringify({ value: count, timestamp: Date.now() }),
+            );
+          } catch {
+            // ignore storage write failures
           }
-        }
-
-        // Legacy format (plain number string) - migrate it. Reached when
-        // JSON.parse returned a bare number (typeof 'number'), or threw
-        // on a non-JSON string that parseInt can still read.
-        const count =
-          typeof parsed === 'number' ? parsed : parseInt(cached, 10);
-        if (!isNaN(count) && count > 0) {
-          const cacheData = { value: count, timestamp: Date.now() };
-          localStorage.setItem(`totalCount_${entityType}`, JSON.stringify(cacheData));
           console.log(`[EntityReplication-${entityType}] 📦 Migrated legacy cache: ${count}`);
           return count;
         }
+      }
+
+      const inspection = inspectCachedTotalCount(cached, TOTAL_COUNT_TTL_MS);
+      if (inspection.status === 'hit' && inspection.value !== undefined) {
+        console.log(
+          `[EntityReplication-${entityType}] 📦 Using cached totalCount: ${inspection.value} (age: ${Math.round((inspection.ageMs ?? 0) / 1000 / 60 / 60)}h)`,
+        );
+        return inspection.value;
       }
     } catch (e) {
       console.warn(`[EntityReplication-${entityType}] Failed to read totalCount from localStorage:`, e);
