@@ -51,10 +51,6 @@ function formatDate(dateString?: string): string {
   }
 }
 
-function getInitial(name?: string): string {
-  return name?.charAt(0)?.toUpperCase() || "?";
-}
-
 export function NoteTabCard({
   entity,
   selected = false,
@@ -112,35 +108,15 @@ export function NoteTabCard({
         )}
       >
         {mode === "space" && (
-          <>
-            <div className="relative flex">
-              <div className="flex size-10 items-center justify-center overflow-hidden rounded-full border outline outline-2 outline-offset-2 outline-slate-300">
-                {connectedEntity?.avatar_url ? (
-                  <img
-                    className="size-full object-cover"
-                    src={connectedEntity.avatar_url}
-                    alt={connectedEntity.name || "Avatar"}
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center rounded-full bg-gray-200 text-lg uppercase text-gray-600">
-                    {getInitial(connectedEntity?.name)}
-                  </div>
-                )}
-              </div>
+          <div
+            className="flex min-w-0 flex-1 flex-col space-y-0.5 truncate"
+            title={connectedEntity?.name}
+          >
+            <div className="w-auto truncate text-slate-700">
+              {connectedEntity?.name || "Without subject"}
             </div>
-
-            <div
-              className="ml-3 flex min-w-0 flex-1 flex-col space-y-0.5 truncate"
-              title={connectedEntity?.name}
-            >
-              <div className="w-auto truncate">
-                <span className="text-slate-700">
-                  {connectedEntity?.name || "Without subject"}
-                </span>
-              </div>
-              <span className="text-slate-500 text-sm">{formattedDate}</span>
-            </div>
-          </>
+            <span className="text-slate-500 text-sm">{formattedDate}</span>
+          </div>
         )}
 
         {mode === "card" && (
