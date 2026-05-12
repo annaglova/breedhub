@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
+  detectOperator,
   spaceStore,
   type BusinessEntity,
+  type FilterOperator,
   type OrderBy,
 } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
@@ -20,6 +22,99 @@ export interface EntityListHookParams {
   orderBy?: OrderBy;
   enabled?: boolean;
   fieldConfigs?: Record<string, EntityFieldConfig>;
+  /**
+   * When true (ID-First mode only), after the initial server load this hook
+   * subscribes to entityStore.entityList and re-derives the visible data
+   * locally — operator-aware so search ('contains'/'ilike') stays correct.
+   *
+   * Avoids hitting Supabase on every local CRUD; the local entityStore
+   * already reflects the deletion / addition because spaceStore.create &
+   * spaceStore.delete call entityStore.addOne/removeOne synchronously.
+   *
+   * History: cc21c3ad introduced a strict-equality version of this; it
+   * silently dropped contains-style search matches and was reverted in
+   * 5e47081c. This re-implementation routes operator detection through
+   * detectOperator() — same path the server uses — so search works.
+   */
+  live?: boolean;
+}
+
+function matchByOperator(
+  recordValue: unknown,
+  operator: FilterOperator,
+  value: unknown,
+): boolean {
+  if (value === undefined || value === null || value === "") return true;
+  switch (operator) {
+    case "eq":
+      return recordValue === value;
+    case "ne":
+      return recordValue !== value;
+    case "ilike":
+    case "contains":
+      return (
+        typeof recordValue === "string" &&
+        recordValue
+          .toLowerCase()
+          .includes(String(value).toLowerCase())
+      );
+    case "gt":
+      return (recordValue as any) > (value as any);
+    case "gte":
+      return (recordValue as any) >= (value as any);
+    case "lt":
+      return (recordValue as any) < (value as any);
+    case "lte":
+      return (recordValue as any) <= (value as any);
+    case "in":
+      return Array.isArray(value) && value.includes(recordValue);
+    default:
+      return recordValue === value;
+  }
+}
+
+function buildLiveMatcher(
+  filters: EntityListFilters | undefined,
+  fieldConfigs?: Record<string, EntityFieldConfig>,
+): (record: any) => boolean {
+  if (!filters) return () => true;
+  const entries = Object.entries(filters);
+  return (record: any) => {
+    for (const [key, value] of entries) {
+      if (value === undefined || value === null || value === "") continue;
+      const cfg = fieldConfigs?.[key];
+      const operator = detectOperator(cfg?.fieldType ?? "", cfg?.operator);
+      if (!matchByOperator(record?.[key], operator, value)) return false;
+    }
+    return true;
+  };
+}
+
+function buildLiveSorter(orderBy?: OrderBy): (a: any, b: any) => number {
+  if (!orderBy) return () => 0;
+  const dir = orderBy.direction === "desc" ? -1 : 1;
+  const field = orderBy.field;
+  const tie = orderBy.tieBreaker;
+  return (a, b) => {
+    const av = a?.[field];
+    const bv = b?.[field];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    if (tie) {
+      const tdir = tie.direction === "desc" ? -1 : 1;
+      const tav = a?.[tie.field];
+      const tbv = b?.[tie.field];
+      if (tav == null && tbv == null) return 0;
+      if (tav == null) return 1;
+      if (tbv == null) return -1;
+      if (tav < tbv) return -1 * tdir;
+      if (tav > tbv) return 1 * tdir;
+    }
+    return 0;
+  };
 }
 
 interface UseEntitiesParams extends EntityListHookParams {
@@ -67,6 +162,7 @@ export function useEntities({
   orderBy,
   enabled = true,
   fieldConfigs,
+  live = false,
 }: UseEntitiesParams): EntityListHookResult {
   useSignals();
 
@@ -163,6 +259,8 @@ export function useEntities({
     }
 
     let isMounted = true;
+    let unsubscribeLive: (() => void) | null = null;
+
     const loadInitial = async () => {
       try {
         setIsLoading(true);
@@ -227,6 +325,18 @@ export function useEntities({
           nextCursor: result.nextCursor
         });
 
+        // Live mode: re-derive the visible data on every entityStore change
+        // (operator-aware so search still works — see history note on `live`).
+        if (live && entityStore) {
+          const match = buildLiveMatcher(filters, fieldConfigs);
+          const sort = buildLiveSorter(orderBy);
+          unsubscribeLive = entityStore.entityList.subscribe((list: any[]) => {
+            if (!isMounted) return;
+            const matched = list.filter(match).slice().sort(sort);
+            setData({ entities: matched, total: matched.length });
+          });
+        }
+
       } catch (err) {
         console.error(`[useEntities] Error loading ${entityType}:`, err);
         if (isMounted) {
@@ -240,8 +350,9 @@ export function useEntities({
 
     return () => {
       isMounted = false;
+      if (unsubscribeLive) unsubscribeLive();
     };
-  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs]);
+  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs, live]);
 
   // Manual replication mode: Subscribe to entityList (backward compatibility)
   useEffect(() => {

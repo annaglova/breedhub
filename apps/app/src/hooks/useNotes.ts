@@ -19,5 +19,9 @@ export function useNotes(
     orderBy: params.orderBy || { field: 'created_at', direction: 'desc' },
     enabled: params.enabled,
     fieldConfigs: params.fieldConfigs,
+    // Notes are user-owned and frequently mutated from the dialog/space —
+    // default to live so create/delete reflect immediately. Callers may opt
+    // out by passing live: false explicitly via params.
+    live: params.live ?? true,
   });
 }
