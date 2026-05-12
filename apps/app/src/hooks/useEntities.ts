@@ -248,14 +248,30 @@ export function useEntities({
 
         // Live mode: re-derive the visible data on every entityStore change
         // (operator-aware so search still works — see history note on `live`).
+        // Subscribe to BOTH entityList (entity create/update/delete) and
+        // totalFromServer (Stage 4 reactive total channel — debounced refetch
+        // after queue drain), so the counter stays in sync.
         if (live && entityStore) {
           const match = buildLiveMatcher(filters, fieldConfigs);
           const sort = buildLiveSorter(orderBy);
-          unsubscribeLive = entityStore.entityList.subscribe((list: any[]) => {
+          const recompute = () => {
             if (!isMounted) return;
+            const list = entityStore.entityList.value;
             const matched = list.filter(match).slice().sort(sort);
-            setData({ entities: matched, total: matched.length });
-          });
+            const serverTotal = entityStore.totalFromServer.value;
+            setData({
+              entities: matched,
+              // Trust server total when known; fall back to local matched
+              // count during the first window before the server has resolved.
+              total: typeof serverTotal === 'number' ? serverTotal : matched.length,
+            });
+          };
+          const unsubList = entityStore.entityList.subscribe(recompute);
+          const unsubTotal = entityStore.totalFromServer.subscribe(recompute);
+          unsubscribeLive = () => {
+            unsubList();
+            unsubTotal();
+          };
         }
 
       } catch (err) {

@@ -77,11 +77,11 @@ export function EntitiesCounter({
 
   const cachedTotal = getCachedTotal();
 
-  // Determine what total to show:
-  // 1. If we have cache → use cache (static, never changes)
-  // 2. If no cache → use total from server ONLY if it's > entitiesCount (real total, not partial)
-  const isRealTotal = total > entitiesCount;
-  const displayTotal = cachedTotal > 0 ? cachedTotal : (isRealTotal ? total : 0);
+  // Prefer the live `total` prop (driven by useEntities + Stage 4 reactive
+  // totalFromServer channel — stays in sync with server). Fall back to the
+  // localStorage cache only during the first paint before the live total
+  // resolves, so the counter never flashes empty on cold load.
+  const displayTotal = total > 0 ? total : cachedTotal;
 
   // Use initialCount as fallback for entitiesCount when it's 0
   const displayEntitiesCount = entitiesCount > 0 ? entitiesCount : initialCount;
@@ -96,9 +96,7 @@ export function EntitiesCounter({
   }
 
   // If we have all items loaded
-  // BUT: Don't show "all" if total === entitiesCount (likely means server hasn't sent real total yet)
-  const isConfirmedTotal = total > entitiesCount || cachedTotal > 0;
-  if (entitiesCount > 0 && entitiesCount >= displayTotal && isConfirmedTotal) {
+  if (entitiesCount > 0 && entitiesCount >= displayTotal) {
     return (
       <div className="text-sm text-muted-foreground mt-1">
         Showing all {formatNumber(displayTotal)}
