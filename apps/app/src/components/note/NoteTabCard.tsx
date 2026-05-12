@@ -102,8 +102,10 @@ export function NoteTabCard({
 
   return (
     <EntityTabCardWrapper selected={selected} onClick={onClick}>
-      <div className="bg-slate-50/50 flex h-[206px] overflow-auto rounded-xl border border-surface-border px-7 py-5 text-start text-base text-slate-700 whitespace-pre-wrap">
-        {noteText}
+      <div className="bg-slate-50/50 h-[206px] rounded-xl border border-surface-border px-5 py-4 overflow-hidden">
+        <div className="h-full overflow-y-auto text-start text-base text-slate-700 whitespace-pre-wrap">
+          {noteText}
+        </div>
       </div>
 
       <div
