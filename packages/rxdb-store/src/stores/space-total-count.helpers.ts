@@ -20,6 +20,13 @@ export interface FetchOrCacheTotalCountOptions {
   defaultFilters?: Record<string, unknown>;
   totalFilterKey?: string | null;
   ttlMs: number;
+  /**
+   * When false, treat the cached value as a stale-while-revalidate hint:
+   * resolve the cache instantly AND fire a background fetch to verify.
+   * Public spaces (default) skip the revalidation since their cached
+   * vanity counts can age for the full TTL without harm.
+   */
+  isPublic?: boolean;
   readCache: (key: string) => string | null;
   writeCache: (key: string, value: string) => void;
   fetchFreshCount: (
@@ -166,7 +173,13 @@ export async function fetchOrCacheTotalCount(
     console.log(
       `[SpaceStore] 📊 Using cached total: ${cachedState.value}${filterInfo} (age: ${Math.round((cachedState.ageMs || 0) / 1000 / 60 / 60)}h)`,
     );
-    return;
+    if (options.isPublic !== false) {
+      // Public space: stale cache is fine until TTL expires.
+      return;
+    }
+    // Private space: stale-while-revalidate — fall through to background
+    // fetch so a write from another client doesn't leave the count behind.
+    console.log(`[SpaceStore] 🔄 Private space — revalidating in background${filterInfo}`);
   }
 
   if (cachedState.status === "refresh") {

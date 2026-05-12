@@ -231,6 +231,12 @@ class SpaceStore {
   private entitySubscriptions = new Map<string, Subscription>();
   private spaceConfigs = new Map<string, SpaceConfig>();
 
+  // Last filter map per entityType — used by refreshTotalFromServer to keep
+  // the filter scope correct when the user has search/filter active.
+  private lastAppliedFilters = new Map<string, FilterMap>();
+  // Trailing-debounce timers per entityType for refreshTotalFromServer.
+  private refreshTotalTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
   // Pedigree cache - tracks which pedigrees have been loaded
   // Key: "fatherId|motherId" (sorted), Value: Set of ancestor IDs that were returned
 
@@ -1012,6 +1018,10 @@ class SpaceStore {
     const spaceConfig = this.spaceConfigs.get(entityType);
     const defaultFilters = spaceConfig?.defaultFilters || {};
     const baseFieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
+
+    // Remember the last user-facing filter map so a CRUD-triggered refresh
+    // can refetch the count under the same scope (Stage 4 reactivity).
+    this.lastAppliedFilters.set(entityType, filters);
     const preparedFilters = prepareFiltersWithDefaults(
       filters,
       defaultFilters,
@@ -1110,6 +1120,7 @@ class SpaceStore {
           defaultFilters,
           totalFilterKey: spaceConfig?.totalFilterKey,
           ttlMs: TOTAL_COUNT_TTL_MS,
+          isPublic: spaceConfig?.isPublic !== false,
           readCache: (key) => {
             try {
               return localStorage.getItem(key);
@@ -3505,6 +3516,72 @@ class SpaceStore {
     }
 
     return data;
+  }
+
+  /**
+   * Refetch the authoritative totalCount for an entity, bypassing the cache.
+   * Coalesced with a 200ms trailing debounce per entityType so a burst of
+   * mutations (e.g. user creating 3 notes in quick succession) becomes one
+   * round trip.
+   *
+   * Reuses the last-applied filter map so the refreshed count stays scoped
+   * to whatever the user is viewing. No-op if the entity has no spaceConfig
+   * or no entityStore yet.
+   */
+  refreshTotalFromServer(entityType: string): void {
+    const existing = this.refreshTotalTimers.get(entityType);
+    if (existing) clearTimeout(existing);
+
+    const timer = setTimeout(() => {
+      this.refreshTotalTimers.delete(entityType);
+      this.doRefreshTotalFromServer(entityType).catch((e) => {
+        console.warn(`[SpaceStore] refreshTotalFromServer failed for ${entityType}:`, e);
+      });
+    }, 200);
+
+    this.refreshTotalTimers.set(entityType, timer);
+  }
+
+  private async doRefreshTotalFromServer(entityType: string): Promise<void> {
+    const spaceConfig = this.spaceConfigs.get(entityType);
+    const entityStore = this.entityStores.get(entityType);
+    if (!spaceConfig || !entityStore) return;
+
+    const filters = this.lastAppliedFilters.get(entityType) ?? {};
+    const defaultFilters = spaceConfig.defaultFilters ?? {};
+    const isPublic = spaceConfig.isPublic !== false;
+
+    await fetchOrCacheTotalCount({
+      entityType,
+      filters,
+      defaultFilters,
+      totalFilterKey: spaceConfig.totalFilterKey,
+      ttlMs: 0,
+      isPublic,
+      readCache: () => null, // bypass cache hit — force fresh fetch
+      writeCache: (key, value) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {
+          console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
+        }
+      },
+      fetchFreshCount: (applyFilters) =>
+        applyFilters(
+          supabase
+            .from(entityType)
+            .select('*', {
+              count: isPublic ? 'planned' : 'exact',
+              head: true,
+            })
+            .or('deleted.is.null,deleted.eq.false'),
+        ),
+      onCountResolved: (count, source) => {
+        if (source === 'fresh') {
+          entityStore.setTotalFromServer(count);
+        }
+      },
+    });
   }
 }
 
