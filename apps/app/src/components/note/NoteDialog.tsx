@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@ui/components/dropdown-menu";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Check, MoreVertical, Pencil, Trash2, X } from "lucide-react";
 import { FormDialog } from "@/components/edit/FormDialog";
 import { useEntityNotes } from "@/hooks/useEntityNotes";
 import { noteDialogStore } from "@/stores/note-dialog.store";
@@ -119,19 +119,22 @@ export function NoteDialog() {
                       <div className="flex justify-end gap-2">
                         <Button
                           type="button"
-                          variant="secondary"
+                          variant="ghost-secondary"
                           onClick={cancelEdit}
-                          className="small-button"
+                          aria-label="Cancel edit"
+                          className="size-8 rounded-full p-0 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
                         >
-                          Cancel
+                          <X size={16} />
                         </Button>
                         <Button
                           type="button"
+                          variant="ghost-secondary"
                           onClick={saveEdit}
                           disabled={!editText.trim()}
-                          className="small-button"
+                          aria-label="Save edit"
+                          className="size-8 rounded-full p-0 text-primary hover:text-primary"
                         >
-                          Save
+                          <Check size={16} />
                         </Button>
                       </div>
                     </div>
