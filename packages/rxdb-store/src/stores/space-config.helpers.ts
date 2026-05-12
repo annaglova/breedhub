@@ -118,6 +118,7 @@ export interface SpaceConfig {
   canEdit?: boolean;
   canDelete?: boolean;
   defaultFilters?: Record<string, unknown>;
+  isPublic?: boolean;
 }
 
 export interface SpaceViewConfig {
@@ -231,10 +232,12 @@ export interface RawSpaceConfig extends ConfigRecord {
   canEdit?: boolean;
   canDelete?: boolean;
   defaultFilters?: Record<string, unknown>;
+  isPublic?: boolean;
 }
 
 export interface WorkspaceConfig {
   spaces?: Record<string, RawSpaceConfig>;
+  isPublic?: boolean;
 }
 
 export interface AppConfig {
@@ -378,6 +381,7 @@ export function parseSpaceConfigurations(
         canEdit: !!space.canEdit,
         canDelete: !!space.canDelete,
         defaultFilters: space.defaultFilters,
+        isPublic: space.isPublic ?? workspace.isPublic ?? true,
       });
       entityTypes.push(entitySchemaName);
     });

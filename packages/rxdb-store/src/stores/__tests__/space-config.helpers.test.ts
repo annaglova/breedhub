@@ -156,6 +156,147 @@ describe("space-config.helpers", () => {
     expect(warnSpy).toHaveBeenCalledWith("[SpaceStore] No workspaces found in app config");
   });
 
+  describe("parseSpaceConfigurations isPublic propagation", () => {
+    const entities = {
+      config_schema_pet: {
+        entitySchemaName: "pet",
+        fields: {},
+      },
+      config_schema_breed: {
+        entitySchemaName: "breed",
+        fields: {},
+      },
+      config_schema_owner: {
+        entitySchemaName: "owner",
+        fields: {},
+      },
+      config_schema_litter: {
+        entitySchemaName: "litter",
+        fields: {},
+      },
+    };
+
+    it("defaults to public when workspace and space isPublic are undefined", () => {
+      const parsed = parseSpaceConfigurations({
+        entities,
+        workspaces: {
+          main: {
+            spaces: {
+              pets: {
+                entitySchemaName: "pet",
+              },
+            },
+          },
+        },
+      });
+
+      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(true);
+    });
+
+    it("inherits private visibility from the workspace", () => {
+      const parsed = parseSpaceConfigurations({
+        entities,
+        workspaces: {
+          my: {
+            isPublic: false,
+            spaces: {
+              pets: {
+                entitySchemaName: "pet",
+              },
+              breeds: {
+                entitySchemaName: "breed",
+              },
+            },
+          },
+        },
+      });
+
+      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(false);
+    });
+
+    it("allows a space to override a public workspace as private", () => {
+      const parsed = parseSpaceConfigurations({
+        entities,
+        workspaces: {
+          main: {
+            isPublic: true,
+            spaces: {
+              pets: {
+                entitySchemaName: "pet",
+                isPublic: false,
+              },
+              breeds: {
+                entitySchemaName: "breed",
+              },
+            },
+          },
+        },
+      });
+
+      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(true);
+    });
+
+    it("allows a space to override a private workspace as public", () => {
+      const parsed = parseSpaceConfigurations({
+        entities,
+        workspaces: {
+          my: {
+            isPublic: false,
+            spaces: {
+              pets: {
+                entitySchemaName: "pet",
+                isPublic: true,
+              },
+              breeds: {
+                entitySchemaName: "breed",
+              },
+            },
+          },
+        },
+      });
+
+      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(true);
+      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(false);
+    });
+
+    it("tags spaces according to their parent workspace across mixed workspaces", () => {
+      const parsed = parseSpaceConfigurations({
+        entities,
+        workspaces: {
+          my: {
+            isPublic: false,
+            spaces: {
+              pets: {
+                entitySchemaName: "pet",
+              },
+              breeds: {
+                entitySchemaName: "breed",
+              },
+            },
+          },
+          public: {
+            spaces: {
+              owners: {
+                entitySchemaName: "owner",
+              },
+              litters: {
+                entitySchemaName: "litter",
+                isPublic: false,
+              },
+            },
+          },
+        },
+      });
+
+      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("owner")?.isPublic).toBe(true);
+      expect(parsed?.spaceConfigs.get("litter")?.isPublic).toBe(false);
+    });
+  });
+
   describe("findMissingRequiredFilters", () => {
     const fieldConfigs = {
       breed_id: { required: true },

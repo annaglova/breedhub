@@ -86,6 +86,7 @@ interface SpaceRoute {
   entitySchemaName: string;
   workspaceId: string;
   workspacePath: string;
+  isPublic: boolean;
 }
 
 /**
@@ -107,6 +108,7 @@ function useSpaceRoutes() {
       const workspacePath = workspace.path || '/';
       const workspaceId = workspace.id || workspace.configKey;
       const isRootWorkspace = workspacePath === '/';
+      const workspaceIsPublic = workspace.isPublic ?? true;
 
       if (workspace.spaces) {
         const spaces = Array.isArray(workspace.spaces)
@@ -128,6 +130,7 @@ function useSpaceRoutes() {
               entitySchemaName: space.entitySchemaName,
               workspaceId,
               workspacePath,
+              isPublic: space.isPublic ?? workspaceIsPublic,
             });
           }
         });
@@ -259,10 +262,10 @@ export function AppRouter() {
           {/* Default redirect to first (public) space */}
           <Route index element={<Navigate to={`/${defaultSlug}`} replace />} />
 
-          {/* Public space routes from root workspace ('/') — e.g. /pets, /breeds, /kennels.
-              Non-root workspace spaces (e.g. /my/notes) are mounted below AuthGuard. */}
+          {/* Public space routes (isPublic !== false) — e.g. /pets, /breeds, /kennels.
+              Private workspace spaces (e.g. /my/notes) are mounted below AuthGuard. */}
           {spaceConfigs
-            .filter((space) => space.workspacePath === '/')
+            .filter((space) => space.isPublic !== false)
             .map((space) => (
               <Route
                 key={`${space.workspaceId}-${space.id}`}
@@ -287,9 +290,9 @@ export function AppRouter() {
               />
             ))}
 
-            {/* User-scoped space routes (non-root workspaces, e.g. /my/notes) */}
+            {/* User-scoped space routes (isPublic === false, e.g. /my/notes) */}
             {spaceConfigs
-              .filter((space) => space.workspacePath !== '/')
+              .filter((space) => space.isPublic === false)
               .map((space) => (
                 <Route
                   key={`${space.workspaceId}-${space.id}`}
