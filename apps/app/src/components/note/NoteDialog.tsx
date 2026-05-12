@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
+import { Textarea } from "@ui/components/textarea";
 import { FormDialog } from "@/components/edit/FormDialog";
 import { useEntityNotes } from "@/hooks/useEntityNotes";
 import { noteDialogStore } from "@/stores/note-dialog.store";
@@ -55,9 +56,9 @@ export function NoteDialog() {
     >
       <div className="space-y-4">
         {isLoading ? (
-          <div className="text-sm text-slate-500">Loading…</div>
+          <div className="text-base text-slate-500">Loading…</div>
         ) : notes.length === 0 ? (
-          <div className="text-sm text-slate-500">No notes yet.</div>
+          <div className="text-base text-slate-500">No notes yet.</div>
         ) : (
           <ul className="space-y-3 max-h-[40vh] overflow-y-auto pr-1">
             {notes.map((n: any) => (
@@ -65,21 +66,20 @@ export function NoteDialog() {
                 key={n.id}
                 className="rounded-md border border-slate-200 p-3 dark:border-zinc-700"
               >
-                <div className="text-xs text-slate-500 mb-1">
+                <div className="text-sm text-slate-500 mb-1">
                   {formatDate(n.created_at)}
                 </div>
-                <div className="text-sm whitespace-pre-wrap">{n.text}</div>
+                <div className="text-base whitespace-pre-wrap">{n.text}</div>
               </li>
             ))}
           </ul>
         )}
 
-        <textarea
+        <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Write a note…"
           rows={4}
-          className="w-full rounded-md border border-slate-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 dark:border-zinc-700 dark:bg-zinc-900"
         />
       </div>
     </FormDialog>
