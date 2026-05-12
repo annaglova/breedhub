@@ -20,12 +20,6 @@ export interface EntityListHookParams {
   orderBy?: OrderBy;
   enabled?: boolean;
   fieldConfigs?: Record<string, EntityFieldConfig>;
-  /**
-   * When true (ID-First mode only), subscribe to the entity store after
-   * initial load so local RxDB changes (create/update/delete) reflect
-   * in the returned data without manual refetch.
-   */
-  live?: boolean;
 }
 
 interface UseEntitiesParams extends EntityListHookParams {
@@ -73,7 +67,6 @@ export function useEntities({
   orderBy,
   enabled = true,
   fieldConfigs,
-  live = false,
 }: UseEntitiesParams): EntityListHookResult {
   useSignals();
 
@@ -170,17 +163,6 @@ export function useEntities({
     }
 
     let isMounted = true;
-    let unsubscribeLive: (() => void) | null = null;
-
-    const matchesFilters = (record: any): boolean => {
-      if (!filters) return true;
-      for (const [key, value] of Object.entries(filters)) {
-        if (value === undefined || value === null || value === "") continue;
-        if (record?.[key] !== value) return false;
-      }
-      return true;
-    };
-
     const loadInitial = async () => {
       try {
         setIsLoading(true);
@@ -245,16 +227,6 @@ export function useEntities({
           nextCursor: result.nextCursor
         });
 
-        // Live mode: keep data in sync with local RxDB changes (create/update/delete)
-        // by re-applying filters locally to the entityStore.entityList.
-        if (live && entityStore) {
-          unsubscribeLive = entityStore.entityList.subscribe((list: any[]) => {
-            if (!isMounted) return;
-            const filtered = list.filter(matchesFilters);
-            setData({ entities: [...filtered], total: filtered.length });
-          });
-        }
-
       } catch (err) {
         console.error(`[useEntities] Error loading ${entityType}:`, err);
         if (isMounted) {
@@ -268,9 +240,8 @@ export function useEntities({
 
     return () => {
       isMounted = false;
-      if (unsubscribeLive) unsubscribeLive();
     };
-  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs, live]);
+  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs]);
 
   // Manual replication mode: Subscribe to entityList (backward compatibility)
   useEffect(() => {
