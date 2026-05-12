@@ -1,4 +1,5 @@
 import { useNotedEntityIds } from "@/hooks/useNotedEntityIds";
+import { noteEditDialogStore } from "@/stores/note-edit-dialog.store";
 import { useSpaceBrowseState } from "@/hooks/space/useSpaceBrowseState";
 import { useCreateEntityNavigation } from "@/hooks/space/useCreateEntityNavigation";
 import { useSpaceLayoutState } from "@/hooks/space/useSpaceLayoutState";
@@ -224,8 +225,27 @@ export function SpaceComponent<T extends { id: string }>({
       dividers: currentViewConfig?.dividers ?? true,
       overscan: currentViewConfig?.overscan || 3,
       skeletonCount: Math.ceil(recordsCount / 2),
+      cardClickAction: currentViewConfig?.cardClickAction,
     }),
     [currentViewConfig, recordsCount, viewMode],
+  );
+
+  const cardClickAction = currentViewConfig?.cardClickAction;
+  const handleEntityClickConfigured = useCallback(
+    (entity: T) => {
+      if (cardClickAction === "none") return;
+      if (cardClickAction === "edit") {
+        if (config?.entitySchemaName === "note") {
+          noteEditDialogStore.openFor({
+            noteId: (entity as any).id,
+            initialText: (entity as any).text ?? "",
+          });
+          return;
+        }
+      }
+      handleEntityClick(entity as any);
+    },
+    [cardClickAction, config?.entitySchemaName, handleEntityClick],
   );
   const listShellClassName = cn(
     "relative flex flex-col cursor-default h-full overflow-hidden",
@@ -349,7 +369,7 @@ export function SpaceComponent<T extends { id: string }>({
             viewConfig={spaceViewConfig}
             entities={allEntities}
             selectedId={isGridView ? undefined : (selectedEntityId ?? undefined)}
-            onEntityClick={handleEntityClick}
+            onEntityClick={handleEntityClickConfigured}
             onLoadMore={handleLoadMore}
             hasMore={hasMore}
             isLoadingMore={isLoadingMore}

@@ -25,6 +25,13 @@ export interface ViewConfig {
         lg?: number;
         xl?: number;
       };
+  /**
+   * What happens when a card is clicked. Defaults to "navigate" (open the
+   * record's slug page). Set to "edit" for entities that don't have a
+   * standalone page (e.g. note) — the space wires it to the entity's
+   * edit dialog. "none" disables the click.
+   */
+  cardClickAction?: "navigate" | "edit" | "none";
 }
 
 interface SpaceViewProps<T> {

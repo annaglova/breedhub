@@ -93,6 +93,7 @@ export interface SpaceViewRawConfig extends ConfigRecord {
   dividers?: boolean;
   overscan?: number;
   recordsCount?: number;
+  cardClickAction?: "navigate" | "edit" | "none";
 }
 
 export interface SpaceConfig {
@@ -127,6 +128,7 @@ export interface SpaceViewConfig {
   dividers?: boolean;
   overscan?: number;
   recordsCount?: number;
+  cardClickAction?: "navigate" | "edit" | "none";
 }
 
 export interface SpaceSortOption {
@@ -444,6 +446,7 @@ function extractViewConfigs(spaceConfig: SpaceConfig): SpaceViewConfig[] {
       dividers: view.dividers,
       overscan: view.overscan,
       recordsCount: view.recordsCount,
+      cardClickAction: view.cardClickAction,
     });
   });
 
