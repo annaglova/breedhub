@@ -1,6 +1,6 @@
 import { EntityTabCardWrapper } from "@/components/space/EntityTabCardWrapper";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
-import { noteDialogStore } from "@/stores/note-dialog.store";
+import { noteEditDialogStore } from "@/stores/note-edit-dialog.store";
 import { spaceStore, toast } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import {
@@ -78,12 +78,9 @@ export function NoteTabCard({
   const noteText = entity.text || "";
 
   const handleEdit = () => {
-    if (!linkedEntity || !linkedId) return;
-    noteDialogStore.openFor({
-      entity: linkedEntity,
-      entityId: linkedId,
-      entityName: connectedEntity?.name ?? "",
-      entityPartitionId: linkedPartition ?? null,
+    noteEditDialogStore.openFor({
+      noteId: entity.id,
+      initialText: entity.text ?? "",
     });
   };
 
