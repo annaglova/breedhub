@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from "@ui/components/dropdown-menu";
 import { ExternalLink, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@ui/lib/utils";
 
 interface NoteEntity {
@@ -134,19 +134,9 @@ export function NoteTabCard({
               title={connectedEntity?.name}
             >
               <div className="w-auto truncate">
-                {connectedEntity?.slug ? (
-                  <Link
-                    to={`/${connectedEntity.slug}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-foreground hover:text-primary"
-                  >
-                    {connectedEntity.name}
-                  </Link>
-                ) : (
-                  <span className="text-slate-700">
-                    {connectedEntity?.name || "Without subject"}
-                  </span>
-                )}
+                <span className="text-slate-700">
+                  {connectedEntity?.name || "Without subject"}
+                </span>
               </div>
               <span className="text-slate-500 text-sm">{formattedDate}</span>
             </div>
