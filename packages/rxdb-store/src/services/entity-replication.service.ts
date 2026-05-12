@@ -41,6 +41,7 @@ export class EntityReplicationService {
   private readonly MAX_CONSECUTIVE_FAILURES = 5;
   private entityMetadata: Map<string, { total: number; lastSync: string; lastCheckpoint?: Record<string, any> }> = new Map();
   private totalCountCallbacks: Map<string, Array<(total: number) => void>> = new Map();
+  private pullWithDeltasCallbacks: Map<string, Array<(deltaCount: number) => void>> = new Map();
 
   /**
    * Generic field mapping for any entity
@@ -241,6 +242,22 @@ export class EntityReplicationService {
 
               // Check if we got full batch (meaning there might be more)
               const hasMore = documents.length === limit;
+
+              // Notify subscribers that this pull brought deltas (server-side changes
+              // since last checkpoint — possibly from other clients or background jobs).
+              // Private spaces listen here to refresh their authoritative totalCount.
+              if (documents.length > 0) {
+                const deltaCallbacks = this.pullWithDeltasCallbacks.get(entityType);
+                if (deltaCallbacks) {
+                  for (const cb of deltaCallbacks) {
+                    try {
+                      cb(documents.length);
+                    } catch (e) {
+                      console.error(`[EntityReplication-${entityType}] pullWithDeltas callback threw:`, e);
+                    }
+                  }
+                }
+              }
 
               const newCheckpoint = documents.length > 0
                 ? {
@@ -557,6 +574,33 @@ export class EntityReplicationService {
     // Return unsubscribe function
     return () => {
       const callbacks = this.totalCountCallbacks.get(entityType);
+      if (callbacks) {
+        const index = callbacks.indexOf(callback);
+        if (index > -1) {
+          callbacks.splice(index, 1);
+        }
+      }
+    };
+  }
+
+  /**
+   * Subscribe to "pull brought deltas" events for a given entity.
+   * Fires only when a pull actually returned documents (server-side changes
+   * since the last checkpoint — possibly from other clients or background jobs).
+   * Private spaces use this to refresh their authoritative totalCount.
+   * @returns unsubscribe function
+   */
+  subscribeToPullWithDeltas(
+    entityType: string,
+    callback: (deltaCount: number) => void,
+  ): () => void {
+    if (!this.pullWithDeltasCallbacks.has(entityType)) {
+      this.pullWithDeltasCallbacks.set(entityType, []);
+    }
+    this.pullWithDeltasCallbacks.get(entityType)!.push(callback);
+
+    return () => {
+      const callbacks = this.pullWithDeltasCallbacks.get(entityType);
       if (callbacks) {
         const index = callbacks.indexOf(callback);
         if (index > -1) {

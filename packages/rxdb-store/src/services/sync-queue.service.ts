@@ -30,6 +30,9 @@ class SyncQueueService {
   private processing = false;
   private lastErrorMessage = '';
   private onReconnectCallback: (() => void) | null = null;
+  private mutationSuccessCallbacks: Array<
+    (entityType: string, operation: 'upsert' | 'delete') => void
+  > = [];
 
   // UI-observable signals
   pendingCount = signal<number>(0);
@@ -63,6 +66,34 @@ class SyncQueueService {
   /** Register callback to run on reconnect (used by SpaceStore for pull refresh) */
   onReconnect(callback: () => void): void {
     this.onReconnectCallback = callback;
+  }
+
+  /**
+   * Subscribe to entity-level mutation success events (upsert/delete landed in Supabase).
+   * Child mutations are NOT reported here — they don't change parent space counts.
+   * Returns an unsubscribe function.
+   */
+  onMutationSuccess(
+    callback: (entityType: string, operation: 'upsert' | 'delete') => void,
+  ): () => void {
+    this.mutationSuccessCallbacks.push(callback);
+    return () => {
+      const idx = this.mutationSuccessCallbacks.indexOf(callback);
+      if (idx > -1) this.mutationSuccessCallbacks.splice(idx, 1);
+    };
+  }
+
+  private notifyMutationSuccess(
+    entityType: string,
+    operation: 'upsert' | 'delete',
+  ): void {
+    for (const cb of this.mutationSuccessCallbacks) {
+      try {
+        cb(entityType, operation);
+      } catch (e) {
+        console.error('[SyncQueue] mutationSuccess callback threw:', e);
+      }
+    }
   }
 
   // --- Enqueue methods ---
@@ -338,6 +369,7 @@ class SyncQueueService {
           // Post-push hooks (fire-and-forget) — entity now exists in Supabase
           for (const item of upsertItems) {
             runPostSaveHooks(entityType, item.entityId, item.payload);
+            this.notifyMutationSuccess(entityType, 'upsert');
           }
         } else {
           this.lastErrorMessage = error.message;
@@ -360,6 +392,9 @@ class SyncQueueService {
           await this.bulkRemoveItems(this.entityQueue, deleteItems.map(i => i.id));
           processed += deleteItems.length;
           this.onSuccess();
+          for (const _ of deleteItems) {
+            this.notifyMutationSuccess(entityType, 'delete');
+          }
         } else {
           this.lastErrorMessage = error.message;
           console.error(`[SyncQueue] Entity delete error (${entityType}):`, error.message);
