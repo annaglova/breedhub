@@ -1204,7 +1204,7 @@ class SpaceStore {
           nextCursor: null
         };
       }
-      return hydrateFilteredEntities({
+      const hydrated = await hydrateFilteredEntities({
         ids,
         idsData: idsData as Array<{ id: string; updated_at?: string }>,
         limit,
@@ -1213,6 +1213,18 @@ class SpaceStore {
         fetchRecords: (idsToFetch) => this.fetchRecordsByIDs(entityType, idsToFetch),
         mapRecordForCache: (record) => this.mapToRxDBFormat(record, entityType),
       });
+
+      // hydrateFilteredEntities sets total to the rendered page length
+      // (orderedRecords.length). For the counter we want the *server* total
+      // when it has resolved — otherwise the user briefly sees "30 of 30"
+      // for a paginated set with 451 rows. Prefer entityStore.totalFromServer
+      // (instant from cache via initTotalFromCache, then reactive via Stage 4).
+      const entityStore = this.entityStores.get(entityType);
+      const serverTotal = entityStore?.totalFromServer.value;
+      if (typeof serverTotal === 'number' && serverTotal >= hydrated.records.length) {
+        return { ...hydrated, total: serverTotal };
+      }
+      return hydrated;
 
     } catch (error) {
       // 📴 OFFLINE FALLBACK: Use RxDB cache with proper filtering
