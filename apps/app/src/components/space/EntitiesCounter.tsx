@@ -87,14 +87,14 @@ export function EntitiesCounter({
   const displayTotal = Math.max(cachedTotal, total);
 
   // Use initialCount as a placeholder for entitiesCount only when the real
-  // total is known to be > 0 — otherwise "0 items" displays the truth
-  // instead of pretending a full page is loading (which lies on an empty
-  // filter result).
+  // total is known to be > 0. Cap by displayTotal so the placeholder can't
+  // exceed the actual set size — otherwise a small set (e.g. user has 1
+  // note) flashes through the view's recordsCount (36) before settling.
   const displayEntitiesCount =
     entitiesCount > 0
       ? entitiesCount
       : displayTotal > 0
-        ? initialCount
+        ? Math.min(initialCount, displayTotal)
         : 0;
 
   // Confirmed empty result — no records and the server total resolved to 0.
@@ -106,11 +106,13 @@ export function EntitiesCounter({
     );
   }
 
-  // Waiting for total (no cache, no server total yet)
+  // Waiting for total. Suppress the leading number entirely when we have
+  // no real data yet — flashing "Showing 30" before total resolves is a
+  // lie when the actual count turns out to be 0 or much smaller.
   if (displayTotal === 0) {
     return (
       <div className="text-sm text-muted-foreground mt-1">
-        Showing {formatNumber(displayEntitiesCount)} of <span className="inline-block animate-pulse">...</span>
+        Showing <span className="inline-block animate-pulse">...</span>
       </div>
     );
   }
