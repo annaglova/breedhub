@@ -86,8 +86,25 @@ export function EntitiesCounter({
   // and a stale cache loses to a freshly-resolved larger total.
   const displayTotal = Math.max(cachedTotal, total);
 
-  // Use initialCount as fallback for entitiesCount when it's 0
-  const displayEntitiesCount = entitiesCount > 0 ? entitiesCount : initialCount;
+  // Use initialCount as a placeholder for entitiesCount only when the real
+  // total is known to be > 0 — otherwise "0 items" displays the truth
+  // instead of pretending a full page is loading (which lies on an empty
+  // filter result).
+  const displayEntitiesCount =
+    entitiesCount > 0
+      ? entitiesCount
+      : displayTotal > 0
+        ? initialCount
+        : 0;
+
+  // Confirmed empty result — no records and the server total resolved to 0.
+  if (entitiesCount === 0 && total === 0 && cachedTotal === 0) {
+    return (
+      <div className="text-sm text-muted-foreground mt-1">
+        Showing 0
+      </div>
+    );
+  }
 
   // Waiting for total (no cache, no server total yet)
   if (displayTotal === 0) {
