@@ -117,20 +117,10 @@ export function EntitiesCounter({
     );
   }
 
-  // If we have all items loaded.
-  // Require total > entitiesCount as confirmation that the page slice is
-  // smaller than the full set (paginated case). Otherwise we're on a
-  // non-paginated view and entitiesCount IS the full count.
-  const isConfirmedTotal = total > entitiesCount || cachedTotal > 0;
-  if (entitiesCount > 0 && entitiesCount >= displayTotal && isConfirmedTotal) {
-    return (
-      <div className="text-sm text-muted-foreground mt-1">
-        Showing all {formatNumber(displayTotal)}
-      </div>
-    );
-  }
-
-  // Default: show current count vs total
+  // Single, stable shape: "Showing X of Y". Avoids the "X of Y" → "all Y"
+  // transition that flashed during the skeleton-to-loaded handoff. The page
+  // slice and full set are still clearly distinguishable when X < Y, and
+  // when they're equal the meaning is identical to the old "all N".
   return (
     <div className="text-sm text-muted-foreground mt-1">
       Showing {formatNumber(displayEntitiesCount)} of {formatNumber(displayTotal)}
