@@ -127,55 +127,56 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
         : deduplicatedOptions.find((opt) => opt.value === value);
 
     // ✅ Pre-load selected option when value exists but no option found (e.g., dialog reopened)
+    // One attempt per unique value — if record doesn't exist, don't retry in a loop.
+    const lastAttemptedValueRef = useRef<string | null>(null);
     useEffect(() => {
-      if (value && !selectedOption && referencedTable && !internalLoading) {
-        console.log("[LookupInput] Pre-loading selected value:", value);
+      if (!value || selectedOption || !referencedTable) return;
+      if (lastAttemptedValueRef.current === value) return;
 
-        const loadSelectedRecord = async () => {
-          try {
-            setInternalLoading(true);
+      lastAttemptedValueRef.current = value;
+      console.log("[LookupInput] Pre-loading selected value:", value);
 
-            if (dataSource === "collection") {
-              // Load from collection (spaceStore)
-              const record = await spaceStore.getRecordById(
-                referencedTable,
-                value
-              );
-              if (record) {
-                const option: LookupOption = {
-                  value: record[referencedFieldID] as string,
-                  label: record[referencedFieldName] as string,
-                };
-                setCachedSelectedOption(option);
-                setInputValue(option.label);
-              }
-            } else {
-              // Load from dictionary (dictionaryStore)
-              const record = await dictionaryStore.getRecordById(
-                referencedTable,
-                value
-              );
-              if (record) {
-                const option: LookupOption = {
-                  value: record[referencedFieldID] as string,
-                  label: record[referencedFieldName] as string,
-                };
-                setCachedSelectedOption(option);
-                setInputValue(option.label);
-              }
-            }
-          } catch (error) {
-            console.error(
-              "[LookupInput] Failed to pre-load selected value:",
-              error
+      const loadSelectedRecord = async () => {
+        setInternalLoading(true);
+        try {
+          if (dataSource === "collection") {
+            const record = await spaceStore.getRecordById(
+              referencedTable,
+              value
             );
-          } finally {
-            setInternalLoading(false);
+            if (record) {
+              const option: LookupOption = {
+                value: record[referencedFieldID] as string,
+                label: record[referencedFieldName] as string,
+              };
+              setCachedSelectedOption(option);
+              setInputValue(option.label);
+            }
+          } else {
+            const record = await dictionaryStore.getRecordById(
+              referencedTable,
+              value
+            );
+            if (record) {
+              const option: LookupOption = {
+                value: record[referencedFieldID] as string,
+                label: record[referencedFieldName] as string,
+              };
+              setCachedSelectedOption(option);
+              setInputValue(option.label);
+            }
           }
-        };
+        } catch (error) {
+          console.error(
+            "[LookupInput] Failed to pre-load selected value:",
+            error
+          );
+        } finally {
+          setInternalLoading(false);
+        }
+      };
 
-        loadSelectedRecord();
-      }
+      loadSelectedRecord();
     }, [
       value,
       selectedOption,
@@ -183,7 +184,6 @@ export const LookupInput = forwardRef<HTMLInputElement, LookupInputProps>(
       dataSource,
       referencedFieldID,
       referencedFieldName,
-      internalLoading,
     ]);
 
     const loadDictionaryOptions = useCallback(
