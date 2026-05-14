@@ -59,10 +59,11 @@ const tableEntityMap: Record<string, string> = {
   contact_communication: 'contact',
   contact_language: 'contact',
   contact_breeder_kennel: 'contact',
-  contact_breeder_offspring: 'contact',
   account_communication: 'account',
-  kennel_pet: 'account',
-  kennel_offspring: 'account',
+  pet_in_account: 'account',
+  offspring_in_account: 'account',
+  pet_in_contact: 'contact',
+  offspring_in_contact: 'contact',
   kennel_offer: 'account',
 };
 

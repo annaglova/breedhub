@@ -1,15 +1,17 @@
 import { InfinitePetGridTab } from "@/components/shared/InfinitePetGridTab";
 import type { Pet } from "@/components/shared/PetCard";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
-import { mapKennelPetRecordToPet } from "@/utils/pet-card.mappers";
+import { enrichPetsWithParents } from "@/utils/pet-enrichment";
 import {
   spaceStore,
+  dictionaryStore,
+  getPartitionFieldForEntity,
   useInfiniteTabData,
   useTabData,
 } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 
 interface KennelPetsTabProps {
   onLoadedCount?: (count: number) => void;
@@ -18,9 +20,12 @@ interface KennelPetsTabProps {
 }
 
 /**
- * KennelPetsTab - Kennel's own pets
+ * KennelPetsTab — pets currently owned by this kennel (account).
  *
- * Data source: dataSource[0] → kennel_pet_with_details (owner_kennel_id → account)
+ * Data flow (ID-First):
+ * 1. Junction rows from `pet_in_account` via useTabData / useInfiniteTabData
+ * 2. Full pet rows via spaceStore.loadEntitiesByPartitionRefs (partition-pruned)
+ * 3. Enriched via dictionaryStore (sex/breed/status/country)
  */
 export function KennelPetsTab({
   onLoadedCount,
@@ -33,14 +38,15 @@ export function KennelPetsTab({
   const accountId = selectedEntity?.id;
   const isFullscreen = spaceStore.isFullscreen.value || mode === "fullscreen";
 
-  // Drawer: load limited set
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [isEnriching, setIsEnriching] = useState(false);
+
   const drawerData = useTabData({
     parentId: accountId,
     dataSource: dataSource?.[0]!,
     enabled: !!dataSource?.[0] && !!accountId && !isFullscreen,
   });
 
-  // Fullscreen: infinite scroll
   const infiniteData = useInfiniteTabData({
     parentId: accountId,
     dataSource: dataSource?.[0]!,
@@ -48,24 +54,76 @@ export function KennelPetsTab({
     pageSize: 30,
   });
 
-  const rawData = isFullscreen ? infiniteData.data : drawerData.data;
-  const isLoading = isFullscreen ? infiniteData.isLoading : drawerData.isLoading;
+  const junctionRecords = isFullscreen ? infiniteData.data : drawerData.data;
+  const isLoadingJunction = isFullscreen
+    ? infiniteData.isLoading
+    : drawerData.isLoading;
 
-  const pets = useMemo<Pet[]>(
-    () =>
-      (rawData || []).map((r: any) =>
-        mapKennelPetRecordToPet({ ...r, ...r.additional }),
-      ),
-    [rawData]
-  );
-
-  // Report loaded count
   useEffect(() => {
-    if (onLoadedCount) {
-      onLoadedCount(pets.length);
+    if (isLoadingJunction || !junctionRecords || junctionRecords.length === 0) {
+      setPets([]);
+      return;
     }
+
+    let cancelled = false;
+
+    async function loadAndEnrich() {
+      setIsEnriching(true);
+
+      try {
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        const petRefs = (junctionRecords ?? []).map((record: any) => ({
+          petId: record.additional?.pet_id || record.pet_id,
+          breedId:
+            record.partitionId ||
+            record.additional?.pet_breed_id ||
+            record.pet_breed_id,
+        }));
+
+        const partitionField = getPartitionFieldForEntity("pet");
+        if (!partitionField) {
+          console.warn(
+            "[KennelPetsTab] no partition field configured for pet; skipping load",
+          );
+          if (!cancelled) setPets([]);
+          return;
+        }
+
+        const allPets = await spaceStore.loadEntitiesByPartitionRefs(
+          "pet",
+          petRefs
+            .filter(
+              (ref): ref is { petId: string; breedId: string } =>
+                !!ref.petId && !!ref.breedId,
+            )
+            .map((ref) => ({ id: ref.petId, partitionId: ref.breedId })),
+          { partitionField },
+        );
+
+        const enriched = await enrichPetsWithParents(allPets, partitionField);
+        if (!cancelled) setPets(enriched);
+      } catch (err) {
+        console.error("[KennelPetsTab] Failed to load pets:", err);
+        if (!cancelled) setPets([]);
+      } finally {
+        if (!cancelled) setIsEnriching(false);
+      }
+    }
+
+    loadAndEnrich();
+    return () => {
+      cancelled = true;
+    };
+  }, [junctionRecords, isLoadingJunction]);
+
+  useEffect(() => {
+    if (onLoadedCount) onLoadedCount(pets.length);
   }, [onLoadedCount, pets.length]);
 
+  const isLoading = isLoadingJunction || isEnriching;
   const { hasMore, isLoadingMore, loadMore } = infiniteData;
 
   return (

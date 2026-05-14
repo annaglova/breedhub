@@ -1,11 +1,10 @@
 import { PetCard, type Pet } from "@/components/shared/PetCard";
-import { normalizeSexCode } from "@/components/shared/pedigree/types";
 import { LitterChildrenTabSkeleton } from "./LitterChildrenTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
 import { spaceStore, dictionaryStore, useTabData, getPartitionFieldForEntity } from "@breedhub/rxdb-store";
 import type { DataSourceConfig } from "@breedhub/rxdb-store";
-import { loadLookupById } from "@/utils/lookup";
+import { enrichPetForCard } from "@/utils/pet-enrichment";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect, useState } from "react";
 
@@ -13,38 +12,6 @@ interface LitterChildrenTabProps {
   onLoadedCount?: (count: number) => void;
   mode?: "scroll" | "fullscreen";
   dataSource?: DataSourceConfig[];
-}
-
-/**
- * Transform raw pet record to PetCard format with enrichment
- */
-async function enrichPetForCard(rawPet: any): Promise<Pet> {
-  // Load lookups in parallel
-  const [sex, breed, petStatus, country] = await Promise.all([
-    loadLookupById("sex", rawPet.sex_id),
-    loadLookupById("breed", rawPet.breed_id),
-    loadLookupById("pet_status", rawPet.pet_status_id),
-    loadLookupById("country", rawPet.country_of_birth_id),
-  ]);
-
-  return {
-    id: rawPet.id,
-    name: rawPet.name || "Unknown",
-    avatarUrl: rawPet.avatar_url || "",
-    url: rawPet.slug ? `/${rawPet.slug}` : `/pet/${rawPet.id}`,
-    sex: normalizeSexCode((sex?.code as string) || undefined),
-    countryOfBirth: (country?.code as string) || undefined,
-    dateOfBirth: rawPet.date_of_birth,
-    titles: rawPet.titles,
-    breed: breed
-      ? {
-          id: rawPet.breed_id,
-          name: String(breed.name || ""),
-          url: breed.slug ? `/${breed.slug}` : "",
-        }
-      : undefined,
-    status: (petStatus?.name as string) || undefined,
-  };
 }
 
 /**

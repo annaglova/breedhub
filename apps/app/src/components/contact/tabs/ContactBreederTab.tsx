@@ -1,10 +1,12 @@
 import { Fieldset, InfoRow } from "@/components/shared/InfoRow";
 import { PetCard, type Pet } from "@/components/shared/PetCard";
-import type { SexCode } from "@/components/shared/PetSexMark";
 import { ContactBreederTabSkeleton } from "./ContactBreederTabSkeleton";
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useSkeletonWithDelay } from "@/contexts/AboveFoldLoadingContext";
+import { enrichPetsWithParents } from "@/utils/pet-enrichment";
 import {
+  dictionaryStore,
+  getPartitionFieldForEntity,
   spaceStore,
   useInfiniteTabData,
   useTabData,
@@ -13,7 +15,7 @@ import type { DataSourceConfig } from "@breedhub/rxdb-store";
 import { useSignals } from "@preact/signals-react/runtime";
 import { cn } from "@ui/lib/utils";
 import { Calendar, Dog, Home, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SmartLink } from "@/components/shared/SmartLink";
 
 /**
@@ -155,69 +157,112 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
     pageSize: 30,
   });
 
-  const offspringRawData = isFullscreen ? infiniteOffspring.data : drawerOffspring.data;
-  const offspringLoading = isFullscreen ? infiniteOffspring.isLoading : drawerOffspring.isLoading;
+  const junctionRecords = isFullscreen ? infiniteOffspring.data : drawerOffspring.data;
+  const isLoadingJunction = isFullscreen
+    ? infiniteOffspring.isLoading
+    : drawerOffspring.isLoading;
 
-  // Flatten `additional` fields to top level (RxDB child records wrap VIEW fields in additional)
+  // Flatten `additional` fields to top level (RxDB child records wrap fields in additional)
   const kennelsRaw = useMemo(
     () => (kennelsRawData || []).map((r: any) => ({ ...r, ...r.additional })),
     [kennelsRawData]
   );
-  const offspringRaw = useMemo(
-    () => (offspringRawData || []).map((r: any) => ({ ...r, ...r.additional })),
-    [offspringRawData]
-  );
 
-  // Group offspring by kennel
+  // Load full pets + parents via ID-First (junction rows in `offspring_in_contact`
+  // store only ids + pet_breed_id partition key — names/parents are resolved here).
+  const [enrichedOffspring, setEnrichedOffspring] = useState<Pet[]>([]);
+  const [isEnriching, setIsEnriching] = useState(false);
+
+  useEffect(() => {
+    if (isLoadingJunction || !junctionRecords || junctionRecords.length === 0) {
+      setEnrichedOffspring([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadAndEnrich() {
+      setIsEnriching(true);
+
+      try {
+        if (!dictionaryStore.initialized.value) {
+          await dictionaryStore.initialize();
+        }
+
+        const petRefs = (junctionRecords ?? []).map((record: any) => ({
+          petId: record.additional?.pet_id || record.pet_id,
+          breedId:
+            record.partitionId ||
+            record.additional?.pet_breed_id ||
+            record.pet_breed_id,
+        }));
+
+        const partitionField = getPartitionFieldForEntity("pet");
+        if (!partitionField) {
+          console.warn(
+            "[ContactBreederTab] no partition field configured for pet; skipping load",
+          );
+          if (!cancelled) setEnrichedOffspring([]);
+          return;
+        }
+
+        const allPets = await spaceStore.loadEntitiesByPartitionRefs(
+          "pet",
+          petRefs
+            .filter(
+              (ref): ref is { petId: string; breedId: string } =>
+                !!ref.petId && !!ref.breedId,
+            )
+            .map((ref) => ({ id: ref.petId, partitionId: ref.breedId })),
+          { partitionField },
+        );
+
+        const enriched = await enrichPetsWithParents(allPets, partitionField);
+        if (!cancelled) setEnrichedOffspring(enriched);
+      } catch (err) {
+        console.error("[ContactBreederTab] Failed to load offspring:", err);
+        if (!cancelled) setEnrichedOffspring([]);
+      } finally {
+        if (!cancelled) setIsEnriching(false);
+      }
+    }
+
+    loadAndEnrich();
+    return () => {
+      cancelled = true;
+    };
+  }, [junctionRecords, isLoadingJunction]);
+
+  // Group enriched offspring by kennel via breed_id → account_id map.
   const kennelGroups = useMemo<KennelGroup[]>(() => {
     if (!kennelsRaw?.length) return [];
 
-    // Build breed_id → account_id map from kennel breeds
     const breedToAccount = new Map<string, string>();
     for (const kennel of kennelsRaw) {
-      const breeds = kennel.breeds as Array<{ id: string; name: string; slug: string }> || [];
+      const breeds =
+        (kennel.breeds as Array<{ id: string; name: string; slug: string }>) ||
+        [];
       for (const breed of breeds) {
         breedToAccount.set(breed.id, kennel.account_id);
       }
     }
 
-    // Group offspring by account_id
     const offspringByAccount = new Map<string, Pet[]>();
     const ungrouped: Pet[] = [];
 
-    for (const item of offspringRaw || []) {
-      const pet: Pet = {
-        id: item.pet_id,
-        name: item.pet_name,
-        url: item.pet_slug ? `/${item.pet_slug}` : "",
-        avatarUrl: item.pet_avatar_url || "",
-        sex: item.sex_name?.toLowerCase() as SexCode,
-        dateOfBirth: item.date_of_birth,
-        breed: item.breed_name ? {
-          id: item.breed_id,
-          name: item.breed_name,
-          url: `/${item.breed_slug}`,
-        } : undefined,
-        father: item.father_name ? {
-          name: item.father_name,
-          url: item.father_slug ? `/${item.father_slug}` : "",
-        } : undefined,
-        mother: item.mother_name ? {
-          name: item.mother_name,
-          url: item.mother_slug ? `/${item.mother_slug}` : "",
-        } : undefined,
-      };
-
-      const accountId = item.breed_id ? breedToAccount.get(item.breed_id) : null;
+    for (const pet of enrichedOffspring) {
+      const breedId = pet.breed?.id;
+      const accountId = breedId ? breedToAccount.get(breedId) : null;
       if (accountId) {
-        if (!offspringByAccount.has(accountId)) offspringByAccount.set(accountId, []);
+        if (!offspringByAccount.has(accountId)) {
+          offspringByAccount.set(accountId, []);
+        }
         offspringByAccount.get(accountId)!.push(pet);
       } else {
         ungrouped.push(pet);
       }
     }
 
-    // Build kennel groups
     const groups: KennelGroup[] = kennelsRaw.map((kennel: any) => ({
       id: kennel.id,
       accountId: kennel.account_id,
@@ -226,15 +271,13 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
       accountAvatarUrl: kennel.account_avatar_url,
       since: kennel.since,
       isPrimary: kennel.is_primary,
-      breeds: (kennel.breeds as Array<{ id: string; name: string; slug: string }> || []).map(b => ({
-        id: b.id,
-        name: b.name,
-        slug: b.slug,
-      })),
+      breeds: (
+        (kennel.breeds as Array<{ id: string; name: string; slug: string }>) ||
+        []
+      ).map((b) => ({ id: b.id, name: b.name, slug: b.slug })),
       offspring: offspringByAccount.get(kennel.account_id) || [],
     }));
 
-    // Add "Other" group for ungrouped offspring
     if (ungrouped.length > 0) {
       groups.push({
         id: "other",
@@ -250,7 +293,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
     }
 
     return groups;
-  }, [kennelsRaw, offspringRaw]);
+  }, [kennelsRaw, enrichedOffspring]);
 
   // Total offspring count
   const totalOffspring = useMemo(
@@ -292,7 +335,7 @@ export function ContactBreederTab({ onLoadedCount, dataSource }: ContactBreederT
     return () => observer.disconnect();
   }, [isFullscreen, handleLoadMore, hasMore, isLoadingMore, totalOffspring]);
 
-  const isLoading = kennelsLoading || offspringLoading;
+  const isLoading = kennelsLoading || isLoadingJunction || isEnriching;
 
   // Native column-aware skeleton with shared anti-flash window.
   const showSkeleton = useSkeletonWithDelay(isLoading);
