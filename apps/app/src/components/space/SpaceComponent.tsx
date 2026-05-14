@@ -258,7 +258,7 @@ export function SpaceComponent<T extends { id: string }>({
     [cardClickAction, config?.entitySchemaName, handleEntityClick],
   );
   const listShellClassName = cn(
-    "relative flex flex-col cursor-default h-full overflow-hidden",
+    "relative flex flex-col cursor-default h-full min-w-0 overflow-hidden",
     needCardClass ? "fake-card" : "card-surface",
     "transition-all duration-300 ease-out",
     !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]",

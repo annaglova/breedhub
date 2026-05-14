@@ -106,7 +106,7 @@ export function SpaceEmptyState({
           <Button
             type="button"
             onClick={onClearAll}
-            className="focus-visible:ring-2 focus-visible:ring-primary-500/50"
+            className="bg-primary-50 text-primary-600 hover:bg-primary-100 focus-visible:ring-2 focus-visible:ring-primary-500/50"
           >
             Clear all filters
           </Button>

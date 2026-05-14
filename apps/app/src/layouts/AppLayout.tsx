@@ -102,7 +102,7 @@ export function AppLayout() {
           {/* Content area - centered with max-width on ultra-wide screens */}
           <div className="flex flex-1 overflow-hidden lg:pr-5 3xl:pr-0 3xl:justify-center">
             {/* Content container with max-width */}
-            <div className="flex flex-1 3xl:flex-initial 3xl:w-full 3xl:max-w-[2016px]">
+            <div className="flex flex-1 min-w-0 3xl:flex-initial 3xl:w-full 3xl:max-w-[2016px]">
               {/* Left menu column - only on 3xl, empty in fullscreen */}
               {is3XL && (
                 <div className="hidden w-64 pr-5 3xl:block shrink-0">
