@@ -104,7 +104,20 @@ export function resolveEntityRouteSelection<T extends EntityNavigationRecord>({
     };
   }
 
-  if (entities.length === 0 || isLoading) {
+  if (isLoading) {
+    return { urlSegment };
+  }
+
+  // Filter resolved to zero results AND we had a real selection before —
+  // drop the stale slug so the drawer closes instead of pinning to the
+  // previously selected record. Gate on `currentSelectedId` so we don't
+  // misfire on list URLs (e.g. /my/pets) where `urlSegment` is actually
+  // the space slug due to nested workspace paths.
+  if (entities.length === 0 && currentSelectedId) {
+    return { urlSegment: null };
+  }
+
+  if (entities.length === 0) {
     return { urlSegment };
   }
 

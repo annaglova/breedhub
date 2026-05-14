@@ -42,8 +42,14 @@ export function useTotalCountCache({
     if (data?.entities && !isLoading) {
       setIsInitialLoad(false);
 
-      if (data.total) {
+      // Update totalCount on any defined value, including 0. A truthy check
+      // would skip zero-results filters and leave the stale previous total,
+      // which keeps `listIsEmpty` false and the drawer stuck on a skeleton.
+      if (typeof data.total === "number") {
         setTotalCount(data.total);
+      }
+
+      if (data.total) {
 
         // Save totalCount to localStorage ONLY on first load (not during pagination)
         // For spaces with totalFilterKey, save with filter-specific key

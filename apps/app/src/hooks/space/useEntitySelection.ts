@@ -162,6 +162,21 @@ export function useEntitySelection({
     } else {
       spaceStore.clearSelection(config.entitySchemaName);
       spaceStore.clearFullscreen();
+
+      // If the URL still carries a slug that no longer maps to any entity
+      // (filter narrowed to zero), strip the last path segment so refresh/back
+      // behave consistently. Works for both root and nested workspace paths
+      // (e.g. /breeds/<slug> → /breeds, /my/pets/<slug> → /my/pets).
+      const segments = location.pathname.split("/");
+      if (segments.length > 2) {
+        segments.pop();
+        const basePath = segments.join("/") || "/";
+        if (basePath !== location.pathname) {
+          navigate(`${basePath}${location.search}${location.hash}`, {
+            replace: true,
+          });
+        }
+      }
     }
   }, [
     location.pathname,
