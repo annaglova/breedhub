@@ -51,10 +51,10 @@ const Chip = React.forwardRef<HTMLDivElement, ChipProps>(
               e.stopPropagation();
               onRemove();
             }}
-            className="inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/20 dark:hover:bg-black/10 transition-colors"
-            aria-label="Remove"
+            className="inline-flex h-7 w-7 -my-1 -mr-1.5 sm:h-4 sm:w-4 sm:my-0 sm:mr-0 items-center justify-center rounded-full hover:bg-white/20 dark:hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 transition-colors"
+            aria-label={`Remove ${label}`}
           >
-            <X className="h-3 w-3" />
+            <X className="h-3 w-3" aria-hidden="true" />
           </button>
         )}
       </div>

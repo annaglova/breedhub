@@ -6,7 +6,9 @@ import { cn } from "@ui/lib/utils";
 import { useCallback, useEffect, useRef } from "react";
 import { FallbackComponent, getComponent } from "./componentRegistry";
 import { ListCardSkeletonList } from "./EntityListCardWrapper";
+import type { FilterField } from "./filters/FiltersSection";
 import { GridCardSkeleton } from "./GridCardSkeleton";
+import { SpaceEmptyState } from "./SpaceEmptyState";
 
 // View configuration interface that matches our config structure
 export interface ViewConfig {
@@ -44,6 +46,10 @@ interface SpaceViewProps<T> {
   isLoadingMore?: boolean;
   isLoading?: boolean; // Initial loading state
   searchQuery?: string; // Current search query for empty state
+  activeFilters?: FilterField[];
+  onFilterRemove?: (filter: FilterField) => void;
+  onClearAllFilters?: () => void;
+  entityLabelPlural?: string;
 }
 
 // Helper to determine if view should render as grid
@@ -83,6 +89,10 @@ export function SpaceView<T extends { id: string }>({
   isLoadingMore = false,
   isLoading = false,
   searchQuery = "",
+  activeFilters,
+  onFilterRemove,
+  onClearAllFilters,
+  entityLabelPlural,
 }: SpaceViewProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -286,6 +296,10 @@ export function SpaceView<T extends { id: string }>({
 
   // Show empty state when not loading and no entities
   if (!isLoading && entities.length === 0) {
+    const hasFilters = !!activeFilters && activeFilters.length > 0;
+    const useStructuredEmpty =
+      (hasFilters || !!searchQuery) && !!onFilterRemove && !!onClearAllFilters;
+
     return (
       <div
         ref={parentRef}
@@ -294,13 +308,19 @@ export function SpaceView<T extends { id: string }>({
           paddingBottom: "var(--content-padding)",
         }}
       >
-        <div className="text-center text-slate-500">
-          {searchQuery ? (
-            <p>No results for "{searchQuery}"</p>
-          ) : (
+        {useStructuredEmpty ? (
+          <SpaceEmptyState
+            filters={activeFilters ?? []}
+            onFilterRemove={onFilterRemove!}
+            onClearAll={onClearAllFilters!}
+            searchQuery={searchQuery}
+            entityLabelPlural={entityLabelPlural?.toLowerCase()}
+          />
+        ) : (
+          <div className="text-center text-slate-500">
             <p>No items found</p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   }

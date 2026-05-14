@@ -171,6 +171,29 @@ export function useFilterManagement({
     [searchParams, setSearchParams, filtersStorageKey, filterFields],
   );
 
+  // ============= Handle clear all removable filters =============
+
+  const activeFiltersRef = useRef<ActiveFilter[]>([]);
+  const handleClearAllFilters = useCallback(() => {
+    const removable = activeFiltersRef.current.filter((f) => !f.isRequired);
+    if (removable.length === 0) return;
+
+    const newParams = new URLSearchParams(searchParams);
+    for (const filter of removable) {
+      newParams.delete(filter.id);
+      try {
+        removeFilterFromStorage({
+          filterFields,
+          filterId: filter.id,
+          filtersStorageKey,
+        });
+      } catch {
+        // localStorage not available
+      }
+    }
+    setSearchParams(newParams);
+  }, [searchParams, setSearchParams, filterFields, filtersStorageKey]);
+
   // ============= Active filters for chip display =============
 
   const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
@@ -214,11 +237,17 @@ export function useFilterManagement({
     buildFormValues();
   }, [searchParams, filterFields, searchUrlSlug]);
 
+  // Keep ref in sync so handleClearAllFilters sees the latest list
+  useEffect(() => {
+    activeFiltersRef.current = activeFilters;
+  }, [activeFilters]);
+
   return {
     filters,
     activeFilters,
     currentFilterValues,
     handleFiltersApply,
     handleFilterRemove,
+    handleClearAllFilters,
   };
 }

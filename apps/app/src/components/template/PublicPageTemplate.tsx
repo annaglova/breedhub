@@ -13,7 +13,10 @@ import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useStickyName } from "@/hooks/useStickyName";
 import { cn } from "@ui/lib/utils";
+import { Inbox } from "lucide-react";
 import { useRef } from "react";
+import { useOutletContext } from "react-router-dom";
+import idleDogIllustration from "@/assets/images/pettypes/dog-logo-muted.svg";
 import type { BlockConfig, PageConfig } from "@/types/page-config.types";
 
 interface PublicPageTemplateProps {
@@ -207,6 +210,13 @@ export function PublicPageTemplate({
 }: PublicPageTemplateProps) {
   useSignals();
 
+  // Drawer-only signal: parent SpaceComponent provides { listIsEmpty } via
+  // Outlet context when the filtered space has finished loading with zero
+  // results. We swap the block skeletons for a quiet idle affordance so the
+  // pane stops looking like a perpetual loader.
+  const outletCtx = useOutletContext<{ listIsEmpty?: boolean } | null>();
+  const listIsEmpty = !!outletCtx?.listIsEmpty;
+
   const {
     pageConfig,
     selectedEntity,
@@ -233,6 +243,39 @@ export function PublicPageTemplate({
   });
   const PAGE_MENU_TOP = nameBlockHeight > 0 ? nameBlockHeight : 0;
   const TAB_HEADER_TOP = nameOnTop ? nameBlockHeight : 0;
+
+  // Drawer idle state: list pane has settled with zero results, so there is
+  // no record to preview and no reason to keep showing block skeletons.
+  if (isDrawerMode && listIsEmpty && !selectedEntity) {
+    return spaceConfigSignal ? (
+      <SpaceProvider
+        spaceConfigSignal={spaceConfigSignal}
+        selectedEntitySignal={selectedEntitySignal}
+      >
+        <div
+          className={cn(
+            "size-full flex items-center justify-center content-padding-sm",
+            isDrawerMode && "bg-white dark:bg-slate-900",
+            className,
+          )}
+        >
+          <div className="flex flex-col items-center text-slate-500">
+            <img
+              src={idleDogIllustration}
+              alt=""
+              aria-hidden="true"
+              className="h-44 w-44 opacity-90"
+            />
+            <p className="mt-4 text-sm">Nothing to show</p>
+            <Inbox
+              className="mt-3 h-6 w-6 text-slate-300"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+      </SpaceProvider>
+    ) : null;
+  }
 
   return spaceConfigSignal ? (
     <SpaceProvider

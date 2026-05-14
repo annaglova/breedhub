@@ -119,6 +119,7 @@ export function SpaceComponent<T extends { id: string }>({
     currentFilterValues,
     handleFiltersApply,
     handleFilterRemove,
+    handleClearAllFilters,
   } = useFilterManagement({
     searchParams,
     setSearchParams,
@@ -203,7 +204,16 @@ export function SpaceComponent<T extends { id: string }>({
     filters,
     navigate,
   });
-  const drawerContent = children || <Outlet />;
+  // List-empty signal for the drawer Outlet: true when the space finished
+  // loading and the filtered result set is zero. Lets the right-pane template
+  // swap its "loading" skeleton for an "idle / nothing to show" affordance.
+  const drawerOutletContext = useMemo(
+    () => ({
+      listIsEmpty: !isInitialLoad && totalCount === 0 && !isLoading,
+    }),
+    [isInitialLoad, totalCount, isLoading],
+  );
+  const drawerContent = children || <Outlet context={drawerOutletContext} />;
   const viewChangerConfigs = useMemo(
     () =>
       finalConfig.viewConfigs?.map((viewConfig: {
@@ -375,6 +385,10 @@ export function SpaceComponent<T extends { id: string }>({
             isLoadingMore={isLoadingMore}
             isLoading={isLoading}
             searchQuery={debouncedSearchValue}
+            activeFilters={activeFilters}
+            onFilterRemove={handleFilterRemove}
+            onClearAllFilters={handleClearAllFilters}
+            entityLabelPlural={finalConfig.title}
             bottomSpacerClassName="hidden sm:block"
             showBackdrop={showDrawerBackdrop}
             isBackdropVisible={isDrawerOpen}

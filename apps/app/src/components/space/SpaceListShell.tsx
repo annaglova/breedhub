@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 import { cn } from "@ui/lib/utils";
 import { SpaceHeader } from "./SpaceHeader";
 import { SpaceView, type ViewConfig } from "./SpaceView";
+import type { FilterField } from "./filters/FiltersSection";
 
 interface SpaceListShellProps<T extends { id: string }> {
   className?: string;
@@ -15,6 +16,10 @@ interface SpaceListShellProps<T extends { id: string }> {
   isLoadingMore?: boolean;
   isLoading?: boolean;
   searchQuery?: string;
+  activeFilters?: FilterField[];
+  onFilterRemove?: (filter: FilterField) => void;
+  onClearAllFilters?: () => void;
+  entityLabelPlural?: string;
   bottomSpacerClassName?: string;
   showBackdrop?: boolean;
   isBackdropVisible?: boolean;
@@ -34,6 +39,10 @@ export function SpaceListShell<T extends { id: string }>({
   isLoadingMore = false,
   isLoading = false,
   searchQuery = "",
+  activeFilters,
+  onFilterRemove,
+  onClearAllFilters,
+  entityLabelPlural,
   bottomSpacerClassName,
   showBackdrop = false,
   isBackdropVisible = false,
@@ -55,6 +64,10 @@ export function SpaceListShell<T extends { id: string }>({
           isLoadingMore={isLoadingMore}
           isLoading={isLoading}
           searchQuery={searchQuery}
+          activeFilters={activeFilters}
+          onFilterRemove={onFilterRemove}
+          onClearAllFilters={onClearAllFilters}
+          entityLabelPlural={entityLabelPlural}
         />
         <div
           className={cn(
