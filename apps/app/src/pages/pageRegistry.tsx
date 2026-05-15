@@ -52,6 +52,9 @@ registerPage('GiftPage', lazyRegisteredPage(() =>
 registerPage('WelcomePage', lazyRegisteredPage(() =>
   import('./WelcomePage').then((module) => ({ default: module.WelcomePage }))
 ));
+registerPage('DashboardPage', lazyRegisteredPage(() =>
+  import('@/components/dashboard').then((module) => ({ default: module.DashboardSpace }))
+));
 
 // Fallback component for unknown pages
 export const PageNotFound: React.FC<{ componentName?: string }> = ({ componentName }) => (
