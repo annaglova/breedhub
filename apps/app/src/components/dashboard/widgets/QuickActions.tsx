@@ -23,7 +23,7 @@ export function QuickActions({ onAction }: QuickActionsProps) {
   return (
     <section
       aria-label="Quick actions"
-      className="rounded-2xl border border-primary-100/70 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
+      className="h-full rounded-2xl border border-primary-100/70 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
     >
       <ul className="space-y-2">
         {ACTIONS.map(({ id, label, icon: Icon }) => (

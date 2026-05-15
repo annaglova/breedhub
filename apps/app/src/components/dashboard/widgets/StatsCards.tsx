@@ -34,7 +34,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
                 className={`flex size-10 items-center justify-center rounded-xl ${
                   isChampion
                     ? "bg-amber-100 text-amber-700"
-                    : "bg-primary-50 text-primary-700"
+                    : "bg-primary-100 text-primary-700"
                 }`}
               >
                 <Icon className="size-5" />

@@ -49,7 +49,7 @@ export function RecentActivity({ entries }: RecentActivityProps) {
                   className="absolute left-[18px] top-9 h-[calc(100%-12px)] w-px bg-primary-100"
                 />
               )}
-              <span className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-700">
+              <span className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
                 <Icon className="size-4" />
               </span>
               <div className="min-w-0 flex-1 pb-1">

@@ -9,6 +9,7 @@ describe("DashboardSpace", () => {
     render(<DashboardSpace />);
     expect(screen.getByText(/at a glance/i)).toBeInTheDocument();
     expect(screen.getByText(/schedule/i)).toBeInTheDocument();
+    expect(screen.getByText(/^calendar$/i)).toBeInTheDocument();
     expect(screen.getByText(/quick actions/i)).toBeInTheDocument();
     expect(screen.getByText(/^activity$/i)).toBeInTheDocument();
   });

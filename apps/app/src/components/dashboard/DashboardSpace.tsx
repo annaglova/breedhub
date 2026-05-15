@@ -1,7 +1,9 @@
 import { ToolPageLayout } from "@/layouts/ToolPageLayout";
+import { useMemo, useState } from "react";
 import { mockActivity, mockEvents, mockRanking, mockStats } from "./mock-data";
 import { QuickActions } from "./widgets/QuickActions";
 import { RecentActivity } from "./widgets/RecentActivity";
+import { ScheduleCalendar } from "./widgets/ScheduleCalendar";
 import { StatsCards } from "./widgets/StatsCards";
 import { SubscribeHero } from "./widgets/SubscribeHero";
 import { TopKennelsBanner } from "./widgets/TopKennelsBanner";
@@ -16,7 +18,8 @@ interface DashboardSpaceProps {
   isPaid?: boolean;
 }
 
-/** Uppercase section eyebrow above each card group. */
+/** Uppercase section eyebrow above each card group. Fixed height so rows
+ *  align even when only some sections have an action link. */
 function SectionLabel({
   children,
   action,
@@ -25,12 +28,20 @@ function SectionLabel({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-between gap-3 px-1">
+    <div className="mb-3 flex h-6 items-center justify-between gap-3 px-1">
       <span className="text-xs font-bold uppercase tracking-wider text-primary-700">
         {children}
       </span>
       {action}
     </div>
+  );
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
   );
 }
 
@@ -40,6 +51,13 @@ function SectionLabel({
  * until BREEDING_CYCLE / PET_TREATMENTS / contact subscription surfaces land.
  */
 export function DashboardSpace({ isPaid = false }: DashboardSpaceProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+  const filteredEvents = useMemo(() => {
+    if (!selectedDate) return mockEvents;
+    return mockEvents.filter((evt) => isSameDay(evt.date, selectedDate));
+  }, [selectedDate]);
+
   return (
     <ToolPageLayout>
       <div className="flex flex-col gap-6 lg:gap-8">
@@ -67,44 +85,53 @@ export function DashboardSpace({ isPaid = false }: DashboardSpaceProps) {
           <StatsCards stats={mockStats} />
         </section>
 
+        {/* Row 3 — Schedule + Calendar (quick navigation) */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
-          <section className="lg:col-span-2">
+          <section className="flex flex-col lg:col-span-2">
+            <SectionLabel>Schedule</SectionLabel>
+            <div className="flex-1">
+              <UpcomingEvents
+                events={filteredEvents}
+                filterDate={selectedDate}
+                onClearFilter={() => setSelectedDate(undefined)}
+              />
+            </div>
+          </section>
+
+          <section className="flex flex-col">
+            <SectionLabel>Calendar</SectionLabel>
+            <div className="flex-1">
+              <ScheduleCalendar selected={selectedDate} onSelect={setSelectedDate} />
+            </div>
+          </section>
+        </div>
+
+        {/* Row 4 — Activity + Quick Actions */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+          <section className="flex flex-col lg:col-span-2">
             <SectionLabel
               action={
                 <button
                   type="button"
                   className="text-sm font-bold text-primary-700 transition hover:text-primary-800"
                 >
-                  View calendar →
+                  See all →
                 </button>
               }
             >
-              Schedule
+              Activity
             </SectionLabel>
-            <UpcomingEvents events={mockEvents} />
+            <div className="flex-1">
+              <RecentActivity entries={mockActivity} />
+            </div>
           </section>
 
-          <div className="flex flex-col gap-6 lg:gap-8">
-            <section>
-              <SectionLabel>Quick actions</SectionLabel>
+          <section className="flex flex-col">
+            <SectionLabel>Quick actions</SectionLabel>
+            <div className="flex-1">
               <QuickActions />
-            </section>
-            <section>
-              <SectionLabel
-                action={
-                  <button
-                    type="button"
-                    className="text-sm font-bold text-primary-700 transition hover:text-primary-800"
-                  >
-                    See all →
-                  </button>
-                }
-              >
-                Activity
-              </SectionLabel>
-              <RecentActivity entries={mockActivity} />
-            </section>
-          </div>
+            </div>
+          </section>
         </div>
       </div>
     </ToolPageLayout>
