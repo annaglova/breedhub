@@ -1,3 +1,4 @@
+import { ContentPageLayout } from "@/layouts/ContentPageLayout";
 import { mockActivity, mockEvents, mockStats } from "./mock-data";
 import { QuickActions } from "./widgets/QuickActions";
 import { RecentActivity } from "./widgets/RecentActivity";
@@ -22,18 +23,9 @@ interface DashboardSpaceProps {
  */
 export function DashboardSpace({ isPaid = false }: DashboardSpaceProps) {
   return (
-    <div className="min-h-full bg-primary-50/60">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:gap-8 lg:px-8">
-        <header className="flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-primary-700">
-              My kennel
-            </p>
-            <h1 className="mt-1 text-3xl font-bold text-slate-900 sm:text-4xl">
-              Dashboard
-            </h1>
-          </div>
-        </header>
+    <ContentPageLayout>
+      <div className="flex flex-col gap-6 lg:gap-8">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
 
         <SubscribeHero isPaid={isPaid} />
 
@@ -49,6 +41,6 @@ export function DashboardSpace({ isPaid = false }: DashboardSpaceProps) {
           </div>
         </div>
       </div>
-    </div>
+    </ContentPageLayout>
   );
 }

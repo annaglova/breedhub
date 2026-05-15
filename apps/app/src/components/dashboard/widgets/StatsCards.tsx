@@ -27,7 +27,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
         return (
           <article
             key={stat.id}
-            className="rounded-2xl border border-white bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.05),0_4px_12px_rgba(17,17,26,0.04),0_10px_30px_rgba(17,17,26,0.02)]"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
           >
             <div className="flex items-start justify-between">
               <span
