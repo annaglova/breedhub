@@ -34,25 +34,10 @@ function formatRelative(when: Date): string {
 export function RecentActivity({ entries }: RecentActivityProps) {
   return (
     <section
-      aria-labelledby="recent-activity-title"
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
+      aria-label="Recent activity"
+      className="rounded-2xl border border-primary-100/70 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
     >
-      <header className="flex items-center justify-between">
-        <h3
-          id="recent-activity-title"
-          className="text-base font-bold text-slate-900"
-        >
-          Recent activity
-        </h3>
-        <button
-          type="button"
-          className="text-sm font-bold text-primary-700 transition hover:text-primary-800"
-        >
-          See all →
-        </button>
-      </header>
-
-      <ol className="mt-4 space-y-4">
+      <ol className="space-y-4">
         {entries.map((entry, idx) => {
           const Icon = KIND_ICON[entry.kind];
           const isLast = idx === entries.length - 1;

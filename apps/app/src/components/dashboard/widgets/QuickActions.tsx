@@ -22,17 +22,10 @@ const ACTIONS: { id: ActionId; label: string; icon: typeof PawPrint }[] = [
 export function QuickActions({ onAction }: QuickActionsProps) {
   return (
     <section
-      aria-labelledby="quick-actions-title"
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
+      aria-label="Quick actions"
+      className="rounded-2xl border border-primary-100/70 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
     >
-      <h3
-        id="quick-actions-title"
-        className="text-xs font-bold uppercase tracking-wider text-slate-500"
-      >
-        Quick actions
-      </h3>
-
-      <ul className="mt-3 space-y-2">
+      <ul className="space-y-2">
         {ACTIONS.map(({ id, label, icon: Icon }) => (
           <li key={id}>
             <button

@@ -16,6 +16,24 @@ interface DashboardSpaceProps {
   isPaid?: boolean;
 }
 
+/** Uppercase section eyebrow above each card group. */
+function SectionLabel({
+  children,
+  action,
+}: {
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="mb-3 flex items-center justify-between gap-3 px-1">
+      <span className="text-xs font-bold uppercase tracking-wider text-primary-700">
+        {children}
+      </span>
+      {action}
+    </div>
+  );
+}
+
 /**
  * `my` workspace landing dashboard.
  * Uses mock data — composition is the deliverable, data wiring is deferred
@@ -44,15 +62,48 @@ export function DashboardSpace({ isPaid = false }: DashboardSpaceProps) {
           )}
         </div>
 
-        <StatsCards stats={mockStats} />
+        <section>
+          <SectionLabel>At a glance</SectionLabel>
+          <StatsCards stats={mockStats} />
+        </section>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
-          <div className="lg:col-span-2">
+          <section className="lg:col-span-2">
+            <SectionLabel
+              action={
+                <button
+                  type="button"
+                  className="text-sm font-bold text-primary-700 transition hover:text-primary-800"
+                >
+                  View calendar →
+                </button>
+              }
+            >
+              Schedule
+            </SectionLabel>
             <UpcomingEvents events={mockEvents} />
-          </div>
+          </section>
+
           <div className="flex flex-col gap-6 lg:gap-8">
-            <QuickActions />
-            <RecentActivity entries={mockActivity} />
+            <section>
+              <SectionLabel>Quick actions</SectionLabel>
+              <QuickActions />
+            </section>
+            <section>
+              <SectionLabel
+                action={
+                  <button
+                    type="button"
+                    className="text-sm font-bold text-primary-700 transition hover:text-primary-800"
+                  >
+                    See all →
+                  </button>
+                }
+              >
+                Activity
+              </SectionLabel>
+              <RecentActivity entries={mockActivity} />
+            </section>
           </div>
         </div>
       </div>

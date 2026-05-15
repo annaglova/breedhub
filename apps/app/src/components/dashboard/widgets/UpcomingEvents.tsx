@@ -2,7 +2,6 @@ import type { DashboardEvent, EventCategory } from "../mock-data";
 
 interface UpcomingEventsProps {
   events: DashboardEvent[];
-  onViewCalendar?: () => void;
 }
 
 const CATEGORY_LABEL: Record<EventCategory, string> = {
@@ -42,34 +41,18 @@ const MONTH_SHORT = [
   "DEC",
 ];
 
-export function UpcomingEvents({ events, onViewCalendar }: UpcomingEventsProps) {
+export function UpcomingEvents({ events }: UpcomingEventsProps) {
   return (
     <section
-      aria-labelledby="upcoming-events-title"
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
+      aria-label="Upcoming events"
+      className="rounded-2xl border border-primary-100/70 bg-white p-5 shadow-[0_1px_1px_rgba(17,17,26,0.04),0_2px_6px_rgba(17,17,26,0.03)]"
     >
-      <header className="flex items-center justify-between">
-        <h3
-          id="upcoming-events-title"
-          className="text-base font-bold text-slate-900"
-        >
-          Upcoming events
-        </h3>
-        <button
-          type="button"
-          onClick={onViewCalendar}
-          className="text-sm font-bold text-primary-700 transition hover:text-primary-800"
-        >
-          View calendar →
-        </button>
-      </header>
-
       {events.length === 0 ? (
-        <p className="mt-6 rounded-xl bg-primary-50/60 p-6 text-center text-sm text-slate-600">
+        <p className="rounded-xl bg-primary-50/60 p-6 text-center text-sm text-slate-600">
           Nothing scheduled. Plan a mating or add a treatment to fill this list.
         </p>
       ) : (
-        <ul className="mt-4 space-y-2">
+        <ul className="space-y-2">
           {events.map((evt) => {
             const month = MONTH_SHORT[evt.date.getMonth()];
             const day = String(evt.date.getDate()).padStart(2, "0");

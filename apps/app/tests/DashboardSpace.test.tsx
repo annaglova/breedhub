@@ -7,9 +7,10 @@ import { SubscribeHero } from "@/components/dashboard/widgets/SubscribeHero";
 describe("DashboardSpace", () => {
   it("renders all major sections by default", () => {
     render(<DashboardSpace />);
-    expect(screen.getByRole("heading", { name: /upcoming events/i })).toBeInTheDocument();
+    expect(screen.getByText(/at a glance/i)).toBeInTheDocument();
+    expect(screen.getByText(/schedule/i)).toBeInTheDocument();
     expect(screen.getByText(/quick actions/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /recent activity/i })).toBeInTheDocument();
+    expect(screen.getByText(/^activity$/i)).toBeInTheDocument();
   });
 
   it("renders the Top kennels banner with the user's rank", () => {
