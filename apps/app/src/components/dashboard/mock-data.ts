@@ -35,6 +35,21 @@ export type ActivityEntry = {
   body?: string;
 };
 
+export type TopKennel = {
+  id: string;
+  name: string;
+  rank: number;
+  initials: string;
+};
+
+export type RankSnapshot = {
+  breedName: string;
+  topKennels: TopKennel[];
+  yourRank: number;
+  yourInitials: string;
+  nextTier: { name: string; spotsAway: number };
+};
+
 const today = new Date();
 const daysFromNow = (days: number) => {
   const d = new Date(today);
@@ -113,6 +128,18 @@ export const mockEvents: DashboardEvent[] = [
     category: "mating",
   },
 ];
+
+export const mockRanking: RankSnapshot = {
+  breedName: "Whippet",
+  topKennels: [
+    { id: "k1", name: "Silver Crown", rank: 1, initials: "SC" },
+    { id: "k2", name: "Northwind", rank: 2, initials: "NW" },
+    { id: "k3", name: "Aurora Vale", rank: 3, initials: "AV" },
+  ],
+  yourRank: 14,
+  yourInitials: "AM",
+  nextTier: { name: "Bronze", spotsAway: 11 },
+};
 
 export const mockActivity: ActivityEntry[] = [
   {

@@ -5,18 +5,25 @@ import { RecentActivity } from "@/components/dashboard/widgets/RecentActivity";
 import { SubscribeHero } from "@/components/dashboard/widgets/SubscribeHero";
 
 describe("DashboardSpace", () => {
-  it("renders the Dashboard heading and all major sections by default", () => {
+  it("renders all major sections by default", () => {
     render(<DashboardSpace />);
-    expect(screen.getByRole("heading", { level: 1, name: /dashboard/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /upcoming events/i })).toBeInTheDocument();
     expect(screen.getByText(/quick actions/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /recent activity/i })).toBeInTheDocument();
   });
 
-  it("hides the Subscribe hero when isPaid is true", () => {
+  it("renders the Top kennels banner with the user's rank", () => {
+    render(<DashboardSpace />);
+    expect(screen.getByText(/top breeders/i)).toBeInTheDocument();
+    expect(screen.getByText("#14")).toBeInTheDocument();
+    expect(screen.getByText(/climb/i)).toBeInTheDocument();
+  });
+
+  it("hides the Subscribe hero when isPaid is true but keeps Top kennels", () => {
     render(<DashboardSpace isPaid />);
     expect(screen.queryByRole("heading", { name: /unlock your kennel page/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /upgrade to patron/i })).toBeNull();
+    expect(screen.getByText(/top breeders/i)).toBeInTheDocument();
   });
 });
 
