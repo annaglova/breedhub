@@ -14,6 +14,7 @@ import { lazy } from 'react';
 import { getPage, PageNotFound } from '@/pages/pageRegistry';
 import { appStore } from '@breedhub/rxdb-store';
 import { useSignals } from '@preact/signals-react/runtime';
+import { getDefaultWorkspaceItem, getWorkspaceItems, resolveItemPath } from '@/utils/workspace-items';
 
 function lazyRoute(
   loader: () => Promise<{ default: React.ComponentType<any> }>
@@ -90,15 +91,15 @@ interface SpaceRoute {
 }
 
 /**
- * Hook to get dynamic space routes from config
- * Now includes workspace path for proper routing (e.g., /my/notes instead of /notes)
+ * Hook to get dynamic space routes from config.
+ * Includes workspace path for proper routing (e.g., /my/notes instead of /notes).
  */
 function useSpaceRoutes() {
   useSignals();
 
   return useMemo(() => {
     if (!appStore.isDataLoaded.value) {
-      return { routes: [] as SpaceRoute[], defaultSlug: 'breeds', workspaceRedirects: [] as Array<{ from: string; to: string }> };
+      return { routes: [] as SpaceRoute[], defaultSlug: 'breeds' };
     }
 
     const workspaces = appStore.workspaces.value;
@@ -117,8 +118,6 @@ function useSpaceRoutes() {
 
         spaces.forEach((space: any) => {
           if (space.slug && space.entitySchemaName) {
-            // For root workspace, path is just slug (e.g., "breeds")
-            // For other workspaces, path is workspacePath/slug (e.g., "my/notes")
             const fullPath = isRootWorkspace
               ? space.slug
               : `${workspacePath.replace(/^\//, '')}/${space.slug}`;
@@ -137,40 +136,18 @@ function useSpaceRoutes() {
       }
     });
 
-    // Sort by workspace path length (root first) then by order
     spaceRoutes.sort((a, b) => a.workspacePath.length - b.workspacePath.length);
 
-    // Build workspace redirects (for workspaces with spaces but no pages)
-    // e.g., /my → /my/notes
-    const workspaceRedirects: Array<{ from: string; to: string }> = [];
-    workspaces.forEach((workspace: any) => {
-      const workspacePath = workspace.path || '/';
-      if (workspacePath === '/') return; // Skip root workspace
-
-      // If workspace has spaces but no pages, redirect to first space
-      if (workspace.spaces && !workspace.pages) {
-        const spaces = Array.isArray(workspace.spaces)
-          ? workspace.spaces
-          : Object.values(workspace.spaces);
-        const sortedSpaces = spaces.sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
-        const firstSpace = sortedSpaces[0];
-        if (firstSpace?.slug) {
-          workspaceRedirects.push({
-            from: workspacePath.replace(/^\//, ''), // e.g., "my"
-            to: `${workspacePath}/${firstSpace.slug}` // e.g., "/my/notes"
-          });
-        }
-      }
-    });
-
     const defaultSlug = spaceRoutes[0]?.slug || 'breeds';
-    return { routes: spaceRoutes, defaultSlug, workspaceRedirects };
+    return { routes: spaceRoutes, defaultSlug };
   }, [appStore.isDataLoaded.value, appStore.workspaces.value]);
 }
 
 /**
- * Hook to get dynamic page routes from workspace config
- * Returns pages from workspaces that have pages (tool workspaces)
+ * Hook to get dynamic page routes from workspace config.
+ * Each page maps to one route:
+ *   - page.slug present → `${workspacePath}/${slug}`  (e.g. /my/board)
+ *   - page.slug absent  → `workspacePath`             (e.g. /mating — legacy)
  */
 function usePageRoutes() {
   useSignals();
@@ -185,38 +162,81 @@ function usePageRoutes() {
       workspaceId: string;
       pageConfig: any;
       workspaceConfig: any;
+      isPublic: boolean;
     }> = [];
 
-    // Find workspaces with pages (tool workspaces)
     workspaces.forEach((workspace: any) => {
-      if (workspace.pages && workspace.path) {
-        // Get pages from workspace
-        const pages = Array.isArray(workspace.pages)
-          ? workspace.pages
-          : Object.values(workspace.pages);
+      if (!workspace.pages || !workspace.path) return;
 
-        // Find default page or first page
-        const defaultPage = pages.find((p: any) => p.isDefault) || pages[0];
+      const workspacePath = workspace.path;
+      const workspaceId = workspace.id || workspace.configKey;
+      const workspaceIsPublic = workspace.isPublic ?? true;
 
-        if (defaultPage?.component) {
-          pageRoutes.push({
-            path: workspace.path.replace(/^\//, ''), // Remove leading slash
-            component: defaultPage.component,
-            workspaceId: workspace.id || workspace.configKey,
-            pageConfig: defaultPage,
-            workspaceConfig: workspace,
-          });
-        }
-      }
+      const pages = Array.isArray(workspace.pages)
+        ? workspace.pages
+        : Object.values(workspace.pages);
+
+      pages.forEach((page: any) => {
+        if (!page?.component) return;
+        const resolved = page.slug
+          ? `${workspacePath.replace(/^\//, '')}/${page.slug}`
+          : workspacePath.replace(/^\//, '');
+
+        pageRoutes.push({
+          path: resolved,
+          component: page.component,
+          workspaceId,
+          pageConfig: page,
+          workspaceConfig: workspace,
+          isPublic: page.isPublic ?? workspaceIsPublic,
+        });
+      });
     });
 
     return pageRoutes;
   }, [appStore.isDataLoaded.value, appStore.workspaces.value]);
 }
 
+/**
+ * Workspace-root redirects: `/my` → default child of the workspace.
+ *
+ * Skips workspaces whose default child has no slug — those pages live AT
+ * the workspace path (legacy tool layout: /mating, /billing, …), so no
+ * redirect is needed.
+ */
+function useWorkspaceRedirects() {
+  useSignals();
+
+  return useMemo(() => {
+    if (!appStore.isDataLoaded.value) {
+      return [] as Array<{ from: string; to: string }>;
+    }
+
+    const workspaces = appStore.workspaces.value;
+    const redirects: Array<{ from: string; to: string }> = [];
+
+    workspaces.forEach((workspace: any) => {
+      const workspacePath = workspace.path || '/';
+      if (workspacePath === '/') return; // root has its own index redirect
+
+      const items = getWorkspaceItems(workspace);
+      const target = getDefaultWorkspaceItem(items);
+      if (!target || !target.slug) return; // slug-less page lives at workspace.path
+
+      redirects.push({
+        from: workspacePath.replace(/^\//, ''),
+        to: resolveItemPath(workspacePath, target),
+      });
+    });
+
+    return redirects;
+  }, [appStore.isDataLoaded.value, appStore.workspaces.value]);
+}
+
 export function AppRouter() {
-  const { routes: spaceConfigs, defaultSlug, workspaceRedirects } = useSpaceRoutes();
+  const { routes: spaceConfigs, defaultSlug } = useSpaceRoutes();
   const pageRoutes = usePageRoutes();
+  const workspaceRedirects = useWorkspaceRedirects();
 
   return (
     <BrowserRouter>

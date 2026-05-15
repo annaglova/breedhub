@@ -1,5 +1,6 @@
 import { Icon } from "@/components/shared/Icon";
 import { useWorkspaceSpaces } from "@/hooks/useAppStore";
+import { getWorkspaceItems, resolveItemPath } from "@/utils/workspace-items";
 import type { IconConfig } from "@breedhub/rxdb-store";
 import { Button } from "@ui/components/button";
 import { cn } from "@ui/lib/utils";
@@ -22,33 +23,29 @@ export function Sidebar({
   hideMenu = false,
 }: SidebarProps) {
   const location = useLocation();
-  const { workspace, spaces } = useWorkspaceSpaces();
+  const { workspace } = useWorkspaceSpaces();
 
   // Helper to normalize icon to IconConfig format (same as Header.tsx)
-  const normalizeIcon = (icon: string | IconConfig): IconConfig => {
+  const normalizeIcon = (icon: string | IconConfig | undefined): IconConfig => {
+    if (!icon) return { name: 'Circle', source: 'lucide' };
     if (typeof icon === 'string') {
-      // Legacy string format - assume it's Lucide
       return { name: icon, source: 'lucide' };
     }
-    return icon;
+    return icon as IconConfig;
   };
 
-  // Sort spaces by order parameter, then convert to menu items format
-  const menuItems = spaces
-    .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
-    .map((space: any) => {
-    // Determine the full path based on workspace
-    const basePath = workspace?.path === '/' ? '' : workspace?.path || '';
-    const spacePath = space.path?.startsWith('/') ? space.path : `/${space.path || space.id}`;
-    const fullPath = `${basePath}${spacePath}`;
-
-    return {
-      id: space.id,
-      icon: normalizeIcon(space.icon),
-      label: space.label || space.id,
-      path: fullPath
-    };
-  });
+  // Unified menu = spaces + slug-bearing pages (sidebar can't link to a
+  // slug-less tool page — those are reached via top nav). Sorted by order.
+  const items = getWorkspaceItems(workspace);
+  const workspacePath = workspace?.path || '/';
+  const menuItems = items
+    .filter((item) => !!item.slug)
+    .map((item) => ({
+      id: item.id,
+      icon: normalizeIcon(item.icon as string | IconConfig | undefined),
+      label: item.label || item.id,
+      path: resolveItemPath(workspacePath, item),
+    }));
 
   return (
     <aside className={cn("h-full flex flex-col", className)}>
@@ -70,8 +67,8 @@ export function Sidebar({
         </div>
       )}
 
-      {/* Navigation menu - hidden when hideMenu is true or no spaces */}
-      {!hideMenu && spaces.length > 0 && (
+      {/* Navigation menu - hidden when hideMenu is true or no items */}
+      {!hideMenu && menuItems.length > 0 && (
         <nav className="flex-1 p-4">
           <h2 className="text-primary font-bold text-lg mb-6 mt-6">SPACES</h2>
           <ul className="space-y-1">
