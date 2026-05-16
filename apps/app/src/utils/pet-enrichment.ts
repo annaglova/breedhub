@@ -86,7 +86,7 @@ export async function enrichPetsWithParents(
   for (const parent of parents) {
     parentByKey.set(`${parent.id}|${parent.breed_id}`, {
       name: parent.name || "Unknown",
-      slug: parent.slug,
+      slug: parent.slug as string | undefined,
     });
   }
 

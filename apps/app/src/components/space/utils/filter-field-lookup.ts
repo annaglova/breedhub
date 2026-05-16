@@ -187,17 +187,18 @@ export async function getValueForLabel(
     if (records.length === 0) {
       return null;
     }
-    const match = records.find(
-      (item: Record<string, unknown>) =>
-        normalizeForUrl(String(item[nameField] ?? item.name ?? "")) ===
-        normalizedSearchLabel,
-    );
+    const match = records.find((item) => {
+      const indexed = item as unknown as Record<string, unknown>;
+      return (
+        normalizeForUrl(String(indexed[nameField] ?? indexed.name ?? "")) ===
+        normalizedSearchLabel
+      );
+    });
     if (!match) {
       return null;
     }
-    return String(
-      (match as Record<string, unknown>)[idField] ?? (match as { id: string }).id,
-    );
+    const indexed = match as unknown as Record<string, unknown>;
+    return String(indexed[idField] ?? (match as { id: string }).id);
   } catch (err) {
     console.warn("[getValueForLabel] dictionaryStore fallback error:", err);
     return null;
