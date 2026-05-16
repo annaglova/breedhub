@@ -168,18 +168,17 @@ export async function getValueForLabel(
       if (match) {
         return match[idField];
       }
-
-      if (docs.length > 0) {
-        return null;
-      }
     } catch (err) {
       console.warn("[getValueForLabel] RxDB error:", err);
     }
   }
 
-  // Local-first miss → query through dictionaryStore.getDictionary so the
-  // search hits the in-flight dedup + RxDB write-through, instead of bypassing
-  // both with a direct supabase.from() call.
+  // Local-first MISS → always fall through to dictionaryStore.getDictionary.
+  // We can't distinguish "label genuinely doesn't exist" from "local cache is
+  // partial" (breed has 600+ rows, only a subset gets cached). Returning null
+  // here when the collection had some docs caused raw slugs like
+  // `?breed_id=affenpinscher` to slip through as the filter value and produce
+  // 22P02 "invalid input syntax for uuid" from PostgREST on refresh.
   try {
     const { records } = await dictionaryStore.getDictionary(
       fieldConfig.referencedTable,
