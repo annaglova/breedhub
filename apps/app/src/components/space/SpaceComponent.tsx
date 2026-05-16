@@ -236,6 +236,7 @@ export function SpaceComponent<T extends { id: string }>({
       overscan: currentViewConfig?.overscan || 3,
       skeletonCount: Math.ceil(recordsCount / 2),
       cardClickAction: currentViewConfig?.cardClickAction,
+      fields: currentViewConfig?.fields,
     }),
     [currentViewConfig, recordsCount, viewMode],
   );
@@ -318,6 +319,7 @@ export function SpaceComponent<T extends { id: string }>({
             filterFields,
             filters: [],
             currentFilterValues: {},
+            spaceSlug: config.slug,
           }}
           viewConfig={spaceViewConfig}
           entities={[]}
@@ -375,6 +377,7 @@ export function SpaceComponent<T extends { id: string }>({
               onFiltersApply: handleFiltersApply,
               currentFilterValues,
               showCounter: spaceStore.configReady.value,
+              spaceSlug: config.slug,
             }}
             viewConfig={spaceViewConfig}
             entities={allEntities}

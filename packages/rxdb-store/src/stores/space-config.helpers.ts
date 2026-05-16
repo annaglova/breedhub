@@ -95,6 +95,12 @@ export interface SpaceViewRawConfig extends ConfigRecord {
   overscan?: number;
   recordsCount?: number;
   cardClickAction?: "navigate" | "edit" | "none";
+  /**
+   * Column definitions for table-style views. Each entry becomes one column —
+   * unlike edit-tab field configs, there is no `showInTable` flag because
+   * the presence of an entry already means "show".
+   */
+  fields?: Record<string, Record<string, unknown>>;
 }
 
 export interface SpaceConfig {
@@ -131,6 +137,8 @@ export interface SpaceViewConfig {
   overscan?: number;
   recordsCount?: number;
   cardClickAction?: "navigate" | "edit" | "none";
+  /** Column definitions for table-style views (viewType === "table"). */
+  fields?: Record<string, Record<string, unknown>>;
 }
 
 export interface SpaceSortOption {
@@ -453,6 +461,7 @@ function extractViewConfigs(spaceConfig: SpaceConfig): SpaceViewConfig[] {
       overscan: view.overscan,
       recordsCount: view.recordsCount,
       cardClickAction: view.cardClickAction,
+      fields: view.fields,
     });
   });
 

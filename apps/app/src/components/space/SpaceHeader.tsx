@@ -42,6 +42,7 @@ interface SpaceHeaderProps {
   onFiltersApply?: (values: Record<string, any>) => void;
   currentFilterValues?: Record<string, any>;
   showCounter?: boolean;
+  spaceSlug?: string;
 }
 
 export function SpaceHeader({
@@ -49,6 +50,7 @@ export function SpaceHeader({
   viewTypes,
   viewConfigs,
   onViewChange,
+  spaceSlug,
   entitySchemaName,
   entitiesCount,
   total,
@@ -83,6 +85,7 @@ export function SpaceHeader({
             views={viewTypes || []}
             viewConfigs={viewConfigs}
             onViewChange={onViewChange}
+            spaceSlug={spaceSlug}
           />
         </div>
         {showCounter && (

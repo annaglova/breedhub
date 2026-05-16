@@ -17,12 +17,20 @@ interface ViewChangerProps {
     tooltip?: string;
   }>;
   onViewChange?: (view: string) => void;
+  /**
+   * Current space slug (e.g. "pets"). Used to compute the base path so we
+   * strip only the entity-slug portion of the URL — not the workspace prefix.
+   * Without this, /my/pets/dreamberry would naively get sliced to /my, breaking
+   * private workspaces.
+   */
+  spaceSlug?: string;
 }
 
 export function ViewChanger({
   views = ["list"],
   viewConfigs,
   onViewChange,
+  spaceSlug,
 }: ViewChangerProps) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -33,9 +41,16 @@ export function ViewChanger({
     const newParams = new URLSearchParams(searchParams);
     newParams.set("view", view);
 
-    // When switching to grid/tab view, strip entity slug from path
-    // e.g., /pets/rosalago-mms-ronaldinho → /pets
-    const basePath = location.pathname.split("/").slice(0, 2).join("/");
+    // Strip entity slug from path, keeping the space path intact.
+    // e.g. /my/pets/dreamberry → /my/pets, /pets/rosalago → /pets.
+    // We locate the space slug segment and keep everything up to and including
+    // it. Fallback to the current pathname if the slug isn't found.
+    const segments = location.pathname.split("/");
+    let basePath = location.pathname;
+    if (spaceSlug) {
+      const idx = segments.indexOf(spaceSlug);
+      if (idx >= 0) basePath = segments.slice(0, idx + 1).join("/");
+    }
     navigate(`${basePath}?${newParams.toString()}`);
     onViewChange?.(view);
   };

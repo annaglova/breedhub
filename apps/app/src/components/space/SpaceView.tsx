@@ -1,4 +1,5 @@
 import { ScrollToTopButton } from "@/components/shared/ScrollToTopButton";
+import type { GenericTableFieldConfig } from "@/components/shared/generic-table.helpers";
 import { mediaQueries } from "@/config/breakpoints";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -9,6 +10,7 @@ import { ListCardSkeletonList } from "./EntityListCardWrapper";
 import type { FilterField } from "./filters/FiltersSection";
 import { GridCardSkeleton } from "./GridCardSkeleton";
 import { SpaceEmptyState } from "./SpaceEmptyState";
+import { SpaceTableView } from "./SpaceTableView";
 
 // View configuration interface that matches our config structure
 export interface ViewConfig {
@@ -34,6 +36,20 @@ export interface ViewConfig {
    * edit dialog. "none" disables the click.
    */
   cardClickAction?: "navigate" | "edit" | "none";
+  /**
+   * Column definitions for table-style views. Each entry becomes one column —
+   * presence in the object means "show", no extra flag needed.
+   */
+  fields?: Record<string, GenericTableFieldConfig>;
+}
+
+type LayoutKind = "list" | "grid" | "table";
+
+function getLayoutKind(viewType: string): LayoutKind {
+  const v = viewType.toLowerCase();
+  if (v === "table") return "table";
+  if (["grid", "cards", "tiles", "masonry", "tab"].includes(v)) return "grid";
+  return "list";
 }
 
 interface SpaceViewProps<T> {
@@ -52,16 +68,9 @@ interface SpaceViewProps<T> {
   entityLabelPlural?: string;
 }
 
-// Helper to determine if view should render as grid
-function isGridLayout(viewType: string): boolean {
-  // Grid-like layouts need special handling
-  const gridTypes = ["grid", "cards", "tiles", "masonry", "tab"];
-  return gridTypes.includes(viewType.toLowerCase());
-}
-
 // Get CSS classes for different view types
-function getViewClasses(viewType: string, dividers: boolean, columns: number) {
-  const isGrid = isGridLayout(viewType);
+function getViewClasses(layout: LayoutKind, dividers: boolean, columns: number) {
+  const isGrid = layout === "grid";
 
   // Map column count to Tailwind classes
   const gridColsClass = `grid-cols-${columns}`;
@@ -79,7 +88,45 @@ function getViewClasses(viewType: string, dividers: boolean, columns: number) {
 // Default number of skeleton items to show while loading
 const DEFAULT_SKELETON_COUNT = 8;
 
-export function SpaceView<T extends { id: string }>({
+/**
+ * Dispatcher — routes to the right body component based on layout kind.
+ * Keeps the parent renderless (no hooks) so swapping layout doesn't violate
+ * rules of hooks: each body component owns its own consistent hook order.
+ */
+export function SpaceView<T extends { id: string }>(props: SpaceViewProps<T>) {
+  const layout = getLayoutKind(props.viewConfig.viewType);
+
+  if (layout === "table") {
+    return (
+      <SpaceTableView
+        fields={props.viewConfig.fields ?? {}}
+        entities={props.entities}
+        selectedId={props.selectedId}
+        onEntityClick={props.onEntityClick}
+        onLoadMore={props.onLoadMore}
+        hasMore={props.hasMore}
+        isLoadingMore={props.isLoadingMore}
+        isLoading={props.isLoading}
+        itemHeight={props.viewConfig.itemHeight}
+        overscan={props.viewConfig.overscan}
+        skeletonCount={props.viewConfig.skeletonCount}
+        searchQuery={props.searchQuery}
+        activeFilters={props.activeFilters}
+        onFilterRemove={props.onFilterRemove}
+        onClearAllFilters={props.onClearAllFilters}
+        entityLabelPlural={props.entityLabelPlural}
+      />
+    );
+  }
+
+  return <SpaceListGridView {...props} layout={layout} />;
+}
+
+interface SpaceListGridViewProps<T> extends SpaceViewProps<T> {
+  layout: LayoutKind;
+}
+
+function SpaceListGridView<T extends { id: string }>({
   viewConfig,
   entities,
   selectedId,
@@ -93,14 +140,14 @@ export function SpaceView<T extends { id: string }>({
   onFilterRemove,
   onClearAllFilters,
   entityLabelPlural,
-}: SpaceViewProps<T>) {
+  layout,
+}: SpaceListGridViewProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Get the component dynamically from registry
   const CardComponent = getComponent(viewConfig.component) || FallbackComponent;
 
-  // Calculate layout parameters
-  const isGrid = isGridLayout(viewConfig.viewType);
+  const isGrid = layout === "grid";
 
   // Responsive columns based on screen size (matching old Angular project)
   // lg+ (1280px): 4 cols, md+ (768px): 3 cols, sm+ (640px): 2 cols, <sm: 1 col
@@ -109,11 +156,7 @@ export function SpaceView<T extends { id: string }>({
   const isMoreThanLG = useMediaQuery(mediaQueries.lg);
   const columns = isMoreThanLG ? 4 : isMoreThanMD ? 3 : isMoreThanSM ? 2 : 1;
 
-  const classes = getViewClasses(
-    viewConfig.viewType,
-    viewConfig.dividers,
-    columns
-  );
+  const classes = getViewClasses(layout, viewConfig.dividers, columns);
 
   // Calculate rows for virtualization
   const totalRows = isGrid

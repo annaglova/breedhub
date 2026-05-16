@@ -1,15 +1,19 @@
 import { useSelectedEntity } from "@/contexts/SpaceContext";
 import { useAboveFoldBlock } from "@/contexts/AboveFoldLoadingContext";
-import { dictionaryStore, getChildField, spaceStore, useTabData } from "@breedhub/rxdb-store";
+import { spaceStore, useTabData } from "@breedhub/rxdb-store";
 import { withCrudToast } from "@/utils/crudToast";
 import type {
   DataSourceConfig,
   ReadFromConfig,
 } from "@breedhub/rxdb-store";
 import type { EditFieldConfig } from "@/types/field-config";
+import {
+  buildColumns,
+  enrichRecords as enrichRecordsShared,
+} from "@/components/shared/generic-table.helpers";
 import { useSignals } from "@preact/signals-react/runtime";
 import { Button } from "@ui/components/button";
-import { DataTable, DataTableColumnHeader } from "@ui/components/data-table";
+import { DataTable } from "@ui/components/data-table";
 import {
   Dialog,
   DialogContent,
@@ -26,10 +30,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Lock, MoreVertical, Pencil, SquarePen, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditChildRecordDialog } from "../EditChildRecordDialog";
-import {
-  extractFieldName,
-  getForeignKeyFields,
-} from "./edit-child-table.helpers";
 
 /**
  * Hook to load entity children via readFrom mapping table.
@@ -141,104 +141,6 @@ interface EditChildTableTabProps {
   addPosition?: "top" | "bottom";
 }
 
-function formatCellValue(value: unknown, fieldType?: string): string {
-  if (value == null || value === "") return "";
-
-  if (fieldType === "boolean" || typeof value === "boolean") {
-    return value ? "Yes" : "No";
-  }
-
-  if (fieldType === "date" || fieldType === "datetime") {
-    const date = new Date(value as string);
-    if (!isNaN(date.getTime())) {
-      return fieldType === "datetime"
-        ? date.toLocaleString()
-        : date.toLocaleDateString();
-    }
-  }
-
-  return String(value);
-}
-
-function buildColumns(fields: Record<string, FieldConfig>): ColumnDef<any>[] {
-  return Object.entries(fields)
-    .filter(([, config]) => config.showInTable)
-    .sort((a, b) => (a[1].order ?? a[1].sortOrder ?? 0) - (b[1].order ?? b[1].sortOrder ?? 0))
-    .map(([key, config]) => {
-      const fieldName = extractFieldName(key);
-      return {
-        id: fieldName,
-        accessorFn: (row: any) => getChildField(row, fieldName) ?? "",
-        enableGlobalFilter: !!config.searchable,
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={config.displayName} />
-        ),
-        cell: ({ getValue }) => formatCellValue(getValue(), config.fieldType),
-      };
-    });
-}
-
-/** Resolve FK UUIDs to display names — standalone async function for atomic loading */
-async function enrichRecords(
-  records: any[],
-  fields: Record<string, FieldConfig>,
-): Promise<any[]> {
-  const fkFields = getForeignKeyFields(fields);
-
-  if (fkFields.length === 0) return records;
-
-  const lookups = new Map<string, Map<string, string>>();
-  await Promise.all(
-    fkFields.map(async (fk) => {
-      const ids = new Set<string>();
-      for (const r of records) {
-        const val = getChildField<string>(r, fk.fieldName);
-        if (val) ids.add(val);
-      }
-      if (ids.size === 0) {
-        lookups.set(fk.fieldName, new Map());
-        return;
-      }
-      // Batch fetch via getDictionary's filterByIds path — one `.in(id, [...])`
-      // query instead of N single-row `.eq(id, X).single()` calls. Single-row
-      // fan-out previously exhausted PostgREST's max_locks_per_transaction on
-      // large child lists (53200 "out of shared memory" errors).
-      const { records: fetched } = await dictionaryStore.getDictionary(
-        fk.referencedTable,
-        {
-          nameField: fk.referencedFieldName,
-          filterByIds: [...ids],
-          limit: ids.size,
-        },
-      );
-      const resolved = new Map<string, string>();
-      for (const rec of fetched) {
-        const label =
-          (rec as unknown as Record<string, unknown>)[fk.referencedFieldName] ??
-          rec.name ??
-          '';
-        resolved.set(rec.id, String(label));
-      }
-      lookups.set(fk.fieldName, resolved);
-    }),
-  );
-
-  return records.map((record) => {
-    const enriched = { ...record };
-    if (record.additional) enriched.additional = { ...record.additional };
-    for (const fk of fkFields) {
-      const resolved = lookups.get(fk.fieldName);
-      if (!resolved) continue;
-      if (enriched[fk.fieldName] && resolved.has(enriched[fk.fieldName])) {
-        enriched[fk.fieldName] = resolved.get(enriched[fk.fieldName]);
-      } else if (enriched.additional?.[fk.fieldName] && resolved.has(enriched.additional[fk.fieldName])) {
-        enriched.additional[fk.fieldName] = resolved.get(enriched.additional[fk.fieldName]);
-      }
-    }
-    return enriched;
-  });
-}
-
 /**
  * EditChildTableTab - Child entity table for edit page
  *
@@ -302,7 +204,7 @@ export function EditChildTableTab({
   // the raw array (which would otherwise show as a skeleton flash on refetch).
   const enrichFn = useCallback(async (recs: any[]) => {
     if (!fields) return recs;
-    return enrichRecords(recs, fields);
+    return enrichRecordsShared(recs, fields);
   }, [fields]);
 
   const singleResult = useTabData({
@@ -408,7 +310,7 @@ export function EditChildTableTab({
   const columns = useMemo(() => {
     if (!fields) return [];
 
-    const dataColumns = buildColumns(fields);
+    const dataColumns = buildColumns(fields, { showInTableOnly: true });
 
     // Actions column — config-driven via rowActions
     const hasAnyAction = hasRowEdit || hasRowDelete || hasRowNavigate;
