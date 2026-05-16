@@ -11,8 +11,10 @@ import {
   type EntityFieldConfig,
   type EntityListFilters,
 } from './useEntities.live';
+import type { ResolvedReadFromConfig } from './space/use-entities.read-from';
 
 export type { EntityFieldConfig, EntityListFilters } from './useEntities.live';
+export type { ResolvedReadFromConfig } from './space/use-entities.read-from';
 
 export interface EntityListHookParams {
   recordsCount?: number;
@@ -21,6 +23,19 @@ export interface EntityListHookParams {
   orderBy?: OrderBy;
   enabled?: boolean;
   fieldConfigs?: Record<string, EntityFieldConfig>;
+  /**
+   * When provided, the hook loads entities by reading IDs from a mapping
+   * table scoped to `readFrom.parentId` (e.g. My Pets reads pet IDs from
+   * pet_in_contact where contact_id = currentContactId). The mapping path
+   * skips the global filter scan that would lock all pet partitions, so it
+   * MUST be used for any list of pets that isn't already breed-scoped.
+   *
+   * Disables the ID-First and `live` paths — pagination, sort, and live
+   * updates are not wired here yet because the consuming spaces hold tens
+   * of records, not thousands. Add cursor support later if a mapping-based
+   * list grows past ~500 rows.
+   */
+  readFrom?: ResolvedReadFromConfig;
   /**
    * When true (ID-First mode only), after the initial server load this hook
    * subscribes to entityStore.entityList and re-derives the visible data
@@ -84,6 +99,7 @@ export function useEntities({
   enabled = true,
   fieldConfigs,
   live = false,
+  readFrom,
 }: UseEntitiesParams): EntityListHookResult {
   useSignals();
 
@@ -100,8 +116,10 @@ export function useEntities({
   const [hasMore, setHasMore] = useState(true);
   const isLoadingRef = useRef(false);
 
-  // Determine mode based on filters/orderBy
-  const useIDFirst = Boolean(filters || orderBy);
+  // Determine mode based on filters/orderBy/readFrom — any of them activates the
+  // ID-First path through spaceStore.applyFilters, which is also where readFrom
+  // (mapping-based ID source) is handled.
+  const useIDFirst = Boolean(filters || orderBy || readFrom);
 
   // ID-First mode: loadMore with cursor pagination
   const loadMore = useCallback(async () => {
@@ -123,7 +141,8 @@ export function useEntities({
           limit: recordsCount,
           cursor,
           orderBy: orderBy || { field: 'name', direction: 'asc' },
-          fieldConfigs
+          fieldConfigs,
+          readFrom,
         }
       );
 
@@ -223,7 +242,8 @@ export function useEntities({
             limit: recordsCount,
             cursor: null,
             orderBy: orderBy || { field: 'name', direction: 'asc' },
-            fieldConfigs
+            fieldConfigs,
+            readFrom,
           }
         );
 
@@ -289,7 +309,7 @@ export function useEntities({
       isMounted = false;
       if (unsubscribeLive) unsubscribeLive();
     };
-  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs, live]);
+  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs, live, readFrom]);
 
   // Manual replication mode: Subscribe to entityList (backward compatibility)
   useEffect(() => {

@@ -9,6 +9,7 @@ import { LitterListCard } from './litter/LitterListCard';
 import { NoteTabCard } from './note/NoteTabCard';
 import { PetListCard } from './pet/PetListCard';
 import { PetTabCard } from './pet/PetTabCard';
+import { PetOwnerBreederFilter } from './pet/PetOwnerBreederFilter';
 import { GenericListCard } from './space/GenericListCard';
 
 // Register all components that can be used in views
@@ -42,6 +43,7 @@ export function registerAllComponents() {
   // Pet components
   registerComponent('PetListCard', PetListCard);
   registerComponent('PetTabCard', PetTabCard);
+  registerComponent('PetOwnerBreederFilter', PetOwnerBreederFilter);
 
   // Future components can be added here
   // registerComponent('AnimalListCard', AnimalListCard);

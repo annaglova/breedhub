@@ -43,6 +43,15 @@ interface SpaceHeaderProps {
   currentFilterValues?: Record<string, any>;
   showCounter?: boolean;
   spaceSlug?: string;
+  /** Show the search input. Defaults to true. */
+  search?: boolean;
+  /**
+   * Extra row rendered below the heavy filter chips (e.g. quick-filter chips
+   * for My Pets — owned/bred/all). Resolved by `SpaceComponent` from
+   * `config.quickFilters.component` via the component registry, so SpaceHeader
+   * stays agnostic to the chip implementation.
+   */
+  quickFiltersSlot?: React.ReactNode;
 }
 
 export function SpaceHeader({
@@ -51,6 +60,8 @@ export function SpaceHeader({
   viewConfigs,
   onViewChange,
   spaceSlug,
+  search = true,
+  quickFiltersSlot,
   entitySchemaName,
   entitiesCount,
   total,
@@ -101,15 +112,17 @@ export function SpaceHeader({
       </div>
 
       <div className="mt-4 flex items-center space-x-3">
-        <SearchInput
-          value={searchValue}
-          onValueChange={onSearchChange}
-          placeholder={searchPlaceholder}
-          pill
-          disabled={loading}
-          showClearButton={!loading}
-          className="w-full"
-        />
+        {search && (
+          <SearchInput
+            value={searchValue}
+            onValueChange={onSearchChange}
+            placeholder={searchPlaceholder}
+            pill
+            disabled={loading}
+            showClearButton={!loading}
+            className="w-full"
+          />
+        )}
 
         {canAdd &&
           (loading ? (
@@ -162,6 +175,7 @@ export function SpaceHeader({
         onFiltersApply={onFiltersApply}
         currentFilterValues={currentFilterValues}
       />
+      {quickFiltersSlot && <div className="mt-4">{quickFiltersSlot}</div>}
     </div>
   );
 }

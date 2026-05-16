@@ -39,7 +39,11 @@ export type { IconConfig } from './stores/app-store.signal-store';
 
 // Space Store - Universal dynamic store for all business entities
 export { spaceStore } from './stores/space-store.signal-store';
-export type { UiSpaceConfig } from './stores/space-config.helpers';
+export type {
+  UiSpaceConfig,
+  SpaceQuickFiltersConfig,
+  SpaceQuickFilterMode,
+} from './stores/space-config.helpers';
 
 // Sync Queue Service - Queue-based push (V3)
 export { syncQueueService } from './services/sync-queue.service';
@@ -85,6 +89,7 @@ export type {
   DataSourceType,
   ChildTableConfig,
   ReadFromConfig,
+  ResolvedReadFromConfig,
   DictionaryMergeConfig,
   MainEntityConfig,
   RpcConfig,

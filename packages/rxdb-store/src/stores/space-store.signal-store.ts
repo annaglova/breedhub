@@ -105,6 +105,8 @@ import {
   probeDependentRecords,
   type MappingRow,
 } from './space-mapping.helpers';
+import { applyFiltersViaReadFrom } from './space-readfrom.helpers';
+import type { ResolvedReadFromConfig } from '../types/tab-data.types';
 import {
   fetchOrCacheTotalCount,
 } from './space-total-count.helpers';
@@ -1001,6 +1003,14 @@ class SpaceStore {
       cursor?: string | null;  // ✅ Cursor for IDs query (keyset pagination)
       orderBy?: OrderBy;  // ✅ Use OrderBy interface with tieBreaker support
       fieldConfigs?: FilterFieldConfigMap;
+      /**
+       * Mapping-table source override. When provided, IDs come from
+       * `readFrom.table WHERE readFrom.parentField = readFrom.parentId`
+       * instead of the entity table — used by user-scoped spaces (My Pets)
+       * to keep pet partition pruning intact. Heavy filters still apply on
+       * top through `applyFiltersViaReadFrom`.
+       */
+      readFrom?: ResolvedReadFromConfig;
     }
   ): Promise<HydrateFilteredEntitiesResult<BusinessEntity>> {
     const limit = options?.limit || 30;
@@ -1029,6 +1039,31 @@ class SpaceStore {
     );
     filters = preparedFilters.filters;
     const fieldConfigs = preparedFilters.fieldConfigs;
+
+    // readFrom branch — user-scoped space (e.g. My Pets) sources IDs from a
+    // mapping table instead of the entity table. Required-filter gate is
+    // skipped (scope IS the required filter), and the heavy `filters` apply
+    // in-memory on the small per-user scope.
+    if (options?.readFrom) {
+      return applyFiltersViaReadFrom({
+        entityType,
+        readFrom: options.readFrom,
+        filters,
+        fieldConfigs,
+        orderBy,
+        limit,
+        cursor,
+        loadAllForScope: (et, rf) =>
+          this.loadEntitiesViaMapping(
+            et,
+            rf.table,
+            rf.parentField,
+            rf.parentId,
+            rf.entityIdField,
+            rf.entityPartitionField,
+          ),
+      });
+    }
 
     // Required-filter gate: skip Supabase + offline fallback when any required
     // filter slot is empty. The space UI renders an empty/picker state from

@@ -6,6 +6,8 @@ import { useSpaceLayoutState } from "@/hooks/space/useSpaceLayoutState";
 import { useTotalCountCache } from "@/hooks/space/useTotalCountCache";
 import { useEntitySelection } from "@/hooks/space/useEntitySelection";
 import { useFilterManagement } from "@/hooks/space/useFilterManagement";
+import type { ResolvedReadFromConfig } from "@/hooks/space/use-entities.read-from";
+import { useQuickFilterReadFrom } from "@/hooks/space/use-quick-filter-read-from";
 import { spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
@@ -17,6 +19,7 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
+import { getComponent } from "./componentRegistry";
 import { SpaceDrawer } from "./SpaceDrawer";
 import { SpaceListShell } from "./SpaceListShell";
 
@@ -36,6 +39,7 @@ interface SpaceComponentProps<T> {
         parameter?: string;
       };
     };
+    readFrom?: ResolvedReadFromConfig;
   }) => {
     data: { entities: T[]; total: number } | undefined;
     isLoading: boolean;
@@ -132,6 +136,16 @@ export function SpaceComponent<T extends { id: string }>({
     createMode,
   });
 
+  // Active quick-filter scope (e.g. "owned") from URL ?scope=. Resolver picks
+  // the mode whose slug matches, or the mode with isDefault:true if no scope
+  // is in the URL. The resolved readFrom is passed alongside filters/orderBy
+  // to useEntitiesHook → spaceStore.applyFilters, which knows to source IDs
+  // from the mapping table instead of scanning pet directly.
+  const readFrom = useQuickFilterReadFrom(
+    config?.quickFilters,
+    searchParams.get("scope"),
+  );
+
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {
     data,
@@ -145,6 +159,7 @@ export function SpaceComponent<T extends { id: string }>({
     from: 0,
     filters,
     orderBy,
+    readFrom,
   });
 
   // Get all entities directly from data (no accumulation needed)
@@ -214,6 +229,21 @@ export function SpaceComponent<T extends { id: string }>({
     [isInitialLoad, totalCount, isLoading],
   );
   const drawerContent = children || <Outlet context={drawerOutletContext} />;
+
+  // Quick-filter strip — render the registered component (e.g. PetOwnerBreederFilter)
+  // with the space's quickFilters config. Component decides its own UI; the
+  // chip → URL ?scope= flow is its responsibility. SpaceHeader just hosts the slot.
+  const quickFiltersSlot = useMemo(() => {
+    const qf = config?.quickFilters;
+    if (!qf?.component) return undefined;
+    const QuickFilterComponent = getComponent(qf.component);
+    if (!QuickFilterComponent) {
+      console.warn(`[SpaceComponent] quickFilters.component "${qf.component}" not in registry`);
+      return undefined;
+    }
+    return <QuickFilterComponent config={qf} />;
+  }, [config?.quickFilters]);
+
   const viewChangerConfigs = useMemo(
     () =>
       finalConfig.viewConfigs?.map((viewConfig: {
@@ -320,6 +350,8 @@ export function SpaceComponent<T extends { id: string }>({
             filters: [],
             currentFilterValues: {},
             spaceSlug: config.slug,
+            search: config.search !== false,
+            quickFiltersSlot,
           }}
           viewConfig={spaceViewConfig}
           entities={[]}
@@ -378,6 +410,8 @@ export function SpaceComponent<T extends { id: string }>({
               currentFilterValues,
               showCounter: spaceStore.configReady.value,
               spaceSlug: config.slug,
+              search: config.search !== false,
+              quickFiltersSlot,
             }}
             viewConfig={spaceViewConfig}
             entities={allEntities}

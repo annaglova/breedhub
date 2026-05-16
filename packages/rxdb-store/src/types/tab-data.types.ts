@@ -94,6 +94,16 @@ export interface ReadFromConfig {
 }
 
 /**
+ * `ReadFromConfig` with the parent ID resolved at runtime (e.g. the current
+ * user's contact_id for the My Pets space). Static config in app_config never
+ * holds the parentId because it's user/session-scoped — frontend fills it in
+ * before calling `spaceStore.applyFilters`.
+ */
+export interface ResolvedReadFromConfig extends ReadFromConfig {
+  parentId: string;
+}
+
+/**
  * Dictionary configuration for merge operations
  * Used for type: child_with_dictionary
  */

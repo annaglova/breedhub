@@ -103,6 +103,50 @@ export interface SpaceViewRawConfig extends ConfigRecord {
   fields?: Record<string, Record<string, unknown>>;
 }
 
+/**
+ * One chip in a quick-filter strip. Each mode is a self-contained readFrom
+ * binding — the chip selection picks which table the space reads from.
+ * `parentId` is NOT here because it's user/session-scoped and resolved at
+ * runtime from `QuickFiltersConfig.parentIdSource`.
+ */
+export interface SpaceQuickFilterMode {
+  /**
+   * Stable URL identity of the chip (e.g. "owned"). Lands in `?scope=<slug>`
+   * and is the value the resolver matches against. Required so refactors of
+   * the parent object key (timestamp-based in app_config) never break URLs.
+   * Mirrors `views.viewType` / `views.slug` convention.
+   */
+  slug: string;
+  label?: string;
+  icon?: string;
+  order?: number;
+  /** Picked when no `?scope=` is present in the URL (mirrors view isDefault). */
+  isDefault?: boolean;
+  table: string;
+  parentField: string;
+  entityIdField: string;
+  entityPartitionField?: string;
+}
+
+/**
+ * Quick-filter strip on a space. Owns chip definitions and the shared source
+ * of the runtime `parentId`. The space is the single source of truth — the
+ * chip component just reads `modes` and writes the selected key to URL
+ * (`?scope=<key>`). Default mode is marked on the mode itself via
+ * `isDefault: true`, matching the convention used by views and sortOrder.
+ */
+export interface SpaceQuickFiltersConfig {
+  /** Component name resolved via componentRegistry (e.g. "PetOwnerBreederFilter"). */
+  component: string;
+  /**
+   * Where to resolve `parentId` from at runtime. Currently only
+   * "currentContactId" is recognised; extend as more user-scoped spaces appear.
+   */
+  parentIdSource: "currentContactId";
+  /** Available chips keyed by scope id. */
+  modes: Record<string, SpaceQuickFilterMode>;
+}
+
 export interface SpaceConfig {
   id: string;
   icon?: string;
@@ -113,6 +157,12 @@ export interface SpaceConfig {
   entitySchemaName?: string;
   entitySchemaModel?: string;
   totalFilterKey?: string;
+  /** Hides search input when false (default true). */
+  search?: boolean;
+  /** Hides heavy filter dialog when false (default true). */
+  filtersDialog?: boolean;
+  /** Quick-filter strip + scope-bound readFrom mappings. */
+  quickFilters?: SpaceQuickFiltersConfig;
   fields?: Record<string, FieldConfig>;
   sort_fields?: Record<string, SpaceSortFieldConfig>;
   filter_fields?: Record<string, SpaceFilterFieldConfig>;
@@ -241,6 +291,9 @@ export interface RawSpaceConfig extends ConfigRecord {
   canDelete?: boolean;
   defaultFilters?: Record<string, unknown>;
   isPublic?: boolean;
+  search?: boolean;
+  filtersDialog?: boolean;
+  quickFilters?: SpaceQuickFiltersConfig;
 }
 
 export interface WorkspaceConfig {
@@ -390,6 +443,9 @@ export function parseSpaceConfigurations(
         canDelete: !!space.canDelete,
         defaultFilters: space.defaultFilters,
         isPublic: space.isPublic ?? workspace.isPublic ?? true,
+        search: space.search,
+        filtersDialog: space.filtersDialog,
+        quickFilters: space.quickFilters,
       });
       entityTypes.push(entitySchemaName);
     });

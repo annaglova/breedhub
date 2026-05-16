@@ -12,10 +12,9 @@ export function usePets(
   params: EntityListHookParams = {},
 ): EntityListHookResult {
   return useEntities({
+    ...params,
     entityType: 'pet',
     recordsCount: params.recordsCount || 50,
     from: params.from || 0,
-    filters: params.filters,
-    orderBy: params.orderBy
   });
 }
