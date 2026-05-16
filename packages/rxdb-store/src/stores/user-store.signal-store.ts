@@ -12,7 +12,8 @@ import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
  *   App.tsx → userStore.initialize() (before spaceStore)
  *
  * Usage:
- *   userStore.currentUserId.value  // UUID or null
+ *   userStore.currentUserId.value     // auth.users UUID or null
+ *   userStore.currentContactId.value  // contact.id resolved via contact.user_id, or null
  */
 
 export interface UserProfile {
@@ -22,9 +23,30 @@ export interface UserProfile {
   avatar: string | null;
 }
 
+/**
+ * Look up the contact row tied to the auth user. The mapping is
+ * `contact.user_id = auth.users.id`. Returns null if the user has no
+ * contact yet (new sign-up before onboarding) or on error.
+ */
+async function resolveContactIdForUser(
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('contact')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) {
+    console.warn('[UserStore] Failed to resolve contact for user:', error);
+    return null;
+  }
+  return data?.id ?? null;
+}
+
 class UserStore {
   // Core signals
   currentUserId = signal<string | null>(null);
+  currentContactId = signal<string | null>(null);
   currentUser = signal<UserProfile | null>(null);
   initialized = signal<boolean>(false);
   loading = signal<boolean>(false);
@@ -79,10 +101,19 @@ class UserStore {
       name: user.user_metadata?.full_name || user.user_metadata?.name || user.email || null,
       avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
     };
+    // Resolve contact_id in the background — first paint shouldn't wait for it.
+    // Consumers that depend on it (e.g. My Pets) should react to the signal.
+    void resolveContactIdForUser(user.id).then((contactId) => {
+      // Drop the result if a different user signed in while we were waiting.
+      if (this.currentUserId.value === user.id) {
+        this.currentContactId.value = contactId;
+      }
+    });
   }
 
   private clearUser(): void {
     this.currentUserId.value = null;
+    this.currentContactId.value = null;
     this.currentUser.value = null;
   }
 
