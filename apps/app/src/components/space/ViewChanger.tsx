@@ -8,6 +8,7 @@ import {
 import { LucideIconByName } from "@ui/lib/lucide-icons";
 import { cn } from "@ui/lib/utils";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { computeSpaceBasePath } from "./view-changer.helpers";
 
 interface ViewChangerProps {
   views?: string[];
@@ -41,16 +42,7 @@ export function ViewChanger({
     const newParams = new URLSearchParams(searchParams);
     newParams.set("view", view);
 
-    // Strip entity slug from path, keeping the space path intact.
-    // e.g. /my/pets/dreamberry → /my/pets, /pets/rosalago → /pets.
-    // We locate the space slug segment and keep everything up to and including
-    // it. Fallback to the current pathname if the slug isn't found.
-    const segments = location.pathname.split("/");
-    let basePath = location.pathname;
-    if (spaceSlug) {
-      const idx = segments.indexOf(spaceSlug);
-      if (idx >= 0) basePath = segments.slice(0, idx + 1).join("/");
-    }
+    const basePath = computeSpaceBasePath(location.pathname, spaceSlug);
     navigate(`${basePath}?${newParams.toString()}`);
     onViewChange?.(view);
   };
