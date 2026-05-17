@@ -9,7 +9,7 @@
  *
  * Extracted from SpaceComponent.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { spaceStore } from "@breedhub/rxdb-store";
 import {
@@ -21,10 +21,17 @@ import {
   resolveEntityRouteSelection,
   saveEntityRoute,
 } from "@/utils/entity-navigation";
+import { getPageConfig } from "@/utils/getPageConfig";
+import { getDefaultTabFragment, getTabsConfigFromPage } from "@/utils/tab-config";
 
 interface EntitySelectionConfig {
   entitySchemaName: string;
   entitySchemaModel?: string;
+  // Optional `pages` map from the full SpaceConfig — used to compute the
+  // initial drawer hash so URL has the right tab fragment from the very
+  // first frame (avoids a "no hash → hash" flicker between navigate() and
+  // useTabNavigation's reactive sync).
+  pages?: Record<string, any>;
 }
 
 interface UseEntitySelectionOptions {
@@ -62,6 +69,17 @@ export function useEntitySelection({
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(!!initialSelectedEntityId);
 
+  // Initial drawer hash from the same page SpacePage picks (view → default → first).
+  // Embedded directly in navigate() so URL is correct from first render; the
+  // reactive useTabNavigation hook still owns ongoing hash sync on tab clicks.
+  const defaultDrawerHash = useMemo(() => {
+    const page =
+      getPageConfig(config, { pageType: "view" }) ?? getPageConfig(config);
+    if (!page) return "";
+    const fragment = getDefaultTabFragment(getTabsConfigFromPage(page));
+    return fragment ? `#${fragment}` : "";
+  }, [config]);
+
   // Auto-select first entity for xxl+ screens on initial load (list view only)
   useEffect(() => {
     if (initialSelectedEntityId || createMode || isGridView) return;
@@ -72,7 +90,7 @@ export function useEntitySelection({
           const entity = entities[0];
           const slug = getEntitySlug(entity);
           saveEntityRoute(config, entity, slug);
-          navigate(`${slug}${location.search}#overview`);
+          navigate(`${slug}${location.search}${defaultDrawerHash}`);
         }
       }
     }
@@ -89,6 +107,7 @@ export function useEntitySelection({
     config.entitySchemaName,
     config.entitySchemaModel,
     initialSelectedEntityId,
+    defaultDrawerHash,
   ]);
 
   // Initialize selection from SlugResolver (pretty URLs)
@@ -203,7 +222,7 @@ export function useEntitySelection({
       } else {
         // List view: open drawer within space
         spaceStore.selectEntity(config.entitySchemaName, entity.id);
-        navigate(`${slug}${location.search}#overview`);
+        navigate(`${slug}${location.search}${defaultDrawerHash}`);
       }
     },
     [
@@ -212,6 +231,7 @@ export function useEntitySelection({
       config.entitySchemaModel,
       location.search,
       isGridView,
+      defaultDrawerHash,
     ],
   );
 
