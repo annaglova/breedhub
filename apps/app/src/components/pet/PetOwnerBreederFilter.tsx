@@ -1,6 +1,6 @@
 import { LucideIconByName } from "@ui/lib/lucide-icons";
 import { cn } from "@ui/lib/utils";
-import { spaceStore, type SpaceQuickFiltersConfig } from "@breedhub/rxdb-store";
+import type { SpaceQuickFiltersConfig } from "@breedhub/rxdb-store";
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -34,11 +34,6 @@ export function PetOwnerBreederFilter({ config }: PetOwnerBreederFilterProps) {
 
   const handleClick = useCallback(
     (slug: string) => {
-      // Clear the current selection synchronously BEFORE writing scope so
-      // the list never paints a frame with the stale entity highlighted.
-      // The scope-redirect effect in useEntitySelection will pick the new
-      // first entity once the refetch settles.
-      spaceStore.clearSelection("pet");
       const next = new URLSearchParams(searchParams);
       next.set("scope", slug);
       setSearchParams(next, { replace: true });

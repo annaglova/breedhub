@@ -9,7 +9,7 @@
  *
  * Extracted from SpaceComponent.
  */
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { spaceStore } from "@breedhub/rxdb-store";
 import {
@@ -185,22 +185,7 @@ export function useEntitySelection({
       }
 
       const entityId = routeSelection.entityId;
-      // Block re-selecting the old slug during a scope transition. As soon
-      // as we navigate to a new slug, this guard releases (urlSegment !=
-      // snapshot) and selection updates atomically with the new entity.
-      const blockedByScopeTransition =
-        transitionSlugRef.current !== null &&
-        routeSelection.urlSegment === transitionSlugRef.current;
-      if (!blockedByScopeTransition) {
-        // URL slug has moved past the snapshot — release the gate so
-        // future scope clicks start clean.
-        transitionSlugRef.current = null;
-        if (transitionTimeoutRef.current) {
-          clearTimeout(transitionTimeoutRef.current);
-          transitionTimeoutRef.current = null;
-        }
-      }
-      if (entityId && !blockedByScopeTransition) {
+      if (entityId) {
         const currentSelectedId = spaceStore.getSelectedId(
           config.entitySchemaName,
         );
@@ -261,17 +246,7 @@ export function useEntitySelection({
   // done — keying on isLoading would miss cache hits where loading doesn't
   // flip, and using `entities[0]` would race the wrong (stale) list.
   const entitiesAtScopeChangeRef = useRef<any[] | null>(null);
-  // While a scope chip is in flight, remember the URL slug that was active
-  // at click time. The sync useEffect below skips re-selecting that slug
-  // (which would re-attach the OLD selection from stale entities) until
-  // either the scope-effect navigates to a new slug or a safety timeout
-  // (1.5s) releases the gate so a cache-hit can never wedge the page.
-  const transitionSlugRef = useRef<string | null>(null);
-  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // useLayoutEffect fires synchronously after commit, BEFORE the browser
-  // paints. That lets us run clearSelection in the same frame as the URL
-  // change so the list never paints with the stale entity highlighted.
-  useLayoutEffect(() => {
+  useEffect(() => {
     const currentScope = new URLSearchParams(window.location.search).get("scope");
     const prevScope = prevScopeRef.current;
 
@@ -285,24 +260,6 @@ export function useEntitySelection({
       prevScopeRef.current = currentScope;
       pendingScopeRedirectRef.current = true;
       entitiesAtScopeChangeRef.current = entities;
-
-      const basePathForSnap = computeSpaceBasePath(
-        location.pathname,
-        config.slug,
-      );
-      transitionSlugRef.current = getPathEntitySegment(
-        location.pathname,
-        basePathForSnap,
-      );
-      spaceStore.clearSelection(config.entitySchemaName);
-
-      if (transitionTimeoutRef.current) {
-        clearTimeout(transitionTimeoutRef.current);
-      }
-      transitionTimeoutRef.current = setTimeout(() => {
-        transitionSlugRef.current = null;
-        transitionTimeoutRef.current = null;
-      }, 1500);
     }
 
     if (!pendingScopeRedirectRef.current) return;
@@ -332,23 +289,7 @@ export function useEntitySelection({
     const target = `${basePath}/${firstSlug}${liveSearch}${liveHash}`;
     const current = `${location.pathname}${liveSearch}${liveHash}`;
     if (target !== current) {
-      // Leave the transition gate set; sync useEffect releases it on the
-      // next render once it observes the new urlSegment. Clearing here is
-      // too early — React hasn't committed the navigate yet, so the SAME
-      // render's sync useEffect would still see the OLD pathname and
-      // re-attach the stale selection before the change propagates.
       navigate(target, { replace: true });
-    } else {
-      // First entity of the new scope is already the slug in the URL
-      // (e.g. All → Owned where test-pet sits at the top of both). No
-      // navigation will fire to release the gate, so do it here so sync
-      // useEffect can re-select the now-correct entity instead of leaving
-      // the list with no highlight at all.
-      transitionSlugRef.current = null;
-      if (transitionTimeoutRef.current) {
-        clearTimeout(transitionTimeoutRef.current);
-        transitionTimeoutRef.current = null;
-      }
     }
   }, [
     location.search,
