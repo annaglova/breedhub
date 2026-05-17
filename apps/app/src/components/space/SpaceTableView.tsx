@@ -62,31 +62,9 @@ function getCellValue(row: any, fieldName: string): unknown {
   return getChildField(row, fieldName) ?? row?.[fieldName] ?? "";
 }
 
-export function SpaceTableView<T extends { id: string }>({
-  fields,
-  entities,
-  selectedId,
-  onEntityClick,
-  onLoadMore,
-  hasMore = false,
-  isLoadingMore = false,
-  isLoading = false,
-  itemHeight,
-  overscan,
-  skeletonCount,
-  searchQuery = "",
-  activeFilters,
-  onFilterRemove,
-  onClearAllFilters,
-  entityLabelPlural,
-}: SpaceTableViewProps<T>) {
-  const parentRef = useRef<HTMLDivElement>(null);
-
+export function SpaceTableView<T extends { id: string }>(props: SpaceTableViewProps<T>) {
+  const { fields, entities } = props;
   const columns = useMemo(() => buildColumnSpecs(fields), [fields]);
-  const gridTemplate = useMemo(
-    () => `repeat(${Math.max(columns.length, 1)}, minmax(120px, 1fr))`,
-    [columns.length],
-  );
 
   // FK enrichment — only when fields actually have foreign keys. Otherwise
   // `entities` is rendered directly to avoid a one-frame blank when entities
@@ -108,10 +86,69 @@ export function SpaceTableView<T extends { id: string }>({
     };
   }, [entities, fields, hasFK]);
 
-  // Use enriched copies when ready (FK case), raw entities otherwise. Means
-  // UUIDs may briefly flash before display names appear — acceptable trade-off
-  // for never showing a blank table.
+  // Use enriched copies when ready (FK case), raw entities otherwise.
   const displayRecords = hasFK && enriched ? enriched : entities;
+
+  // Bump a counter whenever the entities array shrinks OR the first id
+  // changes (filter/scope refilter, not pagination append). Used as a
+  // `key` on the inner virtualized body so React unmounts and remounts
+  // the useVirtualizer instance — resets scrollTop and clears the stale
+  // size cache that would otherwise leave the table with broken row
+  // positions (gaps/overlap, totalSize not updating) after a refilter.
+  const remountKeyRef = useRef(0);
+  const prevLenRef = useRef(displayRecords.length);
+  const prevFirstIdRef = useRef<string | undefined>(displayRecords[0]?.id);
+  const firstId = displayRecords[0]?.id;
+  if (
+    displayRecords.length < prevLenRef.current ||
+    firstId !== prevFirstIdRef.current
+  ) {
+    remountKeyRef.current += 1;
+  }
+  prevLenRef.current = displayRecords.length;
+  prevFirstIdRef.current = firstId;
+
+  return (
+    <SpaceTableViewInner
+      key={remountKeyRef.current}
+      {...props}
+      columns={columns}
+      displayRecords={displayRecords}
+    />
+  );
+}
+
+interface SpaceTableViewInnerProps<T> extends SpaceTableViewProps<T> {
+  columns: ColumnSpec[];
+  displayRecords: T[];
+}
+
+function SpaceTableViewInner<T extends { id: string }>({
+  entities,
+  selectedId,
+  onEntityClick,
+  onLoadMore,
+  hasMore = false,
+  isLoadingMore = false,
+  isLoading = false,
+  itemHeight,
+  overscan,
+  skeletonCount,
+  searchQuery = "",
+  activeFilters,
+  onFilterRemove,
+  onClearAllFilters,
+  entityLabelPlural,
+  columns,
+  displayRecords,
+}: SpaceTableViewInnerProps<T>) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const gridTemplate = useMemo(
+    () => `repeat(${Math.max(columns.length, 1)}, minmax(120px, 1fr))`,
+    [columns.length],
+  );
+
   const totalRows = displayRecords.length;
 
   const virtualizer = useVirtualizer({
@@ -134,6 +171,7 @@ export function SpaceTableView<T extends { id: string }>({
     el.addEventListener("scroll", handleScroll);
     return () => el.removeEventListener("scroll", handleScroll);
   }, [handleScroll, hasMore, onLoadMore]);
+
 
   // Skeleton takes priority over "no columns" — during cold load, fields may
   // arrive a render or two after the table mounts (config loads async). Showing
