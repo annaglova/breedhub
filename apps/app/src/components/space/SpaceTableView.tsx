@@ -89,23 +89,8 @@ export function SpaceTableView<T extends { id: string }>(props: SpaceTableViewPr
   // Use enriched copies when ready (FK case), raw entities otherwise.
   const displayRecords = hasFK && enriched ? enriched : entities;
 
-  // Bump a counter only when the entities array SHRINKS — the case that
-  // leaves useVirtualizer with totalSize > new content (last rows render
-  // beyond the container, layout breaks). Growth (pagination, refilter
-  // to a larger set) lets the existing virtualizer handle it normally,
-  // which keeps selection state stable and avoids re-mount flicker
-  // where the new mount paints rows with the stale selectedId before
-  // the sync useEffect updates it.
-  const remountKeyRef = useRef(0);
-  const prevLenRef = useRef(displayRecords.length);
-  if (displayRecords.length < prevLenRef.current) {
-    remountKeyRef.current += 1;
-  }
-  prevLenRef.current = displayRecords.length;
-
   return (
     <SpaceTableViewInner
-      key={remountKeyRef.current}
       {...props}
       columns={columns}
       displayRecords={displayRecords}
