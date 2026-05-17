@@ -7,6 +7,12 @@ export const LEGACY_SORT_QUERY_PARAMS: readonly string[] = [
 export const SPACE_RESERVED_QUERY_PARAMS: readonly string[] = [
   "sort",
   "view",
+  // `scope` is the quick-filter chip selection (e.g. "owned"/"bred"/"all").
+  // Owned by the quick-filter UI, not by the filter-field machinery — so it
+  // must not appear as an active-filter chip (UI duplicate of the selected
+  // quick-filter pill) and must not enter filter persistence / total-count
+  // cache keys as a "filter".
+  "scope",
   ...LEGACY_SORT_QUERY_PARAMS,
 ] as const;
 
