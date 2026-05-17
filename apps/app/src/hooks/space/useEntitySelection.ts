@@ -9,7 +9,7 @@
  *
  * Extracted from SpaceComponent.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { spaceStore } from "@breedhub/rxdb-store";
 import {
@@ -185,7 +185,22 @@ export function useEntitySelection({
       }
 
       const entityId = routeSelection.entityId;
-      if (entityId) {
+      // Block re-selecting the old slug during a scope transition. As soon
+      // as we navigate to a new slug, this guard releases (urlSegment !=
+      // snapshot) and selection updates atomically with the new entity.
+      const blockedByScopeTransition =
+        transitionSlugRef.current !== null &&
+        routeSelection.urlSegment === transitionSlugRef.current;
+      if (!blockedByScopeTransition) {
+        // URL slug has moved past the snapshot — release the gate so
+        // future scope clicks start clean.
+        transitionSlugRef.current = null;
+        if (transitionTimeoutRef.current) {
+          clearTimeout(transitionTimeoutRef.current);
+          transitionTimeoutRef.current = null;
+        }
+      }
+      if (entityId && !blockedByScopeTransition) {
         const currentSelectedId = spaceStore.getSelectedId(
           config.entitySchemaName,
         );
@@ -241,8 +256,22 @@ export function useEntitySelection({
   // the redirect preserves concurrent view/sort/filter writes.
   const prevScopeRef = useRef<string | null | undefined>(undefined);
   const pendingScopeRedirectRef = useRef(false);
-  const sawScopeReloadRef = useRef(false);
-  useEffect(() => {
+  // Entities reference at the moment the scope changed. We hold the redirect
+  // until useEntities returns a NEW reference, which signals the refilter is
+  // done — keying on isLoading would miss cache hits where loading doesn't
+  // flip, and using `entities[0]` would race the wrong (stale) list.
+  const entitiesAtScopeChangeRef = useRef<any[] | null>(null);
+  // While a scope chip is in flight, remember the URL slug that was active
+  // at click time. The sync useEffect below skips re-selecting that slug
+  // (which would re-attach the OLD selection from stale entities) until
+  // either the scope-effect navigates to a new slug or a safety timeout
+  // (1.5s) releases the gate so a cache-hit can never wedge the page.
+  const transitionSlugRef = useRef<string | null>(null);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // useLayoutEffect fires synchronously after commit, BEFORE the browser
+  // paints. That lets us run clearSelection in the same frame as the URL
+  // change so the list never paints with the stale entity highlighted.
+  useLayoutEffect(() => {
     const currentScope = new URLSearchParams(window.location.search).get("scope");
     const prevScope = prevScopeRef.current;
 
@@ -255,38 +284,47 @@ export function useEntitySelection({
     if (scopeJustChanged) {
       prevScopeRef.current = currentScope;
       pendingScopeRedirectRef.current = true;
-      sawScopeReloadRef.current = false;
+      entitiesAtScopeChangeRef.current = entities;
+
+      const basePathForSnap = computeSpaceBasePath(
+        location.pathname,
+        config.slug,
+      );
+      transitionSlugRef.current = getPathEntitySegment(
+        location.pathname,
+        basePathForSnap,
+      );
+      spaceStore.clearSelection(config.entitySchemaName);
+
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+      transitionTimeoutRef.current = setTimeout(() => {
+        transitionSlugRef.current = null;
+        transitionTimeoutRef.current = null;
+      }, 1500);
     }
 
     if (!pendingScopeRedirectRef.current) return;
     if (isGridView || createMode || initialSelectedEntityId) {
       pendingScopeRedirectRef.current = false;
-      sawScopeReloadRef.current = false;
+      entitiesAtScopeChangeRef.current = null;
       return;
     }
 
-    // Wait for a full load cycle for the new scope: useEntities flips
-    // isLoading true (starting refilter) then false (entities are now
-    // the new scope's list). Executing before this two-phase observation
-    // would redirect to the FIRST OF THE OLD scope's list.
-    if (isLoading) {
-      sawScopeReloadRef.current = true;
-      return;
-    }
-    if (!sawScopeReloadRef.current) return;
+    // Wait for useEntities to return a NEW entities reference (refilter
+    // settled for the new scope). Keying on isLoading would miss cache
+    // hits where loading never flips true; comparing references catches
+    // every refetch — same-content arrays would reuse the same reference.
+    if (entities === entitiesAtScopeChangeRef.current) return;
+    if (isLoading) return;
     if (entities.length === 0) return;
 
     pendingScopeRedirectRef.current = false;
-    sawScopeReloadRef.current = false;
+    entitiesAtScopeChangeRef.current = null;
 
-    // Scope effect only runs when the user actually clicked a quick-filter
-    // chip in the drawer, by which point the URL has an entity slug
-    // appended (auto-select or previous click). Strip it unconditionally —
-    // checking against `entities` would fail here because `entities` is
-    // already the NEW scope's list (the prior slug typically isn't in it).
-    const segments = location.pathname.split("/").filter(Boolean);
-    if (segments.length < 2) return;
-    const basePath = "/" + segments.slice(0, -1).join("/");
+    const basePath = computeSpaceBasePath(location.pathname, config.slug);
+    if (!basePath) return;
 
     const firstSlug = getEntitySlug(entities[0]);
     const liveSearch = window.location.search;
@@ -294,6 +332,12 @@ export function useEntitySelection({
     const target = `${basePath}/${firstSlug}${liveSearch}${liveHash}`;
     const current = `${location.pathname}${liveSearch}${liveHash}`;
     if (target !== current) {
+      // Leave the transition gate set; sync useEffect will release it on
+      // the next render once it observes the new urlSegment. Clearing it
+      // here is too early — React hasn't committed the navigate yet, so
+      // the SAME render's sync useEffect would still see the OLD
+      // pathname/urlSegment and re-attach the stale selection before the
+      // pathname change propagates.
       navigate(target, { replace: true });
     }
   }, [
