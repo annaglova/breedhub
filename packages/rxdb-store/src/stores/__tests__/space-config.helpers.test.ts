@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildEntitySchemasMap,
   findMissingRequiredFilters,
+  getSpacesForEntityType,
   getSupabaseSource,
   getEntityFieldsSchema,
   parseSpaceConfigurations,
+  resolveSpaceConfig,
 } from "../space-config.helpers";
 
 afterEach(() => {
@@ -119,7 +121,7 @@ describe("space-config.helpers", () => {
     expect(parsed).not.toBeNull();
     expect(parsed?.entityTypes).toEqual(["pet"]);
     expect(parsed?.entitySchemas.get("pet")?.partition?.keyField).toBe("breed_id");
-    expect(parsed?.spaceConfigs.get("pet")).toMatchObject({
+    expect(parsed?.spaceConfigs.get("pets")).toMatchObject({
       id: "pets",
       label: "Pets",
       entitySchemaName: "pet",
@@ -140,9 +142,181 @@ describe("space-config.helpers", () => {
         },
       },
     });
-    expect(parsed?.spaceConfigs.get("pet")?.fields?.name?.originalConfigKey).toBe(
+    expect(parsed?.spaceConfigs.get("pets")?.fields?.name?.originalConfigKey).toBe(
       "pet_field_name",
     );
+  });
+
+  it("keys space configurations by workspace space object key so same-entity spaces coexist", () => {
+    const parsed = parseSpaceConfigurations({
+      entities: {
+        config_schema_pet: {
+          entitySchemaName: "pet",
+          fields: {},
+        },
+      },
+      workspaces: {
+        public: {
+          spaces: {
+            config_space_111: {
+              id: "pets",
+              slug: "pets",
+              entitySchemaName: "pet",
+            },
+          },
+        },
+        private: {
+          spaces: {
+            space_222: {
+              id: "pets",
+              slug: "pets",
+              entitySchemaName: "pet",
+            },
+          },
+        },
+      },
+    });
+
+    expect(Array.from(parsed?.spaceConfigs.keys() ?? [])).toEqual([
+      "config_space_111",
+      "space_222",
+    ]);
+    expect(parsed?.spaceConfigs.get("config_space_111")).toMatchObject({
+      id: "config_space_111",
+      slug: "pets",
+      entitySchemaName: "pet",
+    });
+    expect(parsed?.spaceConfigs.get("space_222")).toMatchObject({
+      id: "space_222",
+      slug: "pets",
+      entitySchemaName: "pet",
+    });
+    expect(parsed?.spaceConfigs.has("pet")).toBe(false);
+    expect(parsed?.spaceConfigs.has("pets")).toBe(false);
+  });
+
+  it("uses the workspace space object key as the map key instead of space.id", () => {
+    const parsed = parseSpaceConfigurations({
+      entities: {
+        config_schema_pet: {
+          entitySchemaName: "pet",
+          fields: {},
+        },
+      },
+      workspaces: {
+        main: {
+          spaces: {
+            config_space_111: {
+              id: "pets",
+              slug: "pets",
+              entitySchemaName: "pet",
+            },
+          },
+        },
+      },
+    });
+
+    expect(parsed?.spaceConfigs.has("config_space_111")).toBe(true);
+    expect(parsed?.spaceConfigs.has("pets")).toBe(false);
+  });
+
+  it("mirrors the map key into SpaceConfig.id", () => {
+    const parsed = parseSpaceConfigurations({
+      entities: {
+        config_schema_breed: {
+          entitySchemaName: "breed",
+          fields: {},
+        },
+      },
+      workspaces: {
+        main: {
+          spaces: {
+            config_space_breeds: {
+              id: "breeds",
+              slug: "breeds",
+              entitySchemaName: "breed",
+            },
+          },
+        },
+      },
+    });
+
+    const config = parsed?.spaceConfigs.get("config_space_breeds");
+    expect(config?.id).toBe("config_space_breeds");
+    expect(parsed?.spaceConfigs.get(config?.id ?? "")).toBe(config);
+  });
+
+  it("parses a single-space configuration keyed by its object key", () => {
+    const parsed = parseSpaceConfigurations({
+      entities: {
+        config_schema_breed: {
+          entitySchemaName: "breed",
+          fields: {},
+        },
+      },
+      workspaces: {
+        main: {
+          spaces: {
+            config_space_breeds: {
+              id: "breeds",
+              slug: "breeds",
+              entitySchemaName: "breed",
+            },
+          },
+        },
+      },
+    });
+
+    expect(parsed?.entityTypes).toEqual(["breed"]);
+    expect(parsed?.spaceConfigs.get("config_space_breeds")).toMatchObject({
+      id: "config_space_breeds",
+      slug: "breeds",
+      entitySchemaName: "breed",
+    });
+  });
+
+  it("gets all spaces for an entity type case-insensitively", () => {
+    const spaceConfigs = new Map([
+      [
+        "config_space_111",
+        { id: "config_space_111", entitySchemaName: "pet", label: "Pets" },
+      ],
+      [
+        "space_222",
+        { id: "space_222", entitySchemaName: "PET", label: "My Pets" },
+      ],
+      [
+        "space_breeds",
+        { id: "space_breeds", entitySchemaName: "breed", label: "Breeds" },
+      ],
+    ]);
+
+    expect(getSpacesForEntityType(spaceConfigs, "PeT")).toEqual([
+      { id: "config_space_111", entitySchemaName: "pet", label: "Pets" },
+      { id: "space_222", entitySchemaName: "PET", label: "My Pets" },
+    ]);
+  });
+
+  it("returns no spaces for an unknown entity type or empty map", () => {
+    const spaceConfigs = new Map([
+      ["space_breeds", { id: "space_breeds", entitySchemaName: "breed" }],
+    ]);
+
+    expect(getSpacesForEntityType(spaceConfigs, "pet")).toEqual([]);
+    expect(getSpacesForEntityType(new Map(), "pet")).toEqual([]);
+  });
+
+  it("resolves space config by space id with a case-insensitive fallback", () => {
+    const exact = { id: "config_space_111", entitySchemaName: "pet" };
+    const legacy = { id: "Pets", entitySchemaName: "pet" };
+    const spaceConfigs = new Map([
+      ["config_space_111", exact],
+      ["Pets", legacy],
+    ]);
+
+    expect(resolveSpaceConfig(spaceConfigs, "config_space_111")).toBe(exact);
+    expect(resolveSpaceConfig(spaceConfigs, "pets")).toBe(legacy);
+    expect(resolveSpaceConfig(spaceConfigs, "missing")).toBeUndefined();
   });
 
   it("falls back to the base entity name when no VIEW source is configured", () => {
@@ -190,7 +364,7 @@ describe("space-config.helpers", () => {
         },
       });
 
-      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(true);
+      expect(parsed?.spaceConfigs.get("pets")?.isPublic).toBe(true);
     });
 
     it("inherits private visibility from the workspace", () => {
@@ -211,8 +385,8 @@ describe("space-config.helpers", () => {
         },
       });
 
-      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(false);
-      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("pets")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("breeds")?.isPublic).toBe(false);
     });
 
     it("allows a space to override a public workspace as private", () => {
@@ -234,8 +408,8 @@ describe("space-config.helpers", () => {
         },
       });
 
-      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(false);
-      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(true);
+      expect(parsed?.spaceConfigs.get("pets")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("breeds")?.isPublic).toBe(true);
     });
 
     it("allows a space to override a private workspace as public", () => {
@@ -257,8 +431,8 @@ describe("space-config.helpers", () => {
         },
       });
 
-      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(true);
-      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("pets")?.isPublic).toBe(true);
+      expect(parsed?.spaceConfigs.get("breeds")?.isPublic).toBe(false);
     });
 
     it("tags spaces according to their parent workspace across mixed workspaces", () => {
@@ -290,10 +464,10 @@ describe("space-config.helpers", () => {
         },
       });
 
-      expect(parsed?.spaceConfigs.get("pet")?.isPublic).toBe(false);
-      expect(parsed?.spaceConfigs.get("breed")?.isPublic).toBe(false);
-      expect(parsed?.spaceConfigs.get("owner")?.isPublic).toBe(true);
-      expect(parsed?.spaceConfigs.get("litter")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("pets")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("breeds")?.isPublic).toBe(false);
+      expect(parsed?.spaceConfigs.get("owners")?.isPublic).toBe(true);
+      expect(parsed?.spaceConfigs.get("litters")?.isPublic).toBe(false);
     });
   });
 
