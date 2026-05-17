@@ -6,6 +6,7 @@ import { EditPageTemplate } from '@/components/template/EditPageTemplate';
 import { TabPageTemplate } from '@/components/template/TabPageTemplate';
 import { registerAllComponents } from '@/components/registerComponents';
 import { getEntityHook } from '@/hooks/hookRegistry';
+import { getPageConfig } from '@/utils/getPageConfig';
 import {
   appStore,
   entityReplicationService,
@@ -199,30 +200,31 @@ export function SpacePage({ spaceId, entityType, selectedEntityId, selectedParti
   // Get hook from registry
   const useEntitiesHook = getEntityHook(entityType);
 
-  // Get page config from app_config (SpaceStore reads this dynamically)
-  // We just need the component name for drawer
-  const pageComponent = useMemo(() => {
-    if (!appStore.initialized.value) {
-      return 'PublicPageTemplate'; // Default while loading
-    }
-
-    // TODO: Read from app_config when structure is ready
-    // For now, hardcode to PublicPageTemplate
-    // const pageConfig = appStore.getPageConfig(entityType);
-    // return pageConfig?.component || 'PublicPageTemplate';
-
-    return 'PublicPageTemplate';
-  }, [entityType, appStore.initialized.value]);
-
-  // Get component from registry
-  const DetailComponent = getComponent(pageComponent) || PublicPageTemplate;
-
   // Get spaceConfig signal from spaceStore (from app_config in DB)
   // Pass signal itself, not .value - let components subscribe to changes
   const spaceConfigSignal = useMemo(
     () => spaceStore.getSpaceConfigSignal(spaceId),
     [spaceId]
   );
+
+  // Component for the drawer/detail view. Read from config.pages — prefer the
+  // view page (drawer-style detail), fall back to whichever page is marked
+  // isDefault, then first page, then 'PublicPageTemplate' as ultimate fallback
+  // (for spaces with no pages config or before config loads). Component names
+  // resolve through componentRegistry, so swapping templates is config-only.
+  const pageComponent = useMemo(() => {
+    const spaceConfig = spaceConfigSignal.value;
+    if (!spaceConfig) {
+      return 'PublicPageTemplate'; // pre-load fallback
+    }
+    const page =
+      getPageConfig(spaceConfig, { pageType: 'view' }) ??
+      getPageConfig(spaceConfig);
+    return page?.component || 'PublicPageTemplate';
+  }, [spaceConfigSignal.value]);
+
+  // Get component from registry
+  const DetailComponent = getComponent(pageComponent) || PublicPageTemplate;
 
   // For private spaces, subscribe to mutation + pull-with-deltas channels and
   // refresh the totalCount when the server-side state changes. Public spaces
