@@ -29,7 +29,6 @@ export const FILTER_BUILD_RESERVED_QUERY_PARAMS: readonly string[] = [
 
 export const TOTAL_COUNT_RESERVED_QUERY_PARAMS: readonly string[] = [
   ...SPACE_RESERVED_QUERY_PARAMS,
-  "type",
 ] as const;
 
 export interface SpaceStorageKeys {

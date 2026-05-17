@@ -26,6 +26,8 @@ interface SpaceHeaderProps {
   recordsCount: number;
   totalFilterKey?: string;
   totalFilterValue?: any;
+  /** Forwarded to EntitiesCounter so it can render an authoritative "Showing 0". */
+  isInitialLoad?: boolean;
   loading?: boolean;
   searchPlaceholder?: string;
   searchValue: string;
@@ -68,6 +70,7 @@ export function SpaceHeader({
   recordsCount,
   totalFilterKey,
   totalFilterValue,
+  isInitialLoad = false,
   loading = false,
   searchPlaceholder,
   searchValue,
@@ -107,6 +110,7 @@ export function SpaceHeader({
             initialCount={recordsCount}
             totalFilterKey={totalFilterKey}
             totalFilterValue={totalFilterValue}
+            isInitialLoad={isInitialLoad}
           />
         )}
       </div>

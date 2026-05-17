@@ -224,11 +224,16 @@ export function SpaceComponent<T extends { id: string }>({
   // List-empty signal for the drawer Outlet: true when the space finished
   // loading and the filtered result set is zero. Lets the right-pane template
   // swap its "loading" skeleton for an "idle / nothing to show" affordance.
+  //
+  // We key on `allEntities.length`, NOT `totalCount`: for spaces without a
+  // `totalFilterKey` (e.g. /breeds), `totalCount` reflects the unfiltered
+  // server-side count and stays >0 even when an applied URL filter narrows
+  // the local result set to zero — leaving the drawer stuck on a skeleton.
   const drawerOutletContext = useMemo(
     () => ({
-      listIsEmpty: !isInitialLoad && totalCount === 0 && !isLoading,
+      listIsEmpty: !isInitialLoad && allEntities.length === 0 && !isLoading,
     }),
-    [isInitialLoad, totalCount, isLoading],
+    [isInitialLoad, allEntities.length, isLoading],
   );
   const drawerContent = children || <Outlet context={drawerOutletContext} />;
 
@@ -396,6 +401,7 @@ export function SpaceComponent<T extends { id: string }>({
               recordsCount,
               totalFilterKey: config.totalFilterKey,
               totalFilterValue,
+              isInitialLoad,
               searchPlaceholder,
               searchValue,
               onSearchChange: setSearchValue,

@@ -5,6 +5,13 @@ interface EntitiesCounterProps {
   initialCount?: number;
   totalFilterKey?: string;
   totalFilterValue?: string | null;
+  /**
+   * False once data has been fetched at least once. When data resolves with
+   * 0 results, this lets the counter render an authoritative "Showing 0"
+   * instead of being overridden by a stale localStorage `cachedTotal` from
+   * a prior unfiltered load (counter would otherwise show "1 of 1" etc.).
+   */
+  isInitialLoad?: boolean;
 }
 
 /**
@@ -24,7 +31,8 @@ export function EntitiesCounter({
   entityType = 'entity',
   initialCount = 0,
   totalFilterKey,
-  totalFilterValue
+  totalFilterValue,
+  isInitialLoad = false,
 }: EntitiesCounterProps) {
   // If totalFilterKey is required but not selected, show "..." (waiting for filter)
   if (totalFilterKey && !totalFilterValue) {
@@ -97,8 +105,13 @@ export function EntitiesCounter({
         ? Math.min(initialCount, displayTotal)
         : 0;
 
-  // Confirmed empty result — no records and the server total resolved to 0.
-  if (entitiesCount === 0 && total === 0 && cachedTotal === 0) {
+  // Confirmed empty result — client list resolved to 0 entities after data
+  // fetch. The local count beats both `total` (which for spaces without
+  // `totalFilterKey` is the unfiltered server total, not the filtered
+  // count) and `cachedTotal` (stale snapshot of the same unfiltered total).
+  // Without this, switching to a zero-results filter would render
+  // "Showing 1 of 1" because the server "vanity" total still says 1.
+  if (!isInitialLoad && entitiesCount === 0) {
     return (
       <div className="text-sm text-muted-foreground mt-1">
         Showing 0
