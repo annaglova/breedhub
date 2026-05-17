@@ -32,4 +32,30 @@ describe("resolveEntityRouteSelection", () => {
       "current-pet?view=list&pet_type_id=cat#general",
     );
   });
+
+  it("returns no url segment when pathname matches the base path exactly", () => {
+    const result = resolveEntityRouteSelection({
+      pathname: "/my/pets",
+      search: "",
+      hash: "",
+      entities: [{ id: "pet-1", name: "Test Pet", slug: "test-pet" }],
+      isLoading: false,
+      basePath: "/my/pets",
+    });
+
+    expect(result).toEqual({ urlSegment: null });
+  });
+
+  it("reads the url segment after the supplied base path", () => {
+    const result = resolveEntityRouteSelection({
+      pathname: "/my/pets/test-pet",
+      search: "",
+      hash: "",
+      entities: [{ id: "pet-1", name: "Test Pet", slug: "test-pet" }],
+      isLoading: false,
+      basePath: "/my/pets",
+    });
+
+    expect(result.urlSegment).toBe("test-pet");
+  });
 });
