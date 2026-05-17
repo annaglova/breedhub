@@ -21,8 +21,7 @@ import {
   resolveEntityRouteSelection,
   saveEntityRoute,
 } from "@/utils/entity-navigation";
-import { getPageConfig } from "@/utils/getPageConfig";
-import { getDefaultTabFragment, getTabsConfigFromPage } from "@/utils/tab-config";
+import { getInitialDrawerHash } from "@/utils/getInitialDrawerHash";
 
 interface EntitySelectionConfig {
   entitySchemaName: string;
@@ -72,13 +71,7 @@ export function useEntitySelection({
   // Initial drawer hash from the same page SpacePage picks (view → default → first).
   // Embedded directly in navigate() so URL is correct from first render; the
   // reactive useTabNavigation hook still owns ongoing hash sync on tab clicks.
-  const defaultDrawerHash = useMemo(() => {
-    const page =
-      getPageConfig(config, { pageType: "view" }) ?? getPageConfig(config);
-    if (!page) return "";
-    const fragment = getDefaultTabFragment(getTabsConfigFromPage(page));
-    return fragment ? `#${fragment}` : "";
-  }, [config]);
+  const defaultDrawerHash = useMemo(() => getInitialDrawerHash(config), [config]);
 
   // Auto-select first entity for xxl+ screens on initial load (list view only)
   useEffect(() => {

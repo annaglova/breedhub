@@ -319,6 +319,15 @@ describe("space-config.helpers", () => {
     expect(resolveSpaceConfig(spaceConfigs, "missing")).toBeUndefined();
   });
 
+  it("returns undefined for undefined, null, or empty space ids", () => {
+    const config = { id: "pets", entitySchemaName: "pet" };
+    const spaceConfigs = new Map([["pets", config]]);
+
+    expect(resolveSpaceConfig(spaceConfigs, undefined)).toBeUndefined();
+    expect(resolveSpaceConfig(spaceConfigs, null)).toBeUndefined();
+    expect(resolveSpaceConfig(spaceConfigs, "")).toBeUndefined();
+  });
+
   it("falls back to the base entity name when no VIEW source is configured", () => {
     expect(getSupabaseSource("pet")).toBe("pet");
   });
