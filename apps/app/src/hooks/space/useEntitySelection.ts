@@ -9,7 +9,7 @@
  *
  * Extracted from SpaceComponent.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { spaceStore } from "@breedhub/rxdb-store";
 import {
@@ -31,6 +31,32 @@ interface EntitySelectionConfig {
   // first frame (avoids a "no hash → hash" flicker between navigate() and
   // useTabNavigation's reactive sync).
   pages?: Record<string, any>;
+  /**
+   * Space slug (e.g. "pets"). Combined with `location.pathname` to derive
+   * the space base path at runtime: `/<workspace>/<slug>` or `/<slug>`.
+   * Without it, `getPathEntitySegment` misreads workspace slugs as entity
+   * slugs on nested paths (e.g. "/my/pets/test-pet" → "pets" instead of
+   * "test-pet").
+   */
+  slug?: string;
+}
+
+/**
+ * Compute the space base path from the current pathname and space slug.
+ * "/my/pets/test-pet" + slug "pets" → "/my/pets".
+ * "/pets/foo"        + slug "pets" → "/pets".
+ * Returns null when the slug isn't present in the pathname (caller falls
+ * back to legacy heuristic).
+ */
+function computeSpaceBasePath(pathname: string, slug?: string): string | undefined {
+  if (!slug) return undefined;
+  const marker = `/${slug}`;
+  const idx = pathname.indexOf(marker);
+  if (idx === -1) return undefined;
+  const end = idx + marker.length;
+  // Require boundary: end of string OR next char is "/".
+  if (end < pathname.length && pathname[end] !== "/") return undefined;
+  return pathname.slice(0, end);
 }
 
 interface UseEntitySelectionOptions {
@@ -79,7 +105,7 @@ export function useEntitySelection({
 
     if (allEntities.length > 0 && !isLoading && isMoreThan2XL) {
       if (!selectedEntityId) {
-        if (!getPathEntitySegment(location.pathname)) {
+        if (!getPathEntitySegment(location.pathname, computeSpaceBasePath(location.pathname, config.slug))) {
           const entity = entities[0];
           const slug = getEntitySlug(entity);
           saveEntityRoute(config, entity, slug);
@@ -135,6 +161,7 @@ export function useEntitySelection({
     // restore) may have already mutated it within this render. Using the
     // stale closure values would build a `redirectPath` without those
     // params, leaving /my/pets/test-pet bare on a notes→pets transition.
+    const basePath = computeSpaceBasePath(location.pathname, config.slug);
     const routeSelection = resolveEntityRouteSelection({
       pathname: location.pathname,
       search: window.location.search,
@@ -142,6 +169,7 @@ export function useEntitySelection({
       entities,
       isLoading,
       currentSelectedId: spaceStore.getSelectedId(config.entitySchemaName),
+      basePath,
     });
     const hasEntitySegment = !!routeSelection.urlSegment;
 
@@ -181,18 +209,14 @@ export function useEntitySelection({
       spaceStore.clearFullscreen();
 
       // If the URL still carries a slug that no longer maps to any entity
-      // (filter narrowed to zero), strip the last path segment so refresh/back
-      // behave consistently. Works for both root and nested workspace paths
-      // (e.g. /breeds/<slug> → /breeds, /my/pets/<slug> → /my/pets).
-      const segments = location.pathname.split("/");
-      if (segments.length > 2) {
-        segments.pop();
-        const basePath = segments.join("/") || "/";
-        if (basePath !== location.pathname) {
-          navigate(`${basePath}${location.search}${location.hash}`, {
-            replace: true,
-          });
-        }
+      // (filter narrowed to zero), strip back to the space base. Skip the
+      // strip when pathname already IS the space base (no trailing entity
+      // slug to remove) — otherwise we'd navigate away from the list view
+      // (e.g. /my/pets → /my, breaking the page).
+      if (basePath && location.pathname !== basePath) {
+        navigate(`${basePath}${location.search}${location.hash}`, {
+          replace: true,
+        });
       }
     }
   }, [
@@ -204,6 +228,81 @@ export function useEntitySelection({
     allEntities,
     entities,
     isLoading,
+    initialSelectedEntityId,
+    navigate,
+  ]);
+
+  // On quick-filter scope change, redirect to the first entity in the new
+  // scope's list. Without this, `resolveEntityRouteSelection` keeps the
+  // current URL slug whenever it happens to also exist in the new list —
+  // which hides the scope switch from the user. Two-phase: detect change
+  // → arm pending flag; once data has refiltered (isLoading goes false),
+  // navigate to entities[0]. window.location.search is the live URL so
+  // the redirect preserves concurrent view/sort/filter writes.
+  const prevScopeRef = useRef<string | null | undefined>(undefined);
+  const pendingScopeRedirectRef = useRef(false);
+  const sawScopeReloadRef = useRef(false);
+  useEffect(() => {
+    const currentScope = new URLSearchParams(window.location.search).get("scope");
+    const prevScope = prevScopeRef.current;
+
+    if (prevScope === undefined) {
+      prevScopeRef.current = currentScope;
+      return;
+    }
+
+    const scopeJustChanged = prevScope !== currentScope;
+    if (scopeJustChanged) {
+      prevScopeRef.current = currentScope;
+      pendingScopeRedirectRef.current = true;
+      sawScopeReloadRef.current = false;
+    }
+
+    if (!pendingScopeRedirectRef.current) return;
+    if (isGridView || createMode || initialSelectedEntityId) {
+      pendingScopeRedirectRef.current = false;
+      sawScopeReloadRef.current = false;
+      return;
+    }
+
+    // Wait for a full load cycle for the new scope: useEntities flips
+    // isLoading true (starting refilter) then false (entities are now
+    // the new scope's list). Executing before this two-phase observation
+    // would redirect to the FIRST OF THE OLD scope's list.
+    if (isLoading) {
+      sawScopeReloadRef.current = true;
+      return;
+    }
+    if (!sawScopeReloadRef.current) return;
+    if (entities.length === 0) return;
+
+    pendingScopeRedirectRef.current = false;
+    sawScopeReloadRef.current = false;
+
+    // Scope effect only runs when the user actually clicked a quick-filter
+    // chip in the drawer, by which point the URL has an entity slug
+    // appended (auto-select or previous click). Strip it unconditionally —
+    // checking against `entities` would fail here because `entities` is
+    // already the NEW scope's list (the prior slug typically isn't in it).
+    const segments = location.pathname.split("/").filter(Boolean);
+    if (segments.length < 2) return;
+    const basePath = "/" + segments.slice(0, -1).join("/");
+
+    const firstSlug = getEntitySlug(entities[0]);
+    const liveSearch = window.location.search;
+    const liveHash = window.location.hash;
+    const target = `${basePath}/${firstSlug}${liveSearch}${liveHash}`;
+    const current = `${location.pathname}${liveSearch}${liveHash}`;
+    if (target !== current) {
+      navigate(target, { replace: true });
+    }
+  }, [
+    location.search,
+    location.pathname,
+    entities,
+    isLoading,
+    isGridView,
+    createMode,
     initialSelectedEntityId,
     navigate,
   ]);

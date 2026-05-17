@@ -19,6 +19,13 @@ interface ResolveEntityRouteSelectionOptions<T extends EntityNavigationRecord> {
   entities: T[];
   isLoading: boolean;
   currentSelectedId?: string | null;
+  /**
+   * Space base path (e.g. "/pets" or "/my/pets"). When provided, the entity
+   * segment is the part of `pathname` after this prefix. Without it, falls
+   * back to the legacy `segments[2]` heuristic that misreads workspace
+   * slugs as entity slugs on nested paths like "/my/pets".
+   */
+  basePath?: string;
 }
 
 export interface ResolvedEntityRouteSelection {
@@ -50,7 +57,29 @@ export function getSpaceListPath(entityType: string): string | null {
   return spaceConfig?.slug ? `/${spaceConfig.slug}` : null;
 }
 
-export function getPathEntitySegment(pathname: string): string | null {
+/**
+ * Return the entity segment from a URL pathname, relative to a space base
+ * path. For a root-mounted space (`/pets`) the base path is "/pets" and the
+ * entity is the next segment (e.g. "/pets/foo" → "foo"). For a workspace-
+ * mounted space (`/my/pets`) the base path is "/my/pets" and the entity
+ * follows it (e.g. "/my/pets/foo" → "foo", "/my/pets" → null).
+ *
+ * Legacy fallback: when no `basePath` is provided, return `segments[2]`,
+ * which matches the historical "/space/entity" assumption used by call
+ * sites that haven't been migrated yet.
+ */
+export function getPathEntitySegment(
+  pathname: string,
+  basePath?: string,
+): string | null {
+  if (basePath) {
+    const normalizedBase = basePath.endsWith("/") ? basePath.slice(0, -1) : basePath;
+    if (pathname === normalizedBase) return null;
+    const prefix = `${normalizedBase}/`;
+    if (!pathname.startsWith(prefix)) return null;
+    const tail = pathname.slice(prefix.length).split("/")[0];
+    return tail && tail !== "new" ? tail : null;
+  }
   const segment = pathname.split("/")[2];
   return segment && segment !== "new" ? segment : null;
 }
@@ -79,8 +108,9 @@ export function resolveEntityRouteSelection<T extends EntityNavigationRecord>({
   entities,
   isLoading,
   currentSelectedId,
+  basePath,
 }: ResolveEntityRouteSelectionOptions<T>): ResolvedEntityRouteSelection {
-  const urlSegment = getPathEntitySegment(pathname);
+  const urlSegment = getPathEntitySegment(pathname, basePath);
 
   if (!urlSegment) {
     return { urlSegment: null };
