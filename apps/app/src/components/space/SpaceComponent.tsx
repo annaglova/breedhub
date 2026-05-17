@@ -6,6 +6,7 @@ import { useSpaceLayoutState } from "@/hooks/space/useSpaceLayoutState";
 import { useTotalCountCache } from "@/hooks/space/useTotalCountCache";
 import { useEntitySelection } from "@/hooks/space/useEntitySelection";
 import { useFilterManagement } from "@/hooks/space/useFilterManagement";
+import { isListEmpty } from "@/hooks/space/space-list-empty";
 import type { ResolvedReadFromConfig } from "@/hooks/space/use-entities.read-from";
 import { useQuickFilterReadFrom } from "@/hooks/space/use-quick-filter-read-from";
 import { spaceStore } from "@breedhub/rxdb-store";
@@ -231,7 +232,11 @@ export function SpaceComponent<T extends { id: string }>({
   // the local result set to zero — leaving the drawer stuck on a skeleton.
   const drawerOutletContext = useMemo(
     () => ({
-      listIsEmpty: !isInitialLoad && allEntities.length === 0 && !isLoading,
+      listIsEmpty: isListEmpty({
+        isInitialLoad,
+        isLoading,
+        entitiesCount: allEntities.length,
+      }),
     }),
     [isInitialLoad, allEntities.length, isLoading],
   );
