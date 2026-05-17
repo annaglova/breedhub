@@ -332,13 +332,23 @@ export function useEntitySelection({
     const target = `${basePath}/${firstSlug}${liveSearch}${liveHash}`;
     const current = `${location.pathname}${liveSearch}${liveHash}`;
     if (target !== current) {
-      // Leave the transition gate set; sync useEffect will release it on
-      // the next render once it observes the new urlSegment. Clearing it
-      // here is too early — React hasn't committed the navigate yet, so
-      // the SAME render's sync useEffect would still see the OLD
-      // pathname/urlSegment and re-attach the stale selection before the
-      // pathname change propagates.
+      // Leave the transition gate set; sync useEffect releases it on the
+      // next render once it observes the new urlSegment. Clearing here is
+      // too early — React hasn't committed the navigate yet, so the SAME
+      // render's sync useEffect would still see the OLD pathname and
+      // re-attach the stale selection before the change propagates.
       navigate(target, { replace: true });
+    } else {
+      // First entity of the new scope is already the slug in the URL
+      // (e.g. All → Owned where test-pet sits at the top of both). No
+      // navigation will fire to release the gate, so do it here so sync
+      // useEffect can re-select the now-correct entity instead of leaving
+      // the list with no highlight at all.
+      transitionSlugRef.current = null;
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
     }
   }, [
     location.search,
