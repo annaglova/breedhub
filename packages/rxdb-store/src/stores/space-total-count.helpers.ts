@@ -2,6 +2,19 @@ export interface TotalCountCacheKeyOptions {
   defaultFilters?: Record<string, unknown>;
   totalFilterKey?: string | null;
   totalFilterValue?: unknown;
+  /**
+   * Active space id. Folds into the cache key so two spaces on the same
+   * entitySchemaName (public /pets vs private /my/pets) keep separate
+   * cached counts. Optional for legacy callers — when absent, key omits
+   * the segment and the old shape is preserved.
+   */
+  spaceId?: string;
+  /**
+   * Active quick-filter scope (e.g. "owned"). Each chip on the same space
+   * tracks its own count (Owned 12, Bred 36, All 47), so scope must be in
+   * the key — otherwise switching chips overwrites the cached value.
+   */
+  activeScope?: string | null;
 }
 
 export interface CachedTotalCountState {
@@ -19,6 +32,10 @@ export interface FetchOrCacheTotalCountOptions {
   filters: Record<string, unknown>;
   defaultFilters?: Record<string, unknown>;
   totalFilterKey?: string | null;
+  /** Active space id — folds into cache key to keep spaces separate. */
+  spaceId?: string;
+  /** Active quick-filter scope — folds into cache key (Owned/Bred/All each cache separately). */
+  activeScope?: string | null;
   ttlMs: number;
   /**
    * When false, treat the cached value as a stale-while-revalidate hint:
@@ -58,15 +75,23 @@ export function buildTotalCountCacheKey(
     defaultFilters = {},
     totalFilterKey,
     totalFilterValue,
+    spaceId,
+    activeScope,
   }: TotalCountCacheKeyOptions = {},
 ): string {
   const defaultFiltersSuffix = buildDefaultFiltersSuffix(defaultFilters);
+  // Prefix kept blank-by-default so existing keys aren't disturbed for
+  // unmigrated call sites. spaceId/activeScope only show up when callers
+  // pass them — public /pets and private /my/pets each end up with their
+  // own slot, and Owned/Bred/All chips each get their own count.
+  const spacePrefix = spaceId ? `s_${spaceId}_` : "";
+  const scopePrefix = activeScope ? `sc_${activeScope}_` : "";
 
   if (totalFilterKey && totalFilterValue) {
-    return `totalCount_${entityType}_${totalFilterKey}_${totalFilterValue}${defaultFiltersSuffix}`;
+    return `totalCount_${spacePrefix}${scopePrefix}${entityType}_${totalFilterKey}_${totalFilterValue}${defaultFiltersSuffix}`;
   }
 
-  return `totalCount_${entityType}${defaultFiltersSuffix}`;
+  return `totalCount_${spacePrefix}${scopePrefix}${entityType}${defaultFiltersSuffix}`;
 }
 
 export function getTotalCountFilterInfo(
@@ -157,6 +182,8 @@ export async function fetchOrCacheTotalCount(
     defaultFilters: options.defaultFilters,
     totalFilterKey: options.totalFilterKey,
     totalFilterValue,
+    spaceId: options.spaceId,
+    activeScope: options.activeScope,
   });
 
   let cachedRaw: string | null = null;

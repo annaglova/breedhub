@@ -1224,6 +1224,8 @@ class SpaceStore {
           filters,
           defaultFilters,
           totalFilterKey: spaceConfig?.totalFilterKey,
+          spaceId: options?.spaceId ?? spaceConfig?.id,
+          activeScope: options?.activeScope,
           ttlMs: TOTAL_COUNT_TTL_MS,
           isPublic: spaceConfig?.isPublic !== false,
           readCache: (key) => {
@@ -3671,11 +3673,16 @@ class SpaceStore {
     const defaultFilters = spaceConfig.defaultFilters ?? {};
     const isPublic = spaceConfig.isPublic !== false;
 
+    // doRefreshTotalFromServer doesn't have spaceId/activeScope yet — for
+    // CRUD-driven refreshes from public spaces it's the legacy first-match
+    // path. Pass spaceConfig.id so at least cache-bust is space-specific
+    // when only one space targets this entity.
     await fetchOrCacheTotalCount({
       entityType,
       filters,
       defaultFilters,
       totalFilterKey: spaceConfig.totalFilterKey,
+      spaceId: spaceConfig.id,
       ttlMs: 0,
       isPublic,
       readCache: () => null, // bypass cache hit — force fresh fetch
