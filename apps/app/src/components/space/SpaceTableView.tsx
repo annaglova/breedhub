@@ -89,24 +89,19 @@ export function SpaceTableView<T extends { id: string }>(props: SpaceTableViewPr
   // Use enriched copies when ready (FK case), raw entities otherwise.
   const displayRecords = hasFK && enriched ? enriched : entities;
 
-  // Bump a counter whenever the entities array shrinks OR the first id
-  // changes (filter/scope refilter, not pagination append). Used as a
-  // `key` on the inner virtualized body so React unmounts and remounts
-  // the useVirtualizer instance — resets scrollTop and clears the stale
-  // size cache that would otherwise leave the table with broken row
-  // positions (gaps/overlap, totalSize not updating) after a refilter.
+  // Bump a counter only when the entities array SHRINKS — the case that
+  // leaves useVirtualizer with totalSize > new content (last rows render
+  // beyond the container, layout breaks). Growth (pagination, refilter
+  // to a larger set) lets the existing virtualizer handle it normally,
+  // which keeps selection state stable and avoids re-mount flicker
+  // where the new mount paints rows with the stale selectedId before
+  // the sync useEffect updates it.
   const remountKeyRef = useRef(0);
   const prevLenRef = useRef(displayRecords.length);
-  const prevFirstIdRef = useRef<string | undefined>(displayRecords[0]?.id);
-  const firstId = displayRecords[0]?.id;
-  if (
-    displayRecords.length < prevLenRef.current ||
-    firstId !== prevFirstIdRef.current
-  ) {
+  if (displayRecords.length < prevLenRef.current) {
     remountKeyRef.current += 1;
   }
   prevLenRef.current = displayRecords.length;
-  prevFirstIdRef.current = firstId;
 
   return (
     <SpaceTableViewInner
@@ -298,7 +293,15 @@ function SpaceTableViewInner<T extends { id: string }>({
 
             return (
               <div
-                key={entity.id}
+                // Key by virtualRow position, not entity.id — matches the
+                // list view convention. When the entities array swaps (scope
+                // refilter), this lets React reuse the same DOM at each row
+                // slot and just update props. Keying by entity.id caused a
+                // remount where any row whose id matched the (briefly stale)
+                // selectedId would mount fresh with `bg-primary-50` for one
+                // frame, producing the visible flicker that wasn't there in
+                // the list view.
+                key={virtualRow.key}
                 className={cn(
                   "grid border-b border-slate-200 transition-colors",
                   onEntityClick && "cursor-pointer",
