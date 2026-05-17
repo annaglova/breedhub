@@ -481,8 +481,12 @@ export function getSupabaseSource(entityType: string): string {
  */
 export function resolveSpaceConfig(
   spaceConfigs: Map<string, SpaceConfig>,
-  spaceId: string,
+  spaceId: string | undefined | null,
 ): SpaceConfig | undefined {
+  if (!spaceId) {
+    return undefined;
+  }
+
   const exact = spaceConfigs.get(spaceId);
   if (exact) {
     return exact;

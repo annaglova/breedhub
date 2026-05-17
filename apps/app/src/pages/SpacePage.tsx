@@ -170,8 +170,12 @@ interface SpacePageProps {
    * Active space id (e.g. "space_1778747003891"). The Route builder passes
    * this so SpaceStore can disambiguate when multiple spaces share an
    * entitySchemaName (public /pets, private /my/pets, future marketplace).
+   *
+   * Optional: pretty-URL resolvers (SlugResolver, EditPageResolver,
+   * TabPageResolver, CreatePageResolver) always target the public space
+   * and omit it — SpaceStore then falls back to entitySchemaName lookup.
    */
-  spaceId: string;
+  spaceId?: string;
   entityType: string; // 'breed', 'pet', 'kennel', etc.
   selectedEntityId?: string; // Pre-selected entity ID (from SlugResolver)
   selectedPartitionId?: string; // Partition key value for partitioned tables (e.g., breed_id value for pet)
@@ -201,10 +205,13 @@ export function SpacePage({ spaceId, entityType, selectedEntityId, selectedParti
   const useEntitiesHook = getEntityHook(entityType);
 
   // Get spaceConfig signal from spaceStore (from app_config in DB)
-  // Pass signal itself, not .value - let components subscribe to changes
+  // Pass signal itself, not .value - let components subscribe to changes.
+  // Resolvers omit spaceId — fall back to entityType so SpaceStore can
+  // resolve the public space via entitySchemaName lookup.
+  const spaceLookupKey = spaceId ?? entityType;
   const spaceConfigSignal = useMemo(
-    () => spaceStore.getSpaceConfigSignal(spaceId),
-    [spaceId]
+    () => spaceStore.getSpaceConfigSignal(spaceLookupKey),
+    [spaceLookupKey]
   );
 
   // Component for the drawer/detail view. Read from config.pages — prefer the
