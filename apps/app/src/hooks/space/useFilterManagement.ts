@@ -99,12 +99,22 @@ export function useFilterManagement({
         const parsedFilters = JSON.parse(savedFilters) as Record<string, string>;
 
         const applyFilters = async () => {
-          const newParams = await buildSearchParamsWithResolvedFilters({
+          // Build with an empty seed so we only emit filter-specific keys.
+          const filterOnlyParams = await buildSearchParamsWithResolvedFilters({
             filterFields,
             filterValues: parsedFilters,
-            searchParams,
+            searchParams: new URLSearchParams(),
           });
-          setSearchParams(newParams, { replace: true });
+          // Merge onto the LIVE browser URL (not the stale closure) so
+          // concurrent view/sort writes from useSpaceBrowseState aren't
+          // overwritten. Without this merge, returning to /my/pets dropped
+          // the persisted pet_type_id because the async resolve raced with
+          // view/sort defaulters and each call REPLACES the entire query.
+          const live = new URLSearchParams(window.location.search);
+          for (const [key, value] of filterOnlyParams.entries()) {
+            live.set(key, value);
+          }
+          setSearchParams(live, { replace: true });
         };
 
         applyFilters();

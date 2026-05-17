@@ -130,10 +130,15 @@ export function useEntitySelection({
       return;
     }
 
+    // Read search/hash from the LIVE browser URL — concurrent writes from
+    // useSpaceBrowseState (view/sort) and useFilterManagement (saved filter
+    // restore) may have already mutated it within this render. Using the
+    // stale closure values would build a `redirectPath` without those
+    // params, leaving /my/pets/test-pet bare on a notes→pets transition.
     const routeSelection = resolveEntityRouteSelection({
       pathname: location.pathname,
-      search: location.search,
-      hash: location.hash,
+      search: window.location.search,
+      hash: window.location.hash,
       entities,
       isLoading,
       currentSelectedId: spaceStore.getSelectedId(config.entitySchemaName),

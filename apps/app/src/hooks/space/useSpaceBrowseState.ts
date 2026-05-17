@@ -120,15 +120,18 @@ export function useSpaceBrowseState({
     }
   }, [searchParams, setSearchParams]);
 
+  // Each defaulter merges into the LIVE browser URL (not stale closure)
+  // so concurrent writes from useFilterManagement's async saved-filter
+  // restore aren't clobbered. Without this, going /my/notes → /my/pets
+  // would drop the persisted pet_type_id because each setSearchParams
+  // here would REPLACE the entire query string with view/sort only.
   useEffect(() => {
     if (initialSelectedEntityId || createMode) return;
-
-    if (!searchParams.has("view")) {
-      const nextParams = ensureSearchParam(searchParams, "view", viewMode);
-      if (nextParams) {
-        setSearchParams(nextParams, { replace: true });
-      }
-    }
+    if (!viewMode) return;
+    const live = new URLSearchParams(window.location.search);
+    if (live.has("view")) return;
+    live.set("view", viewMode);
+    setSearchParams(live, { replace: true });
   }, [
     createMode,
     initialSelectedEntityId,
@@ -139,17 +142,11 @@ export function useSpaceBrowseState({
 
   useEffect(() => {
     if (initialSelectedEntityId || createMode) return;
-
-    if (!searchParams.has("sort")) {
-      const nextParams = ensureSearchParam(
-        searchParams,
-        "sort",
-        selectedSortOption?.id,
-      );
-      if (nextParams) {
-        setSearchParams(nextParams, { replace: true });
-      }
-    }
+    if (!selectedSortOption?.id) return;
+    const live = new URLSearchParams(window.location.search);
+    if (live.has("sort")) return;
+    live.set("sort", selectedSortOption.id);
+    setSearchParams(live, { replace: true });
   }, [
     createMode,
     initialSelectedEntityId,
