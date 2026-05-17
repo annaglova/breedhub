@@ -1,5 +1,9 @@
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import {
+  DrawerEmptyAffordance,
+  useDrawerListEmpty,
+} from "@/components/shared/DrawerEmptyAffordance";
+import {
   AboveFoldLoadingProvider,
   useAboveFoldLoadingContext,
   useAllAboveFoldReady,
@@ -35,6 +39,12 @@ interface EditPageTemplateProps {
   spaceConfigSignal?: Signal<any>;
   entityType?: string;
   isCreateMode?: boolean;
+  /**
+   * True when this template is the drawer detail (e.g. /my/pets uses
+   * EditPageTemplate as its drawer view per Slice 1). Drives the
+   * "Nothing to show" idle affordance when the filtered list is empty.
+   */
+  isDrawerMode?: boolean;
 }
 
 /**
@@ -309,6 +319,7 @@ export function EditPageTemplate({
   spaceConfigSignal,
   entityType,
   isCreateMode,
+  isDrawerMode = false,
 }: EditPageTemplateProps) {
   useSignals();
 
@@ -324,6 +335,23 @@ export function EditPageTemplate({
   });
 
   const isEntityFullyLoaded = useEntityFullyLoaded(entityType, selectedEntity);
+  const listIsEmpty = useDrawerListEmpty();
+
+  // Drawer idle state: list pane settled with zero results, no record to
+  // edit. Shows the same "Nothing to show" affordance as PublicPageTemplate
+  // (shared via DrawerEmptyAffordance) so /my/pets and similar edit-only
+  // drawer spaces don't sit on a perpetual form skeleton. Create mode is
+  // intentionally excluded — its form is meaningful with no selection.
+  if (isDrawerMode && !isCreateMode && listIsEmpty && !selectedEntity) {
+    return spaceConfigSignal ? (
+      <SpaceProvider
+        spaceConfigSignal={spaceConfigSignal}
+        selectedEntitySignal={selectedEntitySignal}
+      >
+        <DrawerEmptyAffordance className={className} />
+      </SpaceProvider>
+    ) : null;
+  }
 
   return spaceConfigSignal ? (
     <SpaceProvider
