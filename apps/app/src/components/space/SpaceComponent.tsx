@@ -40,6 +40,8 @@ interface SpaceComponentProps<T> {
       };
     };
     readFrom?: ResolvedReadFromConfig;
+    spaceId?: string;
+    activeScope?: string | null;
   }) => {
     data: { entities: T[]; total: number } | undefined;
     isLoading: boolean;
@@ -141,10 +143,8 @@ export function SpaceComponent<T extends { id: string }>({
   // is in the URL. The resolved readFrom is passed alongside filters/orderBy
   // to useEntitiesHook → spaceStore.applyFilters, which knows to source IDs
   // from the mapping table instead of scanning pet directly.
-  const readFrom = useQuickFilterReadFrom(
-    config?.quickFilters,
-    searchParams.get("scope"),
-  );
+  const activeScope = searchParams.get("scope");
+  const readFrom = useQuickFilterReadFrom(config?.quickFilters, activeScope);
 
   // 🆕 ID-First: useEntities with orderBy + filters enables ID-First pagination
   const {
@@ -160,6 +160,8 @@ export function SpaceComponent<T extends { id: string }>({
     filters,
     orderBy,
     readFrom,
+    spaceId: config?.id,
+    activeScope,
   });
 
   // Get all entities directly from data (no accumulation needed)

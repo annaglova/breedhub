@@ -27,6 +27,7 @@ import {
   getSupabaseSource,
   getMainFilterFieldFromConfig,
   getMainFilterFieldsFromConfig,
+  getSpacesForEntityType,
   parseSpaceConfigurations,
   getSortOptionsFromConfig,
   getViewRecordsCountFromConfig,
@@ -400,21 +401,53 @@ class SpaceStore {
     }
   }
 
-  /** Case-insensitive lookup in spaceConfigs map */
-  resolveSpaceConfig(entityType: string): SpaceConfig | undefined {
-    return resolveSpaceConfig(this.spaceConfigs, entityType);
+  /**
+   * Look up a space config first by spaceId, then by entitySchemaName as a
+   * legacy fallback (returns the first matching space, with a warning).
+   * Detail / tab / edit pages currently address spaces by entityType — they
+   * keep working through the fallback until a future migration plumbs
+   * spaceId through SlugResolver / TabPageResolver too.
+   */
+  resolveSpaceConfig(spaceIdOrEntityType: string): SpaceConfig | undefined {
+    const direct = resolveSpaceConfig(this.spaceConfigs, spaceIdOrEntityType);
+    if (direct) return direct;
+    const matches = getSpacesForEntityType(this.spaceConfigs, spaceIdOrEntityType);
+    if (matches.length === 0) return undefined;
+    if (matches.length > 1) {
+      console.warn(
+        `[SpaceStore] resolveSpaceConfig fell back to entitySchemaName lookup for "${spaceIdOrEntityType}" but ${matches.length} spaces match. Returning "${matches[0].id}". Caller should pass spaceId.`,
+      );
+    }
+    return matches[0];
   }
 
-  /** Space config for entity type (title, permissions, UI config). */
-  getSpaceConfig(entityType: string): any | null {
-    const spaceConfig = this.resolveSpaceConfig(entityType);
+  /**
+   * Space config (title, permissions, UI config). Pass a spaceId when
+   * available — multiple spaces can share an entitySchemaName (public /pets +
+   * private /my/pets + future marketplace) and only spaceId disambiguates.
+   * Falls back to first-matching-space-by-entityType for legacy callers.
+   */
+  getSpaceConfig(spaceIdOrEntityType: string): any | null {
+    const spaceConfig = this.resolveSpaceConfig(spaceIdOrEntityType);
 
     if (!spaceConfig) {
-      console.warn(`[SpaceStore] No space config found for entity: ${entityType}`);
+      console.warn(`[SpaceStore] No space config found for: ${spaceIdOrEntityType}`);
       return null;
     }
 
-    return buildUiSpaceConfig(spaceConfig, entityType);
+    return buildUiSpaceConfig(
+      spaceConfig,
+      spaceConfig.entitySchemaName ?? spaceIdOrEntityType,
+    );
+  }
+
+  /**
+   * All spaces that target an entitySchemaName. Used by the data layer
+   * (entityStores, RxDB collections, replication) which is keyed by entity,
+   * not by space. Returns [] when no space references this entity.
+   */
+  getSpacesForEntityType(entityType: string): SpaceConfig[] {
+    return getSpacesForEntityType(this.spaceConfigs, entityType);
   }
 
   /**
@@ -425,21 +458,23 @@ class SpaceStore {
    * @param viewType - View type (e.g., 'list', 'grid')
    * @returns Number of records configured for this view, or default 50
    */
-  getViewRecordsCount(entityType: string, viewType: string): number {
+  getViewRecordsCount(spaceId: string, viewType: string): number {
+    const config = this.resolveSpaceConfig(spaceId);
     return getViewRecordsCountFromConfig(
-      this.resolveSpaceConfig(entityType),
-      entityType,
+      config,
+      config?.entitySchemaName ?? spaceId,
       viewType,
     );
   }
 
   /** Default view slug from space config (view with isDefault: true, or first view). */
-  getDefaultView(entityType: string): string {
-    return getDefaultViewFromConfig(this.resolveSpaceConfig(entityType), entityType);
+  getDefaultView(spaceId: string): string {
+    const config = this.resolveSpaceConfig(spaceId);
+    return getDefaultViewFromConfig(config, config?.entitySchemaName ?? spaceId);
   }
 
   /** Sort options from space.sort_fields (shared across views). viewType kept for backward compat. */
-  getSortOptions(entityType: string, viewType?: string): Array<{
+  getSortOptions(spaceId: string, viewType?: string): Array<{
     id: string;
     name: string;
     icon?: string;
@@ -453,28 +488,30 @@ class SpaceStore {
       parameter?: string;
     };
   }> {
-    return getSortOptionsFromConfig(this.resolveSpaceConfig(entityType), entityType);
+    const config = this.resolveSpaceConfig(spaceId);
+    return getSortOptionsFromConfig(config, config?.entitySchemaName ?? spaceId);
   }
 
   /**
    * Filter fields from space.filter_fields, excluding mainFilterField entries
    * (those belong to search bar, not the filter modal).
    */
-  getFilterFields(entityType: string, viewType?: string): SpaceFilterField[] {
-    return getFilterFieldsFromConfig(this.resolveSpaceConfig(entityType), entityType);
+  getFilterFields(spaceId: string, viewType?: string): SpaceFilterField[] {
+    const config = this.resolveSpaceConfig(spaceId);
+    return getFilterFieldsFromConfig(config, config?.entitySchemaName ?? spaceId);
   }
 
   /** Main filter field for the search bar (excluded from filter modal). */
-  getMainFilterField(entityType: string): SpaceMainFilterField | null {
-    return getMainFilterFieldFromConfig(this.resolveSpaceConfig(entityType));
+  getMainFilterField(spaceId: string): SpaceMainFilterField | null {
+    return getMainFilterFieldFromConfig(this.resolveSpaceConfig(spaceId));
   }
 
   /**
    * All main filter fields (when multiple mainFilterField: true entries exist,
    * e.g. litter: father_name + mother_name) — searched with OR logic.
    */
-  getMainFilterFields(entityType: string): SpaceMainFilterFieldsResult {
-    return getMainFilterFieldsFromConfig(this.resolveSpaceConfig(entityType));
+  getMainFilterFields(spaceId: string): SpaceMainFilterFieldsResult {
+    return getMainFilterFieldsFromConfig(this.resolveSpaceConfig(spaceId));
   }
 
   /**
@@ -506,8 +543,9 @@ class SpaceStore {
       return this.entityStores.get(entityType) as EntityStore<T>;
     }
 
-    // Check if we have config for this entity (case-insensitive)
-    const hasConfig = !!this.resolveSpaceConfig(entityType);
+    // Check if ANY space targets this entity (data layer concern — one
+    // collection per entityType is shared across spaces).
+    const hasConfig = this.getSpacesForEntityType(entityType).length > 0;
 
     if (!hasConfig) {
       console.error(`[SpaceStore] No space config found for entity type: ${entityType}`);
@@ -563,7 +601,9 @@ class SpaceStore {
       console.warn(`[SpaceStore] Collection ${entityType} exists but is broken, will recreate`);
     }
     
-    const spaceConfig = this.spaceConfigs.get(entityType);
+    // Data layer: schema for this entity. Multiple spaces may target the
+    // same entitySchemaName; pick the first (all share the same fields/schema).
+    const spaceConfig = this.getSpacesForEntityType(entityType)[0];
     if (!spaceConfig) {
       console.error(`[SpaceStore] No space configuration found for ${entityType}`);
       return;
@@ -645,8 +685,10 @@ class SpaceStore {
       if (existingSubscription) {
         existingSubscription.unsubscribe();
       }
+      // Data layer batch size — first matching space (all share entity-level
+      // batching expectations even if UI configs differ per space).
       const expectedBatchSize = getExpectedCollectionBatchSize(
-        this.spaceConfigs.get(entityType),
+        this.getSpacesForEntityType(entityType)[0],
       );
       const subscription = collection.$.subscribe(
         createBufferedEntityChangeHandler(entityStore, expectedBatchSize),
@@ -999,6 +1041,20 @@ class SpaceStore {
     entityType: string,
     filters: FilterMap,
     options?: {
+      /**
+       * Active space id (e.g. "space_1778747003891"). Required so the right
+       * config (defaultFilters, filter_fields, totalFilterKey, isPublic) is
+       * picked when multiple spaces share an entitySchemaName — public /pets
+       * vs private /my/pets vs marketplace /pets all target `pet`. Falls back
+       * to the first matching space for the entityType when omitted, with a
+       * warning, to keep old call sites alive during the migration.
+       */
+      spaceId?: string;
+      /**
+       * Active quick-filter scope (e.g. "owned"). Folds into the totalCount
+       * cache key so each chip (Owned/Bred/All) tracks its own count.
+       */
+      activeScope?: string | null;
       limit?: number;
       cursor?: string | null;  // ✅ Cursor for IDs query (keyset pagination)
       orderBy?: OrderBy;  // ✅ Use OrderBy interface with tieBreaker support
@@ -1024,8 +1080,22 @@ class SpaceStore {
       }
     };
 
-    // Get space config and merge defaultFilters (e.g., type_id for kennel)
-    const spaceConfig = this.spaceConfigs.get(entityType);
+    // Resolve config strictly by spaceId when caller passes it (one space's
+    // settings can differ wildly from another's on the same entity — public
+    // /pets vs private /my/pets). Without spaceId fall back to first match +
+    // warn — bridge for un-migrated call sites.
+    const spaceConfig = options?.spaceId
+      ? this.resolveSpaceConfig(options.spaceId)
+      : (() => {
+          const first = this.getSpacesForEntityType(entityType)[0];
+          if (first) {
+            console.warn(
+              `[SpaceStore] applyFilters called without spaceId for "${entityType}". ` +
+                `Falling back to first matching space "${first.id}". Caller should pass options.spaceId.`,
+            );
+          }
+          return first;
+        })();
     const defaultFilters = spaceConfig?.defaultFilters || {};
     const baseFieldConfigs = options?.fieldConfigs || spaceConfig?.filter_fields || {};
 
@@ -3590,7 +3660,10 @@ class SpaceStore {
   }
 
   private async doRefreshTotalFromServer(entityType: string): Promise<void> {
-    const spaceConfig = this.spaceConfigs.get(entityType);
+    // Per-space totalCount refresh is not yet plumbed through CRUD/replication
+    // callers; pick the first matching space so the legacy refresh keeps
+    // working. Task: thread spaceId through refreshTotalFromServer too.
+    const spaceConfig = this.getSpacesForEntityType(entityType)[0];
     const entityStore = this.entityStores.get(entityType);
     if (!spaceConfig || !entityStore) return;
 

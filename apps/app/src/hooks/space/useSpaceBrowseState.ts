@@ -30,11 +30,11 @@ export function useSpaceBrowseState({
     if (!spaceStore.configReady.value || !config) {
       return "list";
     }
-    return spaceStore.getDefaultView(config.entitySchemaName);
+    return spaceStore.getDefaultView(config.id);
   }, [config, config?.entitySchemaName, spaceStore.configReady.value]);
 
   const { viewStorageKey, sortStorageKey, filtersStorageKey } =
-    getSpaceStorageKeys(config.entitySchemaName);
+    getSpaceStorageKeys(config.id);
 
   const viewMode = useMemo(() => {
     const urlView = searchParams.get("view");
@@ -57,35 +57,35 @@ export function useSpaceBrowseState({
     if (!spaceStore.configReady.value) {
       return 30;
     }
-    return spaceStore.getViewRecordsCount(config.entitySchemaName, viewMode);
+    return spaceStore.getViewRecordsCount(config.id, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
   const sortOptions = useMemo(() => {
     if (!spaceStore.configReady.value) {
       return [];
     }
-    return spaceStore.getSortOptions(config.entitySchemaName, viewMode);
+    return spaceStore.getSortOptions(config.id, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
   const filterFields = useMemo(() => {
     if (!spaceStore.configReady.value) {
       return [];
     }
-    return spaceStore.getFilterFields(config.entitySchemaName, viewMode);
+    return spaceStore.getFilterFields(config.id, viewMode);
   }, [config.entitySchemaName, viewMode, spaceStore.configReady.value]);
 
   const mainFilterField = useMemo(() => {
     if (!spaceStore.configReady.value) {
       return null;
     }
-    return spaceStore.getMainFilterField(config.entitySchemaName);
+    return spaceStore.getMainFilterField(config.id);
   }, [config.entitySchemaName, spaceStore.configReady.value]);
 
   const mainFilterFieldsResult = useMemo(() => {
     if (!spaceStore.configReady.value) {
       return { fields: [], searchSlug: undefined };
     }
-    return spaceStore.getMainFilterFields(config.entitySchemaName);
+    return spaceStore.getMainFilterFields(config.id);
   }, [config.entitySchemaName, spaceStore.configReady.value]);
 
   const mainFilterFields = mainFilterFieldsResult.fields;

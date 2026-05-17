@@ -112,18 +112,22 @@ function useSpaceRoutes() {
       const workspaceIsPublic = workspace.isPublic ?? true;
 
       if (workspace.spaces) {
-        const spaces = Array.isArray(workspace.spaces)
-          ? workspace.spaces
-          : Object.values(workspace.spaces);
+        // Keep the object key — it's the only stable unique id of a space.
+        // `space.id` and `space.slug` are semantic ("pets") and repeat
+        // across workspaces (public /pets and private /my/pets both have
+        // id="pets"), so they can't be used as space identifiers.
+        const spaceEntries: Array<[string, any]> = Array.isArray(workspace.spaces)
+          ? workspace.spaces.map((space: any, i: number) => [space.id || String(i), space])
+          : Object.entries(workspace.spaces);
 
-        spaces.forEach((space: any) => {
+        spaceEntries.forEach(([spaceKey, space]) => {
           if (space.slug && space.entitySchemaName) {
             const fullPath = isRootWorkspace
               ? space.slug
               : `${workspacePath.replace(/^\//, '')}/${space.slug}`;
 
             spaceRoutes.push({
-              id: space.id || space.slug,
+              id: spaceKey,
               path: fullPath,
               slug: space.slug,
               entitySchemaName: space.entitySchemaName,
@@ -290,7 +294,7 @@ export function AppRouter() {
               <Route
                 key={`${space.workspaceId}-${space.id}`}
                 path={`${space.path}/*`}
-                element={<SpacePage entityType={space.entitySchemaName} />}
+                element={<SpacePage spaceId={space.id} entityType={space.entitySchemaName} />}
               />
             ))}
 
@@ -317,7 +321,7 @@ export function AppRouter() {
                 <Route
                   key={`${space.workspaceId}-${space.id}`}
                   path={`${space.path}/*`}
-                  element={<SpacePage entityType={space.entitySchemaName} />}
+                  element={<SpacePage spaceId={space.id} entityType={space.entitySchemaName} />}
                 />
               ))}
 

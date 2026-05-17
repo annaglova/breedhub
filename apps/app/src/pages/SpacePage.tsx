@@ -165,6 +165,12 @@ function SelectedEntityContent({
 }
 
 interface SpacePageProps {
+  /**
+   * Active space id (e.g. "space_1778747003891"). The Route builder passes
+   * this so SpaceStore can disambiguate when multiple spaces share an
+   * entitySchemaName (public /pets, private /my/pets, future marketplace).
+   */
+  spaceId: string;
   entityType: string; // 'breed', 'pet', 'kennel', etc.
   selectedEntityId?: string; // Pre-selected entity ID (from SlugResolver)
   selectedPartitionId?: string; // Partition key value for partitioned tables (e.g., breed_id value for pet)
@@ -187,7 +193,7 @@ interface SpacePageProps {
  * Usage in AppRouter:
  * <Route path="breeds/*" element={<SpacePage entityType="breed" />} />
  */
-export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug, tabSlug, editMode, createMode }: SpacePageProps) {
+export function SpacePage({ spaceId, entityType, selectedEntityId, selectedPartitionId, selectedPartitionField, selectedSlug, tabSlug, editMode, createMode }: SpacePageProps) {
   useSignals();
 
   // Get hook from registry
@@ -214,8 +220,8 @@ export function SpacePage({ entityType, selectedEntityId, selectedPartitionId, s
   // Get spaceConfig signal from spaceStore (from app_config in DB)
   // Pass signal itself, not .value - let components subscribe to changes
   const spaceConfigSignal = useMemo(
-    () => spaceStore.getSpaceConfigSignal(entityType),
-    [entityType]
+    () => spaceStore.getSpaceConfigSignal(spaceId),
+    [spaceId]
   );
 
   // For private spaces, subscribe to mutation + pull-with-deltas channels and

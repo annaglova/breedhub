@@ -24,6 +24,19 @@ export interface EntityListHookParams {
   enabled?: boolean;
   fieldConfigs?: Record<string, EntityFieldConfig>;
   /**
+   * Active space id. Required so the right space config (defaultFilters,
+   * filter_fields, totalFilterKey) is picked when an entitySchemaName is
+   * shared across multiple spaces (e.g. public /pets vs private /my/pets).
+   * Falls back to first-matching-space-by-entityType when omitted, with a
+   * warning, so unmigrated callers keep working during the rollout.
+   */
+  spaceId?: string;
+  /**
+   * Active quick-filter scope (e.g. "owned"). Folds into the totalCount
+   * cache key so each chip on the same space tracks its own count.
+   */
+  activeScope?: string | null;
+  /**
    * When provided, the hook loads entities by reading IDs from a mapping
    * table scoped to `readFrom.parentId` (e.g. My Pets reads pet IDs from
    * pet_in_contact where contact_id = currentContactId). The mapping path
@@ -100,6 +113,8 @@ export function useEntities({
   fieldConfigs,
   live = false,
   readFrom,
+  spaceId,
+  activeScope,
 }: UseEntitiesParams): EntityListHookResult {
   useSignals();
 
@@ -143,6 +158,8 @@ export function useEntities({
           orderBy: orderBy || { field: 'name', direction: 'asc' },
           fieldConfigs,
           readFrom,
+          spaceId,
+          activeScope,
         }
       );
 
@@ -244,6 +261,8 @@ export function useEntities({
             orderBy: orderBy || { field: 'name', direction: 'asc' },
             fieldConfigs,
             readFrom,
+            spaceId,
+            activeScope,
           }
         );
 
@@ -309,7 +328,7 @@ export function useEntities({
       isMounted = false;
       if (unsubscribeLive) unsubscribeLive();
     };
-  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs, live, readFrom]);
+  }, [entityType, filters, orderBy, recordsCount, useIDFirst, enabled, fieldConfigs, live, readFrom, spaceId, activeScope]);
 
   // Manual replication mode: Subscribe to entityList (backward compatibility)
   useEffect(() => {

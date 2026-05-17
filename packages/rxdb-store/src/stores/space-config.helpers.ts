@@ -421,9 +421,19 @@ export function parseSpaceConfigurations(
         : undefined;
 
       const entitySchemaModel = space.entitySchemaModel || entitySchemaName;
+      // spaceId = object key under workspace.spaces (timestamp-based,
+      // guaranteed unique). `space.id` and `space.slug` are semantic
+      // ("pets") and intentionally repeat across workspaces, so they CANNOT
+      // be used as map keys. config-admin's object keys are the only stable
+      // unique identifier for a space.
+      const spaceId = spaceKey;
 
-      spaceConfigs.set(entitySchemaName, {
-        id: space.id || spaceKey,
+      // Keyed by spaceId (not entitySchemaName) so multiple spaces sharing
+      // one entity — e.g. public /pets and private /my/pets — coexist.
+      // Without this, the second parse overwrites the first and every
+      // consumer of spaceConfigs.get() sees one config across both spaces.
+      spaceConfigs.set(spaceId, {
+        id: spaceId,
         icon: space.icon,
         slug: space.slug || space.path?.replace(/^\//, ""),
         path: space.path,
@@ -462,16 +472,23 @@ export function getSupabaseSource(entityType: string): string {
   return ENTITY_VIEW_SOURCES[entityType]?.viewName || entityType;
 }
 
+/**
+ * Look up a space config by space id (e.g. "space_1778747003891"). spaceConfigs
+ * is keyed by space id since 2026-05-17 so that multiple spaces sharing an
+ * entitySchemaName (public /pets + private /my/pets + future marketplace) all
+ * have their own config slot. Case-insensitive fallback covers stable but
+ * lowercase-cased ids ("breeds", "pets") that pre-date the id_prefix scheme.
+ */
 export function resolveSpaceConfig(
   spaceConfigs: Map<string, SpaceConfig>,
-  entityType: string,
+  spaceId: string,
 ): SpaceConfig | undefined {
-  const exact = spaceConfigs.get(entityType);
+  const exact = spaceConfigs.get(spaceId);
   if (exact) {
     return exact;
   }
 
-  const lower = entityType.toLowerCase();
+  const lower = spaceId.toLowerCase();
   for (const [key, config] of spaceConfigs.entries()) {
     if (key.toLowerCase() === lower) {
       return config;
@@ -479,6 +496,25 @@ export function resolveSpaceConfig(
   }
 
   return undefined;
+}
+
+/**
+ * Find all spaces that target a given entitySchemaName. Used by RxDB / replication
+ * layers that key by entity (one collection per entity, shared across spaces).
+ * Returns an array because pet can have public, /my, and marketplace variants.
+ */
+export function getSpacesForEntityType(
+  spaceConfigs: Map<string, SpaceConfig>,
+  entityType: string,
+): SpaceConfig[] {
+  const matches: SpaceConfig[] = [];
+  const target = entityType.toLowerCase();
+  for (const config of spaceConfigs.values()) {
+    if ((config.entitySchemaName ?? "").toLowerCase() === target) {
+      matches.push(config);
+    }
+  }
+  return matches;
 }
 
 export function buildUiSpaceConfig(
