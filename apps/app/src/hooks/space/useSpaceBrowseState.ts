@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo } from "react";
 import type { SetURLSearchParams } from "react-router-dom";
 import { extractFieldName, spaceStore } from "@breedhub/rxdb-store";
 import {
-  ensureSearchParam,
   getSpaceStorageKeys,
   readStorageValue,
   removeLegacySortQueryParams,
@@ -10,6 +9,10 @@ import {
 } from "@/hooks/space/space-query.utils";
 import { useSpaceSearch } from "@/hooks/space/useSpaceSearch";
 import { useSortSelection } from "@/hooks/space/useSortSelection";
+import {
+  mergeDefaultSortParam,
+  mergeDefaultViewParam,
+} from "@/hooks/space/url-merge.utils";
 
 interface UseSpaceBrowseStateOptions {
   config: any;
@@ -127,11 +130,9 @@ export function useSpaceBrowseState({
   // here would REPLACE the entire query string with view/sort only.
   useEffect(() => {
     if (initialSelectedEntityId || createMode) return;
-    if (!viewMode) return;
-    const live = new URLSearchParams(window.location.search);
-    if (live.has("view")) return;
-    live.set("view", viewMode);
-    setSearchParams(live, { replace: true });
+    const nextParams = mergeDefaultViewParam(window.location.search, viewMode);
+    if (!nextParams) return;
+    setSearchParams(nextParams, { replace: true });
   }, [
     createMode,
     initialSelectedEntityId,
@@ -142,11 +143,12 @@ export function useSpaceBrowseState({
 
   useEffect(() => {
     if (initialSelectedEntityId || createMode) return;
-    if (!selectedSortOption?.id) return;
-    const live = new URLSearchParams(window.location.search);
-    if (live.has("sort")) return;
-    live.set("sort", selectedSortOption.id);
-    setSearchParams(live, { replace: true });
+    const nextParams = mergeDefaultSortParam(
+      window.location.search,
+      selectedSortOption?.id,
+    );
+    if (!nextParams) return;
+    setSearchParams(nextParams, { replace: true });
   }, [
     createMode,
     initialSelectedEntityId,

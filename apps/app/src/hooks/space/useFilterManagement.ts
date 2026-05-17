@@ -25,6 +25,7 @@ import {
   removeFilterFromStorage,
 } from "./filter-management.utils";
 import { readStorageValue } from "./space-query.utils";
+import { mergeFilterParamsIntoLiveSearch } from "./url-merge.utils";
 
 interface UseFilterManagementOptions {
   searchParams: URLSearchParams;
@@ -110,11 +111,11 @@ export function useFilterManagement({
           // overwritten. Without this merge, returning to /my/pets dropped
           // the persisted pet_type_id because the async resolve raced with
           // view/sort defaulters and each call REPLACES the entire query.
-          const live = new URLSearchParams(window.location.search);
-          for (const [key, value] of filterOnlyParams.entries()) {
-            live.set(key, value);
-          }
-          setSearchParams(live, { replace: true });
+          const mergedParams = mergeFilterParamsIntoLiveSearch(
+            window.location.search,
+            filterOnlyParams,
+          );
+          setSearchParams(mergedParams, { replace: true });
         };
 
         applyFilters();
