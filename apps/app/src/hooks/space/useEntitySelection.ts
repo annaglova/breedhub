@@ -316,17 +316,22 @@ export function useEntitySelection({
     spaceStore.clearFullscreen();
 
     if (initialSelectedEntityId || createMode) {
-      navigate(getSpaceListPath(config.entitySchemaName) || "/");
+      navigate(
+        `${getSpaceListPath(config.entitySchemaName) || "/"}${location.search}${location.hash}`,
+      );
     } else {
       // Strip the entity slug back to the space base. Previously this
       // used `pathname.split('/').slice(0, 2)`, which on nested
       // workspace paths (/my/pets/test-pet) lopped off everything after
       // /my — landing the user on the dashboard instead of the list.
+      // Preserve search + hash so applied filters/view/sort survive
+      // the close (e.g. /pets/<slug> with `?pet_type_id=dog` returns
+      // to /pets keeping the dog filter chip).
       const basePath =
         computeSpaceBasePath(location.pathname, config.slug) ?? "/";
-      navigate(basePath);
+      navigate(`${basePath}${location.search}${location.hash}`);
     }
-  }, [navigate, location.pathname, initialSelectedEntityId, createMode, config.entitySchemaName, config.slug]);
+  }, [navigate, location.pathname, location.search, location.hash, initialSelectedEntityId, createMode, config.entitySchemaName, config.slug]);
 
   return {
     selectedEntityId,
