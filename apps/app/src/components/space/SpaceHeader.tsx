@@ -116,16 +116,24 @@ export function SpaceHeader({
       </div>
 
       <div className="mt-4 flex items-center space-x-3">
-        {search && (
-          <SearchInput
-            value={searchValue}
-            onValueChange={onSearchChange}
-            placeholder={searchPlaceholder}
-            pill
-            disabled={loading}
-            showClearButton={!loading}
-            className="w-full"
-          />
+        {quickFiltersSlot ? (
+          // Spaces with a quick-filter strip (e.g. /my/pets Owned/Bred/All)
+          // take the row that search would otherwise occupy. Anna decided
+          // search + quick filters won't coexist in the same view; revisit
+          // here if that changes.
+          <div className="flex-1 min-w-0">{quickFiltersSlot}</div>
+        ) : (
+          search && (
+            <SearchInput
+              value={searchValue}
+              onValueChange={onSearchChange}
+              placeholder={searchPlaceholder}
+              pill
+              disabled={loading}
+              showClearButton={!loading}
+              className="w-full"
+            />
+          )
         )}
 
         {canAdd &&
@@ -179,7 +187,6 @@ export function SpaceHeader({
         onFiltersApply={onFiltersApply}
         currentFilterValues={currentFilterValues}
       />
-      {quickFiltersSlot && <div className="mt-4">{quickFiltersSlot}</div>}
     </div>
   );
 }

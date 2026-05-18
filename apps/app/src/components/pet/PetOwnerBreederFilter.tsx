@@ -54,10 +54,10 @@ export function PetOwnerBreederFilter({ config }: PetOwnerBreederFilterProps) {
             onClick={() => handleClick(mode.slug)}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm transition-colors",
-              "border border-secondary-300",
+              "border border-secondary-600",
               isActive
-                ? "bg-secondary-600 text-white border-secondary-600"
-                : "bg-white text-secondary-700 hover:bg-secondary-50",
+                ? "bg-secondary-600 text-white cursor-default"
+                : "bg-transparent text-secondary-600 hover:bg-secondary-600/10 hover:text-secondary-600 cursor-pointer",
             )}
             aria-pressed={isActive}
           >
