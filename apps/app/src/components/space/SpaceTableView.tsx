@@ -342,7 +342,13 @@ function TableHeaderRow({ columns, gridTemplate, sticky }: TableHeaderRowProps) 
   return (
     <div
       className={cn(
-        "grid border-b border-slate-200 bg-white text-xs font-bold uppercase tracking-wide text-secondary",
+        // Match the public-page TabHeader: same translucent header
+        // background + sub-header text colour + display-font weight.
+        // Size sits between the old uppercase caption (text-xs) and the
+        // tab heading (text-2xl) — text-base gives the table some
+        // breathing room without competing with section headings.
+        "grid border-b border-slate-200 bg-header-ground/75 backdrop-blur-sm",
+        "text-base font-display font-semibold tracking-wide text-sub-header-color",
         sticky && "sticky top-0 z-10",
       )}
       style={{ gridTemplateColumns: gridTemplate }}

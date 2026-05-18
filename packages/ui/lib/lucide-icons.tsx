@@ -48,6 +48,7 @@ import {
   Trophy,
   User,
   UserPlus,
+  UserStar,
   Users,
   VenusAndMars,
   type LucideIcon,
@@ -107,6 +108,7 @@ const lucideIconRegistry: Record<string, LucideIcon> = {
   trophy: Trophy,
   user: User,
   userplus: UserPlus,
+  userstar: UserStar,
   users: Users,
   venusandmars: VenusAndMars,
 };
