@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const routerMock = vi.hoisted(() => ({
@@ -94,6 +94,24 @@ function makeOptions(overrides: Partial<HookOptions> = {}): HookOptions {
   };
 }
 
+function resetMocks() {
+  routerMock.navigate.mockReset();
+  storeMock.saveRoute.mockReset();
+  storeMock.getSelectedIdSignal.mockReset();
+  storeMock.getSelectedId.mockReset();
+  storeMock.selectEntity.mockReset();
+  storeMock.clearSelection.mockReset();
+  storeMock.clearFullscreen.mockReset();
+  storeMock.fetchAndSelectEntity.mockReset();
+  storeMock.getSpaceConfig.mockReset();
+
+  storeMock.selectedId = "current-pet";
+  storeMock.selectedSignal.value = "current-pet";
+  storeMock.isFullscreen.value = false;
+  storeMock.getSelectedIdSignal.mockReturnValue(storeMock.selectedSignal);
+  storeMock.getSelectedId.mockImplementation(() => storeMock.selectedId);
+}
+
 function mountAtBred(overrides: Partial<HookOptions> = {}) {
   setLocation("/my/pets/current-pet", "?scope=bred");
 
@@ -102,23 +120,35 @@ function mountAtBred(overrides: Partial<HookOptions> = {}) {
   });
 }
 
+function mountForBackdrop(
+  pathname: string,
+  search = "",
+  hash = "",
+  overrides: Partial<HookOptions> = {},
+) {
+  setLocation(pathname, search, hash);
+
+  const segments = pathname.split("/").filter(Boolean);
+  const entitySlug = segments[segments.length - 1] || currentEntity.slug;
+  const selectedEntity = {
+    id: entitySlug,
+    name: entitySlug,
+    slug: entitySlug,
+  };
+  storeMock.selectedId = selectedEntity.id;
+  storeMock.selectedSignal.value = selectedEntity.id;
+
+  return renderHook((props: HookOptions) => useEntitySelection(props), {
+    initialProps: makeOptions({
+      allEntities: [selectedEntity],
+      ...overrides,
+    }),
+  });
+}
+
 describe("useEntitySelection scope redirect", () => {
   beforeEach(() => {
-    routerMock.navigate.mockReset();
-    storeMock.saveRoute.mockReset();
-    storeMock.getSelectedIdSignal.mockReset();
-    storeMock.getSelectedId.mockReset();
-    storeMock.selectEntity.mockReset();
-    storeMock.clearSelection.mockReset();
-    storeMock.clearFullscreen.mockReset();
-    storeMock.fetchAndSelectEntity.mockReset();
-    storeMock.getSpaceConfig.mockReset();
-
-    storeMock.selectedId = "current-pet";
-    storeMock.selectedSignal.value = "current-pet";
-    storeMock.isFullscreen.value = false;
-    storeMock.getSelectedIdSignal.mockReturnValue(storeMock.selectedSignal);
-    storeMock.getSelectedId.mockImplementation(() => storeMock.selectedId);
+    resetMocks();
   });
 
   it("navigates to the first entity after scope changes and entities refilter", () => {
@@ -251,5 +281,93 @@ describe("useEntitySelection scope redirect", () => {
     rerender(makeOptions({ allEntities, isGridView: true }));
 
     expect(routerMock.navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("handleBackdropClick", () => {
+  beforeEach(() => {
+    resetMocks();
+  });
+
+  it("navigates nested workspace paths back to the space list", () => {
+    const { result } = mountForBackdrop("/my/pets/test-pet");
+    routerMock.navigate.mockClear();
+
+    act(() => {
+      result.current.handleBackdropClick();
+    });
+
+    expect(routerMock.navigate).toHaveBeenCalledWith("/my/pets");
+  });
+
+  it("navigates root-mounted space paths back to the space list", () => {
+    const { result } = mountForBackdrop("/pets/foo");
+    routerMock.navigate.mockClear();
+
+    act(() => {
+      result.current.handleBackdropClick();
+    });
+
+    expect(routerMock.navigate).toHaveBeenCalledWith("/pets");
+  });
+
+  it("preserves search and hash when navigating back to the space list", () => {
+    const search =
+      "?view=list&sort=rating&pet_type_id=dog&breed_id=chihuahua";
+    const hash = "#general";
+    const { result } = mountForBackdrop("/pets/foo", search, hash);
+    routerMock.navigate.mockClear();
+
+    act(() => {
+      result.current.handleBackdropClick();
+    });
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(
+      `/pets${search}${hash}`,
+    );
+  });
+
+  it("uses the configured space list path for an initial selected entity", () => {
+    storeMock.getSpaceConfig.mockReturnValue({ slug: "configured-pets" });
+    const search = "?view=list&sort=rating";
+    const hash = "#general";
+    const { result } = mountForBackdrop("/my/pets/current-pet", search, hash, {
+      initialSelectedEntityId: currentEntity.id,
+    });
+    routerMock.navigate.mockClear();
+
+    act(() => {
+      result.current.handleBackdropClick();
+    });
+
+    expect(storeMock.getSpaceConfig).toHaveBeenCalledWith("pet");
+    expect(routerMock.navigate).toHaveBeenCalledWith(
+      `/configured-pets${search}${hash}`,
+    );
+  });
+
+  it("closes the drawer after the backdrop click", () => {
+    const { result } = mountForBackdrop("/pets/current-pet", "", "", {
+      initialSelectedEntityId: currentEntity.id,
+    });
+
+    expect(result.current.isDrawerOpen).toBe(true);
+
+    act(() => {
+      result.current.handleBackdropClick();
+    });
+
+    expect(result.current.isDrawerOpen).toBe(false);
+  });
+
+  it("clears fullscreen state after the backdrop click", () => {
+    const { result } = mountForBackdrop("/pets/foo");
+    storeMock.clearFullscreen.mockClear();
+
+    act(() => {
+      result.current.handleBackdropClick();
+    });
+
+    expect(storeMock.clearFullscreen).toHaveBeenCalledTimes(1);
   });
 });
