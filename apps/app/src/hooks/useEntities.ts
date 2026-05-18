@@ -181,9 +181,21 @@ export function useEntities({
           duplicates: result.records.length - newRecords.length
         });
 
+        // Pagination doesn't change the authoritative server total — prefer
+        // the count returned by applyFilters when it's a real server number,
+        // otherwise keep prev. Adding `newRecords.length` to prev.total
+        // (the old behaviour) was an arithmetic guess that drifted the
+        // counter on every scroll batch — visible on /my/pets where the
+        // `totalSource` mapping count (e.g. 48) got nudged up to 56 after
+        // the second page landed.
+        const nextTotal =
+          typeof result.total === 'number' && result.total >= prev.entities.length + newRecords.length
+            ? result.total
+            : prev.total;
+
         return {
           entities: [...prev.entities, ...newRecords],
-          total: prev.total + newRecords.length
+          total: nextTotal,
         };
       });
 
@@ -293,11 +305,23 @@ export function useEntities({
         if (live && entityStore) {
           const match = buildLiveMatcher(filters, fieldConfigs);
           const sort = buildLiveSorter(orderBy);
+          // When the space defines a `totalSource` (e.g. /my/pets counts
+          // the user's mapping table, not the global pet table), live mode
+          // must read from the per-space scoped signal — subscribing to
+          // entityStore.totalFromServer would override the scoped count
+          // with the shared one on every replication tick.
+          const scopedTotalSignal = spaceId
+            ? spaceStore.getTotalCountSignalForSpace(spaceId, activeScope)
+            : null;
           const recompute = () => {
             if (!isMounted) return;
             const list = entityStore.entityList.value;
             const matched = list.filter(match).slice().sort(sort);
-            const serverTotal = entityStore.totalFromServer.value;
+            const scopedTotal = scopedTotalSignal?.value;
+            const serverTotal =
+              typeof scopedTotal === 'number'
+                ? scopedTotal
+                : entityStore.totalFromServer.value;
             setData({
               entities: matched,
               // Trust server total when known; fall back to local matched
@@ -307,9 +331,11 @@ export function useEntities({
           };
           const unsubList = entityStore.entityList.subscribe(recompute);
           const unsubTotal = entityStore.totalFromServer.subscribe(recompute);
+          const unsubScoped = scopedTotalSignal?.subscribe(recompute);
           unsubscribeLive = () => {
             unsubList();
             unsubTotal();
+            unsubScoped?.();
           };
         }
 

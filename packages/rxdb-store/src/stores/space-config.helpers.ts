@@ -175,6 +175,91 @@ export interface SpaceConfig {
   canDelete?: boolean;
   defaultFilters?: Record<string, unknown>;
   isPublic?: boolean;
+  /**
+   * Override source for the "Showing X of Y" total. Use when the entity
+   * table isn't the right place to count (e.g. /my/pets shouldn't count
+   * all 4M rows of `pet`; it should count the user's owned ∪ bred set
+   * via a mapping table). When omitted, the count falls back to the
+   * entity table — public spaces use planned counts, RLS-scoped
+   * private spaces use exact counts on the entity itself.
+   */
+  totalSource?: SpaceTotalSourceConfig;
+}
+
+export interface SpaceTotalSourceConfig {
+  /** Mapping/view table to count from (e.g. "pet_in_contact_or_offspring"). */
+  table: string;
+  /** Column on `table` to filter by — e.g. "contact_id". */
+  parentField?: string;
+  /**
+   * Where to resolve the parent value from at runtime. Currently the only
+   * supported value is "currentContactId" (userStore.currentContactId).
+   */
+  parentIdSource?: "currentContactId";
+}
+
+/**
+ * Concrete (already-resolved) parameters for the total-count query — emitted
+ * by `resolveTotalCountSource` so callers don't have to repeat the
+ * quickFilter-vs-totalSource precedence logic in three places.
+ *
+ * `parentValue` is left to the caller because resolving it requires reading
+ * a signal (e.g. `userStore.currentContactId`), and this helper lives in a
+ * dependency-free module.
+ */
+export interface ResolvedTotalCountSource {
+  table: string;
+  parentField?: string;
+  parentIdSource?: "currentContactId";
+  parentValue?: string | null;
+}
+
+/**
+ * Resolve which table the counter should count from for the current scope.
+ *
+ * Precedence:
+ *   1. quickFilter mode `table` for `activeScope` (e.g. owned → pet_in_contact)
+ *   2. space-level `totalSource` (default for all scopes, e.g. All chip)
+ *   3. null — caller falls back to the entity table itself
+ *
+ * The runtime parent value (e.g. currentContactId) is resolved here too
+ * when `userStore` is passed in — otherwise `parentValue` is left undefined
+ * and the caller must fill it.
+ */
+export function resolveTotalCountSource(
+  spaceConfig: SpaceConfig | undefined,
+  activeScope: string | null | undefined,
+  userStore?: { currentContactId: { value: string | null } },
+): ResolvedTotalCountSource | null {
+  if (!spaceConfig) return null;
+
+  const quickMode =
+    activeScope && spaceConfig.quickFilters?.modes
+      ? spaceConfig.quickFilters.modes[activeScope]
+      : undefined;
+
+  let table: string | undefined;
+  let parentField: string | undefined;
+  let parentIdSource: "currentContactId" | undefined;
+
+  if (quickMode?.table) {
+    table = quickMode.table;
+    parentField = quickMode.parentField;
+    parentIdSource = spaceConfig.quickFilters?.parentIdSource;
+  } else if (spaceConfig.totalSource?.table) {
+    table = spaceConfig.totalSource.table;
+    parentField = spaceConfig.totalSource.parentField;
+    parentIdSource = spaceConfig.totalSource.parentIdSource;
+  } else {
+    return null;
+  }
+
+  let parentValue: string | null | undefined;
+  if (parentIdSource === "currentContactId" && userStore) {
+    parentValue = userStore.currentContactId.value;
+  }
+
+  return { table, parentField, parentIdSource, parentValue };
 }
 
 export interface SpaceViewConfig {

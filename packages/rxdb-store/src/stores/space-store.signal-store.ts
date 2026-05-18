@@ -1,5 +1,5 @@
 import { signal, computed } from '@preact/signals-react';
-import type { ReadonlySignal } from '@preact/signals-react';
+import type { ReadonlySignal, Signal } from '@preact/signals-react';
 import {
   CHILD_RECORDS_STALE_MS,
   MAPPING_CACHE_STALE_MS,
@@ -32,6 +32,7 @@ import {
   getSortOptionsFromConfig,
   getViewRecordsCountFromConfig,
   resolveSpaceConfig,
+  resolveTotalCountSource,
   type SpaceConfig,
   type UiSpaceConfig,
 } from './space-config.helpers';
@@ -239,6 +240,15 @@ class SpaceStore {
   private lastAppliedFilters = new Map<string, FilterMap>();
   // Trailing-debounce timers per entityType for refreshTotalFromServer.
   private refreshTotalTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  // Per-space scoped total counts. Used only when a space has a
+  // `totalSource` override (e.g. /my/pets counts the user's mapping table).
+  // Key shape: `${spaceId}::${activeScope ?? 'default'}`. Keeping it here
+  // (not in EntityStore) is intentional — the entity store is shared across
+  // public and private spaces, so its `totalFromServer` signal cannot
+  // represent both the planner count for /pets and the mapping count for
+  // /my/pets without one space's pagination batches overwriting the other.
+  private spaceTotalCounts = new Map<string, Signal<number | null>>();
 
   // Pedigree cache - tracks which pedigrees have been loaded
   // Key: "fatherId|motherId" (sorted), Value: Set of ancestor IDs that were returned
@@ -1242,8 +1252,27 @@ class SpaceStore {
               console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
             }
           },
-          fetchFreshCount: (applyFilters) =>
-            applyFilters(
+          fetchFreshCount: (applyFilters) => {
+            // Resolution order:
+            //   1. quickFilter mode `table` for the active scope — each chip
+            //      points at its own mapping (owned → pet_in_contact, etc.),
+            //      so the counter mirrors the chip's slice.
+            //   2. space-level `totalSource` — used when no quickFilter is
+            //      active, e.g. cold load before user picks a chip.
+            //   3. fallback to the entity table itself (legacy path).
+            // (1) and (2) skip the entity-table `deleted` guard — mapping
+            // rows may not have that column.
+            const resolved = resolveTotalCountSource(spaceConfig, options?.activeScope, userStore);
+            if (resolved) {
+              let query = supabase
+                .from(resolved.table)
+                .select('*', { count: 'exact', head: true });
+              if (resolved.parentField && resolved.parentValue) {
+                query = query.eq(resolved.parentField, resolved.parentValue);
+              }
+              return applyFilters(query);
+            }
+            return applyFilters(
               supabase
                 .from(entityType)
                 .select('*', {
@@ -1254,8 +1283,24 @@ class SpaceStore {
                   head: true,
                 })
                 .or('deleted.is.null,deleted.eq.false'),
-            ),
+            );
+          },
           onCountResolved: (count, source) => {
+            // Space-scoped override: when this space resolves a per-space
+            // total source (`totalSource` or a quickFilter mode `table`),
+            // park the count in a per-space signal instead of the shared
+            // `entityStore.totalFromServer`. The shared signal is overwritten
+            // on every replication pull batch, which would oscillate the
+            // mapping-table count (e.g. /my/pets = 48) against the synced-row
+            // count from replication every time the user paginates.
+            if (
+              spaceConfig?.id &&
+              resolveTotalCountSource(spaceConfig, options?.activeScope, userStore)
+            ) {
+              this.getSpaceTotalSignal(spaceConfig.id, options?.activeScope).value = count;
+              return;
+            }
+
             if (!entityStore) {
               return;
             }
@@ -1324,10 +1369,18 @@ class SpaceStore {
       // hydrateFilteredEntities sets total to the rendered page length
       // (orderedRecords.length). For the counter we want the *server* total
       // when it has resolved — otherwise the user briefly sees "30 of 30"
-      // for a paginated set with 451 rows. Prefer entityStore.totalFromServer
-      // (instant from cache via initTotalFromCache, then reactive via Stage 4).
+      // for a paginated set with 451 rows. When the space has a `totalSource`
+      // override we read the per-space scoped signal (immune to replication
+      // overwrites on pagination), otherwise fall back to the shared
+      // entityStore.totalFromServer (instant from cache via initTotalFromCache,
+      // then reactive via Stage 4).
       const entityStore = this.entityStores.get(entityType);
-      const serverTotal = entityStore?.totalFromServer.value;
+      const scopedTotal =
+        spaceConfig?.id &&
+        resolveTotalCountSource(spaceConfig, options?.activeScope, userStore)
+          ? this.getSpaceTotalSignal(spaceConfig.id, options?.activeScope).value
+          : null;
+      const serverTotal = scopedTotal ?? entityStore?.totalFromServer.value;
       if (typeof serverTotal === 'number' && serverTotal >= hydrated.records.length) {
         return { ...hydrated, total: serverTotal };
       }
@@ -3693,8 +3746,22 @@ class SpaceStore {
           console.warn(`[SpaceStore] Failed to cache totalCount:`, e);
         }
       },
-      fetchFreshCount: (applyFilters) =>
-        applyFilters(
+      fetchFreshCount: (applyFilters) => {
+        // doRefreshTotalFromServer doesn't carry an activeScope (CRUD-driven
+        // refresh) — `resolveTotalCountSource` therefore falls through to the
+        // space-level totalSource (or null). Per-scope refresh would need
+        // activeScope plumbed through `refreshTotalFromServer(entityType)`.
+        const resolved = resolveTotalCountSource(spaceConfig, null, userStore);
+        if (resolved) {
+          let query = supabase
+            .from(resolved.table)
+            .select('*', { count: 'exact', head: true });
+          if (resolved.parentField && resolved.parentValue) {
+            query = query.eq(resolved.parentField, resolved.parentValue);
+          }
+          return applyFilters(query);
+        }
+        return applyFilters(
           supabase
             .from(entityType)
             .select('*', {
@@ -3702,13 +3769,61 @@ class SpaceStore {
               head: true,
             })
             .or('deleted.is.null,deleted.eq.false'),
-        ),
+        );
+      },
       onCountResolved: (count, source) => {
+        // Mirror the applyFilters branch: when this space resolves to a
+        // per-space total source, keep the count in the per-space scoped
+        // signal so a CRUD-triggered refresh doesn't dump a stale or
+        // wrong-shape number into the shared entity-store signal.
+        if (spaceConfig.id && resolveTotalCountSource(spaceConfig, null)) {
+          if (source === 'fresh') {
+            this.getSpaceTotalSignal(spaceConfig.id).value = count;
+          }
+          return;
+        }
         if (source === 'fresh') {
           entityStore.setTotalFromServer(count);
         }
       },
     });
+  }
+
+  /**
+   * Per-space scoped total count signal. Lazily created.
+   * Used only when a space defines `totalSource` — the shared
+   * `entityStore.totalFromServer` cannot represent counts for both public
+   * /pets (planner approx of `pet` table) and private /my/pets (mapping
+   * table) at once.
+   */
+  private getSpaceTotalSignal(
+    spaceId: string,
+    activeScope?: string | null,
+  ): Signal<number | null> {
+    const key = `${spaceId}::${activeScope ?? 'default'}`;
+    let sig = this.spaceTotalCounts.get(key);
+    if (!sig) {
+      sig = signal<number | null>(null);
+      this.spaceTotalCounts.set(key, sig);
+    }
+    return sig;
+  }
+
+  /**
+   * Public accessor for the per-space total signal — returns the signal
+   * only when the space defines `totalSource`. Live consumers (useEntities)
+   * subscribe to this instead of `entityStore.totalFromServer` so the
+   * shared signal's swings (replication batches, public-space updates)
+   * don't drag the mapping-table count.
+   */
+  getTotalCountSignalForSpace(
+    spaceId: string,
+    activeScope?: string | null,
+  ): Signal<number | null> | null {
+    const config = this.spaceConfigs.get(spaceId);
+    if (!config) return null;
+    if (!resolveTotalCountSource(config, activeScope)) return null;
+    return this.getSpaceTotalSignal(spaceId, activeScope);
   }
 }
 
