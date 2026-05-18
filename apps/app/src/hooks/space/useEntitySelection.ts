@@ -318,10 +318,15 @@ export function useEntitySelection({
     if (initialSelectedEntityId || createMode) {
       navigate(getSpaceListPath(config.entitySchemaName) || "/");
     } else {
-      const basePath = location.pathname.split("/").slice(0, 2).join("/");
+      // Strip the entity slug back to the space base. Previously this
+      // used `pathname.split('/').slice(0, 2)`, which on nested
+      // workspace paths (/my/pets/test-pet) lopped off everything after
+      // /my — landing the user on the dashboard instead of the list.
+      const basePath =
+        computeSpaceBasePath(location.pathname, config.slug) ?? "/";
       navigate(basePath);
     }
-  }, [navigate, location.pathname, initialSelectedEntityId, createMode, config.entitySchemaName]);
+  }, [navigate, location.pathname, initialSelectedEntityId, createMode, config.entitySchemaName, config.slug]);
 
   return {
     selectedEntityId,
