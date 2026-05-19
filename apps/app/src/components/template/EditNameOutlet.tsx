@@ -161,9 +161,12 @@ export function EditNameOutlet({
         </div>
       )}
 
-      {/* Action buttons - bottom right when sticky and has unsaved changes */}
+      {/* Action buttons - bottom right when sticky and has unsaved changes.
+          `bottom-2` (8px) mirrors NameOutlet so Save / Patronate / etc. sit
+          at the same vertical baseline across public and edit sticky
+          headers — Anna noticed Save was 4px lower than the heart/⋮ row. */}
       {onTop && showActionButtons && !isLoading && buttonItems.length > 0 && (
-        <div className="absolute bottom-1 right-4 sm:right-0 flex gap-1">
+        <div className="absolute bottom-2 right-4 sm:right-0 flex gap-1">
           {buttonItems.map((item) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
