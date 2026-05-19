@@ -9,7 +9,7 @@ import { useFilterManagement } from "@/hooks/space/useFilterManagement";
 import { isListEmpty } from "@/hooks/space/space-list-empty";
 import type { ResolvedReadFromConfig } from "@/hooks/space/use-entities.read-from";
 import { useQuickFilterReadFrom } from "@/hooks/space/use-quick-filter-read-from";
-import { spaceStore } from "@breedhub/rxdb-store";
+import { resolveDrawerWidth, spaceStore } from "@breedhub/rxdb-store";
 import { Signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { TooltipProvider } from "@ui/components/tooltip";
@@ -300,12 +300,29 @@ export function SpaceComponent<T extends { id: string }>({
     },
     [cardClickAction, config?.entitySchemaName, handleEntityClick],
   );
+  // Resolve effective drawer widths from spaceConfig (with legacy defaults).
+  // `/my/pets` overrides all three breakpoints (85%/75%/70%); public spaces
+  // pass nothing and keep the original 70%/60%/45rem.
+  const drawerWidth = useMemo(() => resolveDrawerWidth(config), [config]);
+
   const listShellClassName = cn(
     "relative flex flex-col cursor-default h-full min-w-0 overflow-hidden",
     needCardClass ? "fake-card" : "card-surface",
     "transition-all duration-300 ease-out",
-    !isGridView && drawerMode === "side-transparent" && "mr-[46.25rem]",
   );
+  // List margin tracks the drawer width in `side-transparent` so the list
+  // sits to the left of the always-on drawer. The legacy `mr-[46.25rem]`
+  // intentionally overshot the drawer's `w-[45rem]` by 1.25rem so a
+  // visible gap stayed between the two card surfaces — we preserve that
+  // gap explicitly here via `calc(width + 1.25rem)`. Otherwise the two
+  // cards butt up against each other and read as one slab (see Anna's
+  // /my/pets screenshot at 70% drawer).
+  const listShellStyle: React.CSSProperties =
+    !isGridView && drawerMode === "side-transparent"
+      ? {
+          marginRight: `calc(${drawerWidth.sideTransparent} + 1.25rem)`,
+        }
+      : {};
   const totalFilterValue =
     config.totalFilterKey && filters ? filters[config.totalFilterKey] : null;
   const searchPlaceholder =
@@ -340,6 +357,7 @@ export function SpaceComponent<T extends { id: string }>({
       <div className="relative h-full overflow-hidden">
         <SpaceListShell
           className={cn(listShellClassName, "transition-none")}
+          style={listShellStyle}
           headerProps={{
             title: finalConfig.title,
             viewTypes: finalConfig.viewTypes || [],
@@ -372,6 +390,7 @@ export function SpaceComponent<T extends { id: string }>({
 
         <SpaceDrawer
           drawerMode={drawerMode}
+          drawerWidth={drawerWidth}
           isDrawerOpen={false}
           isGridView={isGridView}
           needCardClass={needCardClass}
@@ -395,6 +414,7 @@ export function SpaceComponent<T extends { id: string }>({
         {!showFullscreen && (
           <SpaceListShell
             className={listShellClassName}
+            style={listShellStyle}
             headerProps={{
               title: finalConfig.title,
               viewTypes: finalConfig.viewTypes || [],
@@ -449,6 +469,7 @@ export function SpaceComponent<T extends { id: string }>({
 
         <SpaceDrawer
           drawerMode={drawerMode}
+          drawerWidth={drawerWidth}
           isDrawerOpen={isDrawerOpen}
           isGridView={isGridView}
           needCardClass={needCardClass}

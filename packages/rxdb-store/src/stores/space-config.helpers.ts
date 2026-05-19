@@ -184,6 +184,46 @@ export interface SpaceConfig {
    * private spaces use exact counts on the entity itself.
    */
   totalSource?: SpaceTotalSourceConfig;
+  /**
+   * Per-breakpoint overrides for drawer width. Keys map to the three
+   * `drawerMode` values from useSpaceLayoutState:
+   *   - `side`            — md..xl viewport, drawer overlays list (default "70%")
+   *   - `sideXl`          — xl..2xl viewport, drawer overlays list (default "60%")
+   *   - `sideTransparent` — 3xl+ viewport, drawer + list side-by-side (default "45rem")
+   * Values are CSS width strings ("85%", "720px", "45rem", etc.). Missing
+   * keys fall back to the legacy defaults so public spaces stay unchanged.
+   * Used by /my/pets to give the edit drawer significantly more room.
+   */
+  drawerWidth?: SpaceDrawerWidthConfig;
+}
+
+export interface SpaceDrawerWidthConfig {
+  side?: string;
+  sideXl?: string;
+  sideTransparent?: string;
+}
+
+export const DEFAULT_DRAWER_WIDTH: Required<SpaceDrawerWidthConfig> = {
+  side: "70%",
+  sideXl: "60%",
+  sideTransparent: "45rem",
+};
+
+/**
+ * Resolve effective drawer widths for a space — falls back to the legacy
+ * defaults per key so public spaces and any space without explicit
+ * `drawerWidth` keep their existing layout.
+ */
+export function resolveDrawerWidth(
+  spaceConfig: SpaceConfig | undefined | null,
+): Required<SpaceDrawerWidthConfig> {
+  const override = spaceConfig?.drawerWidth ?? {};
+  return {
+    side: override.side ?? DEFAULT_DRAWER_WIDTH.side,
+    sideXl: override.sideXl ?? DEFAULT_DRAWER_WIDTH.sideXl,
+    sideTransparent:
+      override.sideTransparent ?? DEFAULT_DRAWER_WIDTH.sideTransparent,
+  };
 }
 
 export interface SpaceTotalSourceConfig {
@@ -379,6 +419,7 @@ export interface RawSpaceConfig extends ConfigRecord {
   search?: boolean;
   filtersDialog?: boolean;
   quickFilters?: SpaceQuickFiltersConfig;
+  drawerWidth?: SpaceDrawerWidthConfig;
 }
 
 export interface WorkspaceConfig {
@@ -541,6 +582,7 @@ export function parseSpaceConfigurations(
         search: space.search,
         filtersDialog: space.filtersDialog,
         quickFilters: space.quickFilters,
+        drawerWidth: space.drawerWidth,
       });
       entityTypes.push(entitySchemaName);
     });

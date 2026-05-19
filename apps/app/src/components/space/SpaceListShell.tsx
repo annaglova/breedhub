@@ -6,6 +6,12 @@ import type { FilterField } from "./filters/FiltersSection";
 
 interface SpaceListShellProps<T extends { id: string }> {
   className?: string;
+  /**
+   * Inline style applied to the shell root. Used by SpaceComponent to set
+   * a config-driven `marginRight` matching the resolved drawer width in
+   * `side-transparent` mode (replaces the legacy `mr-[46.25rem]` class).
+   */
+  style?: React.CSSProperties;
   headerProps: ComponentProps<typeof SpaceHeader>;
   viewConfig: ViewConfig;
   entities: T[];
@@ -29,6 +35,7 @@ interface SpaceListShellProps<T extends { id: string }> {
 
 export function SpaceListShell<T extends { id: string }>({
   className,
+  style,
   headerProps,
   viewConfig,
   entities,
@@ -50,7 +57,7 @@ export function SpaceListShell<T extends { id: string }>({
   onBackdropClick,
 }: SpaceListShellProps<T>) {
   return (
-    <div className={className}>
+    <div className={className} style={style}>
       <SpaceHeader {...headerProps} />
 
       <div className="relative flex-1 overflow-hidden">

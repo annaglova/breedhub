@@ -43,6 +43,11 @@ export type {
   UiSpaceConfig,
   SpaceQuickFiltersConfig,
   SpaceQuickFilterMode,
+  SpaceDrawerWidthConfig,
+} from './stores/space-config.helpers';
+export {
+  DEFAULT_DRAWER_WIDTH,
+  resolveDrawerWidth,
 } from './stores/space-config.helpers';
 
 // Sync Queue Service - Queue-based push (V3)
