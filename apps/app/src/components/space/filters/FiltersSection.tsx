@@ -153,7 +153,15 @@ export function FiltersSection({
             onClickCapture={handleClickCapture}
             className="flex items-center gap-2 overflow-x-auto scrollbar-hide h-full"
             style={{
-              cursor: isDragging ? "grabbing" : undefined,
+              // Show the grab cursor only when the strip actually has
+              // somewhere to scroll — otherwise the hand reads as a false
+              // affordance over a static row. While dragging stays
+              // `grabbing` regardless.
+              cursor: isDragging
+                ? "grabbing"
+                : canScrollLeft || canScrollRight
+                  ? "grab"
+                  : undefined,
               userSelect: isDragging ? "none" : undefined,
             }}
           >
