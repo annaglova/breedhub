@@ -222,6 +222,18 @@ h6 {
     grid-template-columns: 1fr 1fr;
     column-gap: 0.75rem;
   }
+
+  /*
+   * Children of a 1fr/1fr grid default to `min-width: min-content`,
+   * which lets an input with a long pre-filled value (e.g. an FK
+   * lookup showing "MISTY MEADOW'S BALLA PER BELLA") blow the track
+   * wider than 1fr and push the whole row past the form container.
+   * `min-width: 0` lets each item shrink to the 1fr track and clip
+   * via the input's own overflow handling.
+   */
+  .form-grid > * {
+    min-width: 0;
+  }
 }
 
 /*
