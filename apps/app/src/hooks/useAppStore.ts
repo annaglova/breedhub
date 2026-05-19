@@ -75,19 +75,45 @@ export function useCurrentWorkspace(pathname: string) {
 
 /**
  * Get spaces for the current workspace
+ *
+ * Resolution order:
+ *   1. Explicit `workspacePath` arg (legacy).
+ *   2. `?from=<workspaceId>` URL token — set by link emitters when the user
+ *      jumps to a slug-only detail page (e.g. /test-pet?from=my) so the
+ *      sidebar keeps showing the originating workspace's menu instead of
+ *      defaulting to home.
+ *   3. Pathname prefix match (`/my/...` → my, etc.).
  */
 export function useWorkspaceSpaces(workspacePath?: string) {
   const { workspaces } = useAppWorkspaces();
   const location = useLocation();
-  
+
+  // Honor the ?from= origin token before pathname matching — without this
+  // /test-pet?from=my would still resolve to the home workspace because the
+  // URL pathname doesn't start with /my.
+  const fromWorkspaceId = workspacePath
+    ? null
+    : new URLSearchParams(location.search).get('from');
+  const workspaceFromToken = fromWorkspaceId
+    ? workspaces.find((w) => w.id === fromWorkspaceId)
+    : null;
+
   // Determine which workspace we're in
   const path = workspacePath || location.pathname;
-  const workspace = workspaces.find(w => {
-    if (path === w.path) return true;
-    if (path.startsWith(w.path) && w.path !== '/') return true;
-    if (w.path === '/' && !workspaces.some(ws => ws.path !== '/' && path.startsWith(ws.path))) return true;
-    return false;
-  });
+  const workspaceFromPath = workspaceFromToken
+    ? null
+    : workspaces.find((w) => {
+        if (path === w.path) return true;
+        if (path.startsWith(w.path) && w.path !== '/') return true;
+        if (
+          w.path === '/' &&
+          !workspaces.some((ws) => ws.path !== '/' && path.startsWith(ws.path))
+        )
+          return true;
+        return false;
+      });
+
+  const workspace = workspaceFromToken ?? workspaceFromPath;
 
   // Get spaces from workspace config
   const spaces = workspace?.spaces || [];

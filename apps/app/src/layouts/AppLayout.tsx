@@ -17,7 +17,11 @@ export function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Hide sidebar menu on 3xl in fullscreen mode
+  // Workspace navigation stays visible on every page — fullscreen detail
+  // pages no longer hide it. Direct shared links default to the public
+  // workspace menu via useWorkspaceSpaces' fallback; pages opened with
+  // `?from=<workspaceId>` keep the originating workspace's menu. The
+  // `isFullscreen` signal is still used below for layout sizing decisions.
   const isFullscreen = spaceStore.isFullscreen.value;
   const [screenHeight, setScreenHeight] = useState(window.innerHeight);
   const [topBarHeight, setTopBarHeight] = useState(0);
@@ -65,10 +69,8 @@ export function AppLayout() {
       {/* Main wrapper with sidebar and content */}
       <div className="flex flex-1 min-h-0">
         {/* Sidebar - starts from top, hidden on 3xl (replaced by menu in content) */}
-        {/* In fullscreen mode: show logo only, hide menu */}
         <Sidebar
           isCollapsed={!isSidebarOpen}
-          hideMenu={isFullscreen}
           className={cn(
             "h-full z-20 shrink-0",
             "hidden lg:block 3xl:hidden",
@@ -103,10 +105,10 @@ export function AppLayout() {
           <div className="flex flex-1 overflow-hidden lg:pr-5 3xl:pr-0 3xl:justify-center">
             {/* Content container with max-width */}
             <div className="flex flex-1 min-w-0 3xl:flex-initial 3xl:w-full 3xl:max-w-[2016px]">
-              {/* Left menu column - only on 3xl, empty in fullscreen */}
+              {/* Left menu column - only on 3xl */}
               {is3XL && (
                 <div className="hidden w-64 pr-5 3xl:block shrink-0">
-                  {!isFullscreen && <Sidebar isCollapsed={false} asMenu />}
+                  <Sidebar isCollapsed={false} asMenu />
                 </div>
               )}
 
