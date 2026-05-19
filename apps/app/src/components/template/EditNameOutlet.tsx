@@ -160,7 +160,7 @@ export function EditNameOutlet({
           same-shape skeleton during cold-load so the sticky header doesn't
           show real arrows next to a still-skeletoned name. */}
       {onTop && (
-        <div className="absolute right-4 sm:right-0 top-0">
+        <div className="absolute right-4 sm:right-0 top-4 sm:top-0">
           {isLoading ? (
             <NavigationButtonsSkeleton mode="default" />
           ) : (
