@@ -149,6 +149,14 @@ export interface SpaceQuickFiltersConfig {
 
 export interface SpaceConfig {
   id: string;
+  /**
+   * Semantic id of the workspace this space belongs to ("home", "my",
+   * "marketplace"). Used as the value of `?from=` query params so links
+   * stay readable (`/test-pet?from=my`) instead of leaking the timestamp
+   * spaceId. Resolvers then combine `from` + `entitySchemaName` to find
+   * the right space — semantic ids are stable across config rebuilds.
+   */
+  workspaceId?: string;
   icon?: string;
   slug?: string;
   path?: string;
@@ -382,6 +390,11 @@ export interface RawSpaceConfig extends ConfigRecord {
 }
 
 export interface WorkspaceConfig {
+  /**
+   * Semantic id ("home", "my", "marketplace"). Stable across config rebuilds;
+   * used as the `?from=` token in URLs (`/test-pet?from=my`).
+   */
+  id?: string;
   spaces?: Record<string, RawSpaceConfig>;
   isPublic?: boolean;
 }
@@ -467,10 +480,15 @@ export function parseSpaceConfigurations(
   const spaceConfigs = new Map<string, SpaceConfig>();
   const entitySchemas = buildEntitySchemasMap(appConfig);
 
-  Object.entries(appConfig.workspaces).forEach(([, workspace]) => {
+  Object.entries(appConfig.workspaces).forEach(([workspaceKey, workspace]) => {
     if (!workspace.spaces) {
       return;
     }
+
+    // Prefer the semantic workspace.id ("home", "my") so URL `?from=` tokens
+    // stay stable across config rebuilds. Fall back to the raw object key
+    // (timestamp) only when the workspace record is missing the id.
+    const workspaceId = workspace.id ?? workspaceKey;
 
     Object.entries(workspace.spaces).forEach(([spaceKey, space]) => {
       if (!space.entitySchemaName) {
@@ -519,6 +537,7 @@ export function parseSpaceConfigurations(
       // consumer of spaceConfigs.get() sees one config across both spaces.
       spaceConfigs.set(spaceId, {
         id: spaceId,
+        workspaceId,
         icon: space.icon,
         slug: space.slug || space.path?.replace(/^\//, ""),
         path: space.path,

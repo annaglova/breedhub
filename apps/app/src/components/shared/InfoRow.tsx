@@ -1,5 +1,6 @@
 import type React from "react";
 import { SmartLink } from "./SmartLink";
+import { useSpaceConfigOptional } from "@/contexts/SpaceContext";
 
 /**
  * InfoRow - Single row in an info grid (icon + label + value)
@@ -70,9 +71,22 @@ export interface LinkEntity {
  * Used across GeneralTab components for father, mother, breeder, kennel links.
  */
 export function EntityLink({ entity }: { entity?: LinkEntity }) {
+  // Read space context (no-throw) so we can carry origin into the link.
+  // When EntityLink is rendered inside a workspace (e.g. /my/pets edit
+  // form's owner field), the link to a related entity preserves
+  // `?from=<workspaceId>` so the destination resolver can keep the user in
+  // their original workspace (menu + the matching edit form). Direct
+  // shared links (no space context) emit plain pretty URLs.
+  const spaceConfig = useSpaceConfigOptional();
+  const currentFromToken = (spaceConfig?.workspaceId ?? spaceConfig?.id) as string | undefined;
+
   if (!entity) return <span className="text-muted-foreground">—</span>;
 
-  const url = entity.slug ? `/${entity.slug}` : entity.url;
+  const baseUrl = entity.slug ? `/${entity.slug}` : entity.url;
+  const url =
+    baseUrl && entity.slug && currentFromToken
+      ? `${baseUrl}?from=${encodeURIComponent(currentFromToken)}`
+      : baseUrl;
 
   if (url) {
     return <SmartLink to={url}>{entity.name}</SmartLink>;
