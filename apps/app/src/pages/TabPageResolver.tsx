@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { navigationHistoryStore, spaceStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 import { RouteResolutionError } from './RouteResolutionError';
@@ -30,7 +30,6 @@ import { getResolvedEntityName, useResolvedRoute } from './route-resolution';
 export function TabPageResolver() {
   const { slug, tabSlug } = useParams<{ slug: string; tabSlug: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { resolvedRoute, error, isResolving } = useResolvedRoute(slug);
 
   useEffect(() => {
@@ -82,20 +81,11 @@ export function TabPageResolver() {
     return <ResolverShell />;
   }
 
-  // Read `?from=<workspaceId>` so a tab-fullscreen view opened from a
-  // private space (e.g. /my/pets) still resolves to the private space's
-  // page config. Missing/unknown `from` defaults to entityType-only lookup.
-  const fromWorkspace = searchParams.get('from');
-  const spaceMatch = fromWorkspace
-    ? spaceStore.getSpaceByWorkspaceAndEntity(fromWorkspace, resolvedRoute.entity)
-    : null;
-
-  // Render SpacePage with tabSlug — SpacePage handles store initialization
-  // and renders TabPageTemplate when tabSlug is provided.
+  // Render SpacePage with tabSlug - SpacePage handles store initialization
+  // and renders TabPageTemplate when tabSlug is provided
   return (
     <SpacePage
       entityType={resolvedRoute.entity}
-      spaceId={spaceMatch?.id}
       selectedEntityId={resolvedRoute.entity_id}
       selectedPartitionId={resolvedRoute.entity_partition_id}
       selectedSlug={slug}

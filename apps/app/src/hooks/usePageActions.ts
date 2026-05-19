@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dictionaryStore, toast, generateSlug, getPartitionFieldForEntity } from '@breedhub/rxdb-store';
 import { noteDialogStore } from '@/stores/note-dialog.store';
-import { useSpaceConfigOptional } from '@/contexts/SpaceContext';
 
 interface NavigateToTabParams {
   tab: string;
@@ -26,16 +25,6 @@ export function usePageActions(
   entityType?: string,
 ) {
   const navigate = useNavigate();
-  // Read current space config so contextual transitions (e.g. clicking Edit)
-  // can preserve which workspace the user is currently inside. Used to build
-  // `?from=<workspaceId>` on the edit URL so the resolver binds the right
-  // (public vs private) edit form — without it, EditPageResolver falls
-  // through to entityType-only lookup and always lands on the public
-  // (trimmed) edit form. Workspace id ("home", "my") is preferred over
-  // timestamp spaceId so URLs stay human-readable.
-  const spaceConfig = useSpaceConfigOptional();
-  const currentFromToken = (spaceConfig?.workspaceId ?? spaceConfig?.id) as string | undefined;
-
   const getSlug = useCallback(() => {
     return entity?.slug || (entity?.name && entity?.id ? generateSlug(entity.name, entity.id) : null);
   }, [entity]);
@@ -46,9 +35,8 @@ export function usePageActions(
       console.warn('[PageActions] Edit: missing entity slug and name');
       return;
     }
-    const fromParam = currentFromToken ? `?from=${encodeURIComponent(currentFromToken)}` : '';
-    navigate(`/${slug}/edit${fromParam}`);
-  }, [getSlug, navigate, currentFromToken]);
+    navigate(`/${slug}/edit`);
+  }, [getSlug, navigate]);
 
   const handleCopyLink = useCallback(() => {
     const slug = getSlug();

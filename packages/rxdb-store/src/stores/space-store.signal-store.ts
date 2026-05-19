@@ -462,21 +462,6 @@ class SpaceStore {
   }
 
   /**
-   * Resolve a space by (workspaceId, entityType) — used by route resolvers
-   * that read the `?from=<workspaceId>` URL token. Returns null when no
-   * space matches; the caller then falls back to entityType-only lookup
-   * (i.e. public-first). Workspace ids are semantic ("home", "my"), so
-   * they survive config rebuilds — unlike the timestamp spaceId.
-   */
-  getSpaceByWorkspaceAndEntity(
-    workspaceId: string,
-    entityType: string,
-  ): SpaceConfig | null {
-    const matches = this.getSpacesForEntityType(entityType);
-    return matches.find((s) => s.workspaceId === workspaceId) ?? null;
-  }
-
-  /**
    * Get records count for specific view
    * This determines BOTH UI pagination AND replication batch size
    *

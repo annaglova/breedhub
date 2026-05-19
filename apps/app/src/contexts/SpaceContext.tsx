@@ -91,15 +91,3 @@ export function useSelectedEntity() {
   const { selectedEntitySignal } = useSpaceContext();
   return selectedEntitySignal?.value;
 }
-
-/**
- * useSpaceConfigOptional - Non-throwing variant for components rendered both
- * inside and outside a space (e.g. shared EntityLink). Returns the current
- * spaceConfig value, or null when no provider is mounted. Caller decides how
- * to behave without space context — typically "fall through to public space"
- * by emitting links without a `?from=` parameter.
- */
-export function useSpaceConfigOptional() {
-  const context = useContext(SpaceContext);
-  return context?.spaceConfigSignal?.value ?? null;
-}
