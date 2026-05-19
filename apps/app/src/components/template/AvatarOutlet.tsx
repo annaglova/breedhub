@@ -146,7 +146,13 @@ export function AvatarOutlet({
 
   return (
     <div
-      className={`${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-0 sm:pb-3 top-0 ${isLoading ? "z-[55]" : "z-30"} pointer-events-none px-4 sm:px-0 ${className}`}
+      // `adaptive-action-container` marks this row as a container query
+      // root so the Save / Edit / Delete buttons below collapse to round
+      // icons when the drawer is narrow and stretch to icon+label when
+      // there's room (see `.adaptive-action-btn` in index.css). Without
+      // this the buttons relied on the viewport `sm:` breakpoint, which
+      // got Save wrong whenever the drawer was narrower than 640px.
+      className={`adaptive-action-container ${avatarConfig.offset} ${avatarConfig.padding} flex flex-auto items-end relative pb-0 sm:pb-3 top-0 ${isLoading ? "z-[55]" : "z-30"} pointer-events-none px-4 sm:px-0 ${className}`}
     >
       {/* Avatar skeleton — structurally identical to EntityAvatar (white
           `p-1` frame on the outside, inner shadowed circle for the image
@@ -189,18 +195,22 @@ export function AvatarOutlet({
             />
           ) : (
             <>
-          {/* Buttons from config (duplicateOnDesktop items) - icon only on mobile, with label on sm+ */}
+          {/* Buttons from config — width/padding/label visibility driven by
+              the `.adaptive-action-btn` + `.adaptive-action-btn-label` CSS
+              classes (container-query in index.css). The button collapses to
+              a round icon when the drawer is narrow and stretches with text
+              when there's room — viewport size is irrelevant. */}
           {buttonItems.map((item) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline-secondary"
-                  className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base"
+                  className="adaptive-action-btn rounded-full h-[2.25rem] text-base"
                   onClick={() => item.authRequired ? navigateToSignIn() : executeAction(item.action, item.actionParams)}
                   type="button"
                 >
                   <Icon icon={item.icon} size={16} />
-                  <span className="hidden sm:inline ml-2">{item.label}</span>
+                  <span className="adaptive-action-btn-label">{item.label}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">

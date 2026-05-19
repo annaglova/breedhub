@@ -84,7 +84,7 @@ export function EditNameOutlet({
 
   return (
     <div
-      className={`relative bg-card-ground px-4 sm:px-0 pt-4 sm:pt-0 pb-3 ${
+      className={`adaptive-action-container relative bg-card-ground px-4 sm:px-0 pt-4 sm:pt-0 pb-3 ${
         onTop ? "border-b border-surface-border" : ""
       }`}
     >
@@ -172,12 +172,18 @@ export function EditNameOutlet({
               <TooltipTrigger asChild>
                 <Button
                   variant="outline-secondary"
-                  className="rounded-full h-[2.25rem] w-[2.25rem] sm:w-auto sm:px-4 text-base font-semibold"
+                  // Width / padding / label visibility are driven by the
+                  // `.adaptive-action-btn` + `.adaptive-action-btn-label` CSS
+                  // classes (container-query in index.css), so the button
+                  // collapses to a round icon when the drawer is narrow
+                  // and stretches with text when there's room — viewport
+                  // size is irrelevant.
+                  className="adaptive-action-btn rounded-full h-[2.25rem] text-base font-semibold"
                   onClick={() => executeAction(item.action, item.actionParams)}
                   type="button"
                 >
                   <Icon icon={item.icon} size={16} />
-                  <span className="hidden sm:inline ml-2">{item.label}</span>
+                  <span className="adaptive-action-btn-label">{item.label}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">{item.label}</TooltipContent>

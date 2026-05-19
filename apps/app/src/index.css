@@ -223,3 +223,42 @@ h6 {
     column-gap: 0.75rem;
   }
 }
+
+/*
+ * Adaptive action buttons (Save in cover/AvatarOutlet, sticky NameOutlet,
+ * dialogs, etc.) flip between round-icon and icon+label based on their
+ * own container width instead of the viewport `sm:` breakpoint. Without
+ * this Save stays a round circle whenever the viewport is < 640px even
+ * though the drawer might be 700px wide, and vice-versa stretches text
+ * into a drawer too narrow to hold it.
+ *
+ * Threshold 400px is the smallest container in which a single button
+ * with icon + label + the 8px gap to the next button still looks
+ * comfortable; below it we collapse to icon-only.
+ */
+.adaptive-action-container {
+  container-type: inline-size;
+}
+
+.adaptive-action-btn {
+  width: 2.25rem;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.adaptive-action-btn-label {
+  display: none;
+}
+
+@container (min-width: 400px) {
+  .adaptive-action-btn {
+    width: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .adaptive-action-btn-label {
+    display: inline;
+    margin-left: 0.5rem;
+  }
+}
