@@ -204,7 +204,18 @@ export function HorizontalScrollbar({
           }}
           onMouseDown={handleThumbMouseDown}
           onClick={(e) => e.stopPropagation()}
-        />
+        >
+          {/* Invisible hit-area extension — adds ~12px above/below the
+              visible 6px thumb so the grab target reaches ~30px tall
+              without shifting any layout. Picks up mouse events on its
+              own so the parent's handlers fire via bubble. */}
+          <div
+            className={cn(
+              "absolute -inset-y-3 inset-x-0 cursor-grab",
+              isDragging && "cursor-grabbing"
+            )}
+          />
+        </div>
       </div>
     </div>
   );
