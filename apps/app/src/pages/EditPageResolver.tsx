@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { spaceStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 import { RouteResolutionError } from './RouteResolutionError';
@@ -11,11 +11,15 @@ import { useResolvedRoute } from './route-resolution';
  *
  * Handles URLs like /my-pet-name/edit by:
  * 1. Resolving :slug via RouteStore to get entity type and ID
- * 2. Setting fullscreen mode in store
- * 3. Rendering SpacePage with editMode=true
+ * 2. Reading `?from=<workspaceId>` to pick the right space (so a private
+ *    /my/pets edit lands on the private edit form, not the public trimmed
+ *    one). Missing/unknown `from` falls through to entityType-only lookup.
+ * 3. Setting fullscreen mode in store
+ * 4. Rendering SpacePage with editMode=true
  */
 export function EditPageResolver() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
   const { resolvedRoute, error, isResolving } = useResolvedRoute(slug);
 
   useEffect(() => {
@@ -34,9 +38,15 @@ export function EditPageResolver() {
     return <ResolverShell />;
   }
 
+  const fromWorkspace = searchParams.get('from');
+  const spaceMatch = fromWorkspace
+    ? spaceStore.getSpaceByWorkspaceAndEntity(fromWorkspace, resolvedRoute.entity)
+    : null;
+
   return (
     <SpacePage
       entityType={resolvedRoute.entity}
+      spaceId={spaceMatch?.id}
       selectedEntityId={resolvedRoute.entity_id}
       selectedPartitionId={resolvedRoute.entity_partition_id}
       selectedPartitionField={resolvedRoute.partition_field}

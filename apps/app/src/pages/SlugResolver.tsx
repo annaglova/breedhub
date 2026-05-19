@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { navigationHistoryStore, spaceStore } from '@breedhub/rxdb-store';
 import { SpacePage } from './SpacePage';
 import { RouteResolutionError } from './RouteResolutionError';
@@ -29,6 +29,7 @@ import { getResolvedEntityName, useResolvedRoute } from './route-resolution';
  */
 export function SlugResolver() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
   const { resolvedRoute, error, isResolving } = useResolvedRoute(slug);
 
   useEffect(() => {
@@ -70,11 +71,20 @@ export function SlugResolver() {
     return <ResolverShell />;
   }
 
-  // Render SpacePage directly with pre-selected entity
-  // URL stays as /{slug}#{tab} - no redirect!
+  // Render SpacePage directly with pre-selected entity.
+  // Read `?from=<workspaceId>` to keep the user inside their original
+  // workspace (matters for menu visibility + edit form binding). Without
+  // `from`, SpaceStore falls back to entityType-only lookup (public space).
+  const fromWorkspace = searchParams.get('from');
+  const spaceMatch = fromWorkspace
+    ? spaceStore.getSpaceByWorkspaceAndEntity(fromWorkspace, resolvedRoute.entity)
+    : null;
+
+  // URL stays as /{slug}#{tab} — no redirect!
   return (
     <SpacePage
       entityType={resolvedRoute.entity}
+      spaceId={spaceMatch?.id}
       selectedEntityId={resolvedRoute.entity_id}
       selectedPartitionId={resolvedRoute.entity_partition_id}
       selectedPartitionField={resolvedRoute.partition_field}
