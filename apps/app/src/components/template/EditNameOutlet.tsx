@@ -125,7 +125,15 @@ export function EditNameOutlet({
             <span className="uppercase">{entityTypeLabel}</span>
           )}
         </div>
-        <div className="truncate py-0.5 text-2xl sm:text-3xl font-bold">
+        {/* When sticky we reserve room for the action button row
+            (`bottom-2 right-0`) so the name's truncate engages before it
+            slides under Save. `pr-28` ≈ 7rem ≈ widest Save state (icon+
+            label ~97px) + an 8px breathing gap. */}
+        <div
+          className={`truncate py-0.5 text-2xl sm:text-3xl font-bold ${
+            onTop ? "pr-28" : ""
+          }`}
+        >
           {slug ? (
             <a
               href={`/${slug}`}

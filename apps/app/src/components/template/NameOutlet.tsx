@@ -129,7 +129,12 @@ export function NameOutlet({
 
   return (
     <div
-      className={`relative bg-card-ground px-4 sm:px-0 pt-4 sm:pt-0 ${
+      // `adaptive-action-container` doubles as the container-query root
+      // for the entity name (PetName/BreedName/...) rendered as children
+      // below — so the name's font-size and truncation react to this
+      // outlet's own width, not the viewport. Public sticky + non-sticky
+      // both go through this slot.
+      className={`adaptive-action-container relative bg-card-ground px-4 sm:px-0 pt-4 sm:pt-0 ${
         onTop ? "border-b border-surface-border" : ""
       } ${className}`}
     >
