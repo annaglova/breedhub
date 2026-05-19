@@ -192,3 +192,34 @@ h6 {
 .modal-actions {
   @apply mt-6 grid grid-cols-2 gap-3;
 }
+
+/*
+ * Form-grid container queries
+ *
+ * FormGroupLayout + EditFormSkeleton used to switch between 1-col and
+ * 2-col on the viewport `sm:` breakpoint (640px). That broke as soon as
+ * the form lived inside a narrow drawer — 1024px viewport hits `sm:`
+ * but the actual drawer is ~537px, squeezing two columns of inputs into
+ * ~236px each. The fix routes the breakpoint through the form's own
+ * container width instead.
+ *
+ * Threshold 560px chosen so `side` drawer mode on a 1024 viewport
+ * (Anna's failure case) collapses to single-column; on `side-transparent`
+ * (≥ 1536) or fullscreen the drawer is wide enough to stay 2-col.
+ */
+.form-grid-container {
+  container-type: inline-size;
+}
+
+.form-grid {
+  display: block;
+  row-gap: 0.25rem;
+}
+
+@container (min-width: 560px) {
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 0.75rem;
+  }
+}

@@ -24,8 +24,10 @@ export function FormGroupLayout({ layout, fields, renderField }: FormGroupLayout
     return (
       <>
         {fullWidthFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
-        <div className="sm:grid sm:grid-cols-2 sm:gap-x-3 gap-y-1">
-          {regularFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
+        <div className="form-grid-container">
+          <div className="form-grid">
+            {regularFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
+          </div>
         </div>
       </>
     );
@@ -39,12 +41,14 @@ export function FormGroupLayout({ layout, fields, renderField }: FormGroupLayout
   return (
     <>
       {fullWidthFields.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
-      <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
-        <div className="space-y-1">
-          {leftCol.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
-        </div>
-        <div className="space-y-1">
-          {rightCol.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
+      <div className="form-grid-container">
+        <div className="form-grid">
+          <div className="space-y-1">
+            {leftCol.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
+          </div>
+          <div className="space-y-1">
+            {rightCol.map(([fieldId, field]) => <React.Fragment key={fieldId}>{renderField(fieldId, field)}</React.Fragment>)}
+          </div>
         </div>
       </div>
     </>

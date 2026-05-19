@@ -67,26 +67,30 @@ function GroupSkeleton({
 
       {regularFields.length > 0 && (
         layout === "horizontal" ? (
-          <div className="sm:grid sm:grid-cols-2 sm:gap-x-3 gap-y-1">
-            {regularFields.map(([fieldId]) => (
-              <FieldPlaceholder key={fieldId} />
-            ))}
+          <div className="form-grid-container">
+            <div className="form-grid">
+              {regularFields.map(([fieldId]) => (
+                <FieldPlaceholder key={fieldId} />
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="sm:grid sm:grid-cols-2 sm:gap-x-3">
-            <div className="space-y-1">
-              {regularFields
-                .slice(0, Math.ceil(regularFields.length / 2))
-                .map(([fieldId]) => (
-                  <FieldPlaceholder key={fieldId} />
-                ))}
-            </div>
-            <div className="space-y-1">
-              {regularFields
-                .slice(Math.ceil(regularFields.length / 2))
-                .map(([fieldId]) => (
-                  <FieldPlaceholder key={fieldId} />
-                ))}
+          <div className="form-grid-container">
+            <div className="form-grid">
+              <div className="space-y-1">
+                {regularFields
+                  .slice(0, Math.ceil(regularFields.length / 2))
+                  .map(([fieldId]) => (
+                    <FieldPlaceholder key={fieldId} />
+                  ))}
+              </div>
+              <div className="space-y-1">
+                {regularFields
+                  .slice(Math.ceil(regularFields.length / 2))
+                  .map(([fieldId]) => (
+                    <FieldPlaceholder key={fieldId} />
+                  ))}
+              </div>
             </div>
           </div>
         )
